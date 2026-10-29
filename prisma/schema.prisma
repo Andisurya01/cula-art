@@ -1,0 +1,469 @@
+// Galeri & Studio Karya — lihat docs/PRD.md bagian "Model data".
+// PostgreSQL di dev, test (galeri_test), dan produksi.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Medium {
+  DRAWING
+  CLAY
+  MIXED
+}
+
+enum IdeaStatus {
+  NEW
+  PICKED
+  ARCHIVED
+}
+
+enum ContentStage {
+  PLANNING
+  PRODUCTION
+  EDITING
+  READY
+  POSTED
+}
+
+enum Platform {
+  TIKTOK
+  INSTAGRAM
+}
+
+enum PostType {
+  VIDEO
+  REEL
+  CAROUSEL
+  STORY
+}
+
+enum SnapshotKind {
+  H1
+  H7
+  CUSTOM
+}
+
+enum ProjectStage {
+  PLANNING
+  IN_PROGRESS
+  DONE
+  PAUSED
+}
+
+enum ExperimentResult {
+  SUPPORTED
+  REJECTED
+  INCONCLUSIVE
+}
+
+enum Variant {
+  A
+  B
+}
+
+enum ArtworkVisibility {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Availability {
+  NOT_FOR_SALE // Koleksi pribadi
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+model Pillar {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  color       String
+  targetShare Int       @default(0) // persen
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  ideas       Idea[]
+  contents    Content[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Format {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  contents  Content[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model HookType {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  contents  Content[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ChecklistTemplateItem {
+  id        String   @id @default(cuid())
+  label     String   @unique
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id        String         @id @default(cuid())
+  title     String
+  medium    Medium
+  stage     ProjectStage   @default(PLANNING)
+  startDate DateTime?
+  endDate   DateTime?
+  notes     String?
+  contents  Content[]
+  photos    ProjectPhoto[]
+  artworks  Artwork[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+// Foto progres: lewat URL (Fase 1) atau unggahan (storageKey + ukuran, mulai Fase 2).
+model ProjectPhoto {
+  id         String    @id @default(cuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url        String?
+  storageKey String?   @unique
+  width      Int?
+  height     Int?
+  caption    String?
+  takenAt    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([projectId])
+}
+
+model Idea {
+  id        String     @id @default(cuid())
+  title     String
+  notes     String?
+  medium    Medium?
+  potential Int? // 1-5
+  effort    Int? // 1-5
+  status    IdeaStatus @default(NEW)
+  refUrl    String?
+  pillarId  String?
+  pillar    Pillar?    @relation(fields: [pillarId], references: [id], onDelete: Restrict)
+  content   Content?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status])
+}
+
+model Content {
+  id                String           @id @default(cuid())
+  title             String
+  ideaId            String?          @unique
+  idea              Idea?            @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  projectId         String?
+  project           Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  seriesPart        Int?
+  pillarId          String
+  pillar            Pillar           @relation(fields: [pillarId], references: [id])
+  formatId          String?
+  format            Format?          @relation(fields: [formatId], references: [id], onDelete: Restrict)
+  hookTypeId        String?
+  hookType          HookType?        @relation(fields: [hookTypeId], references: [id], onDelete: Restrict)
+  hookText          String?
+  script            String?
+  shotList          String?
+  targetDurationSec Int?
+  stage             ContentStage     @default(PLANNING)
+  stageChangedAt    DateTime         @default(now())
+  checklist         ChecklistItem[]
+  posts             Post[]
+  artworks          ArtworkContent[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([stage])
+  @@index([projectId])
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  label     String
+  done      Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contentId])
+}
+
+model Post {
+  id          String           @id @default(cuid())
+  contentId   String
+  content     Content          @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  platform    Platform
+  postType    PostType
+  caption     String?
+  hashtags    String?
+  scheduledAt DateTime?
+  postedAt    DateTime?
+  url         String?
+  durationSec Int?
+  snapshots   MetricSnapshot[]
+  experiments ExperimentPost[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([contentId, platform])
+  @@index([scheduledAt])
+  @@index([postedAt])
+}
+
+// Aturan "postId + kind unik kecuali CUSTOM" ditegakkan di Server Action,
+// karena Prisma 6 belum mendukung partial unique index di schema.
+model MetricSnapshot {
+  id             String       @id @default(cuid())
+  postId         String
+  post           Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  kind           SnapshotKind
+  recordedAt     DateTime     @default(now())
+  views          Int          @default(0)
+  likes          Int          @default(0)
+  comments       Int          @default(0)
+  shares         Int          @default(0)
+  saves          Int          @default(0)
+  follows        Int          @default(0)
+  avgWatchSec    Float?
+  completionRate Float? // 0-100
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([postId, kind])
+}
+
+model AccountSnapshot {
+  id        String   @id @default(cuid())
+  platform  Platform
+  date      DateTime // tanggal WIB, disimpan sebagai 00.00 WIB dalam UTC
+  followers Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([platform, date])
+}
+
+model Experiment {
+  id             String            @id @default(cuid())
+  hypothesis     String
+  variable       String
+  decidingMetric String
+  result         ExperimentResult?
+  notes          String?
+  posts          ExperimentPost[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model ExperimentPost {
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  postId       String
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  variant      Variant
+  createdAt    DateTime   @default(now())
+
+  @@id([experimentId, postId])
+}
+
+model WeeklyReview {
+  id          String   @id @default(cuid())
+  weekStart   DateTime @unique // Senin 00.00 WIB dalam UTC
+  wins        String?
+  repeat      String?
+  stop        String?
+  focusNext   String?
+  summaryJson String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Satu baris. Kolom *Json berisi JSON string (divalidasi Zod di src/features/settings/schema.ts).
+model Setting {
+  id                 String   @id @default("default")
+  weeklyPostTarget   Int      @default(3)
+  postingSlotsJson   String   @default("[]")
+  scoreWeightsJson   String   @default("{}")
+  tiktokHandle       String?
+  igHandle           String?
+  followerTargetJson String?
+  // Profil publik Galeri (field kosong tidak ditampilkan).
+  siteName           String   @default("Galeri & Studio Karya")
+  tagline            String?
+  bio                String? // singkat: Beranda Galeri
+  aboutText          String? // panjang: halaman Tentang (perjalanan belajar)
+  avatarKey          String? // storageKey foto profil
+  city               String?
+  whatsapp           String? // format 62…
+  contactEmail       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Auth Studio (satu pemilik). Lihat docs/PRD.md bagian "Autentikasi dan keamanan".
+// ---------------------------------------------------------------------------
+
+enum LoginChallengeKind {
+  VERIFY // password benar, menunggu kode 2FA atau kode pemulihan
+  SETUP // login pertama: password benar, menunggu konfirmasi setup 2FA
+}
+
+model AdminUser {
+  id                 String           @id @default(cuid())
+  email              String           @unique // huruf kecil
+  passwordHash       String // scrypt$N$r$p$salt$hash
+  passwordChangedAt  DateTime         @default(now())
+  totpSecret         String? // base32; null = 2FA belum di-setup
+  totpLastStep       Int? // langkah TOTP terakhir yang diterima (anti-replay)
+  recoveryCodeHashes String[] // sha256 kode pemulihan yang belum dipakai
+  sessions           Session[]
+  challenges         LoginChallenge[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+// Cookie berisi token acak; DB hanya menyimpan sha256-nya.
+model Session {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  lastUsedAt  DateTime  @default(now())
+  userAgent   String?
+  ip          String?
+  createdAt   DateTime  @default(now())
+
+  @@index([adminUserId])
+  @@index([expiresAt])
+}
+
+// Tahap antara "password benar" dan "sesi penuh" (berlaku 10 menit, cookie terpisah).
+model LoginChallenge {
+  id                String             @id @default(cuid())
+  tokenHash         String             @unique
+  adminUserId       String
+  adminUser         AdminUser          @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  kind              LoginChallengeKind
+  pendingTotpSecret String? // hanya untuk SETUP
+  expiresAt         DateTime
+  createdAt         DateTime           @default(now())
+
+  @@index([adminUserId])
+}
+
+// Dasar pembatasan login: key = "ip:<alamat>" atau "email:<email>".
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Karya untuk Galeri. Data publik hanya dibaca lewat src/features/gallery/queries.ts.
+// ---------------------------------------------------------------------------
+
+model Artwork {
+  id            String                @id @default(cuid())
+  slug          String                @unique // huruf kecil, angka, tanda hubung
+  title         String
+  summary       String?
+  description   String?
+  medium        Medium? // wajib saat terbit
+  year          Int? // tahun selesai; wajib saat terbit
+  widthCm       Float?
+  heightCm      Float?
+  depthCm       Float?
+  materials     String?
+  weightGram    Int?
+  projectId     String?
+  project       Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  visibility    ArtworkVisibility     @default(DRAFT)
+  availability  Availability          @default(NOT_FOR_SALE)
+  priceIdr      Int? // Rupiah bulat
+  showPrice     Boolean               @default(false) // false = "Harga atas permintaan"
+  isFeatured    Boolean               @default(false)
+  featuredOrder Int                   @default(0)
+  publishedAt   DateTime?
+  images        ArtworkImage[]
+  contents      ArtworkContent[]
+  slugRedirects ArtworkSlugRedirect[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([visibility, publishedAt])
+  @@index([visibility, isFeatured, featuredOrder])
+  @@index([projectId])
+}
+
+// File ikut dihapus oleh aksi (Cascade DB hanya menghapus baris).
+model ArtworkImage {
+  id         String   @id @default(cuid())
+  artworkId  String
+  artwork    Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  storageKey String   @unique
+  width      Int
+  height     Int
+  alt        String   @default("")
+  order      Int      @default(0)
+  isCover    Boolean  @default(false)
+  isProcess  Boolean  @default(false) // foto progres (bagian Proses di Galeri), bukan foto karya jadi
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([artworkId, order])
+}
+
+// Konten Posted sebagai video proses karya.
+model ArtworkContent {
+  artworkId String
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@id([artworkId, contentId])
+  @@index([contentId])
+}
+
+// Slug lama → karya, supaya tautan yang sudah dibagikan tetap jalan setelah judul/slug diganti.
+model ArtworkSlugRedirect {
+  oldSlug   String   @id
+  artworkId String
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([artworkId])
+}
