@@ -1,0 +1,32 @@
+# /etc/systemd/system/galeri.service
+# Aktifkan: sudo systemctl daemon-reload && sudo systemctl enable --now galeri
+
+[Unit]
+Description=Galeri & Studio Karya (Next.js)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=galeri
+Group=galeri
+WorkingDirectory=/srv/galeri/app
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# Sama dengan `npm run start -- --hostname 127.0.0.1` (next start membaca PORT), tanpa npm supaya
+# tidak perlu folder cache/log npm yang bisa ditulis. Hanya 127.0.0.1: dari luar hanya lewat Caddy.
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1
+Restart=on-failure
+RestartSec=5
+# Batas memori: banjir request login (scrypt ±32 MB per percobaan) atau unggahan tidak bisa menghabiskan RAM VPS.
+MemoryMax=1G
+
+# Pengerasan: sistem berkas read-only kecuali folder yang memang ditulis aplikasi.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/galeri/uploads /srv/galeri/app/.next
+
+[Install]
+WantedBy=multi-user.target
