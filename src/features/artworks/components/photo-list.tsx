@@ -21,7 +21,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowDown, ArrowLeftRight, ArrowUp, GripVertical, Star, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeftRight, ArrowUp, GripVertical, Sparkles, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -41,6 +41,8 @@ import { callAction } from "@/lib/action-client";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { updateArtworkImageAlt } from "../actions";
+import { ALT_MAX_LENGTH } from "../schema";
+import { useAltDrafts } from "./alt-drafts-provider";
 
 export type PhotoItem = {
   id: string;
@@ -292,7 +294,11 @@ function DeletePhotoButton({
   );
 }
 
-/** Teks alternatif (wajib untuk terbit), disimpan saat input ditinggalkan atau Enter. */
+/**
+ * Teks alternatif (wajib untuk terbit), disimpan saat input ditinggalkan atau Enter.
+ * Draf dari Bantu AI "Dari foto" tampil di sini dengan penanda "draf AI" dan baru tersimpan lewat Simpan/Enter
+ * (meninggalkan input tidak menyimpan draf AI), atau dibuang kembali ke teks tersimpan.
+ */
 function AltInput({
   photo,
   position,
@@ -302,6 +308,9 @@ function AltInput({
   position: number;
   onSaved: (photo: PhotoItem, alt: string) => void;
 }) {
+  const { drafts, setDraft, clearDraft } = useAltDrafts();
+  const draft = drafts[photo.id];
+  const hasDraft = draft !== undefined;
   const [value, setValue] = useState(photo.alt);
   const [savedAlt, setSavedAlt] = useState(photo.alt);
   const [pending, startTransition] = useTransition();
@@ -311,24 +320,37 @@ function AltInput({
     setValue(photo.alt);
   }
   const id = `artwork-image-alt-${photo.id}`;
-  const missing = value.trim() === "";
+  const shown = hasDraft ? draft : value;
+  const missing = shown.trim() === "";
+  const describedBy = [hasDraft && `${id}-draft`, missing && `${id}-hint`].filter(Boolean).join(" ") || undefined;
 
   function save() {
-    const next = value.trim();
+    if (pending) return;
+    const next = shown.trim();
     if (next === photo.alt) {
+      if (hasDraft) clearDraft(photo.id); // draf sama dengan teks tersimpan
       if (next !== value) setValue(next);
       return;
     }
+    const fromDraft = hasDraft;
     startTransition(async () => {
       const result = await callAction(() => updateArtworkImageAlt({ id: photo.id, alt: next }));
       if (!result.ok) {
         toast.error(result.error);
-        setValue(photo.alt);
+        // Draf AI dibiarkan supaya bisa dicoba lagi; ketikan biasa kembali ke teks tersimpan.
+        if (!fromDraft) setValue(photo.alt);
         return;
       }
       toast.success("Teks alternatif tersimpan");
+      setValue(next);
+      if (fromDraft) clearDraft(photo.id);
       onSaved(photo, next);
     });
+  }
+
+  function discardDraft() {
+    clearDraft(photo.id);
+    setValue(photo.alt);
   }
 
   return (
@@ -338,21 +360,42 @@ function AltInput({
       </label>
       <Input
         id={id}
-        value={value}
-        maxLength={300}
+        value={shown}
+        maxLength={ALT_MAX_LENGTH}
         placeholder="Teks alternatif: jelaskan isi foto"
         aria-invalid={missing}
-        aria-describedby={missing ? `${id}-hint` : undefined}
+        aria-describedby={describedBy}
         disabled={pending}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={save}
+        className={cn(hasDraft && "border-primary/60 bg-primary/5 dark:bg-primary/10")}
+        onChange={(e) => (hasDraft ? setDraft(photo.id, e.target.value) : setValue(e.target.value))}
+        onBlur={hasDraft ? undefined : save}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            e.currentTarget.blur();
+            if (hasDraft) save();
+            else e.currentTarget.blur();
           }
         }}
       />
+      {hasDraft && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+            <Sparkles aria-hidden />
+            draf AI
+          </Badge>
+          <span id={`${id}-draft`} className="text-xs text-muted-foreground">
+            Belum tersimpan.
+          </span>
+          <div className="ml-auto flex gap-1">
+            <Button type="button" variant="ghost" size="xs" disabled={pending} onClick={discardDraft}>
+              Buang
+            </Button>
+            <Button type="button" variant="secondary" size="xs" disabled={pending} onClick={save}>
+              {pending ? "Menyimpan…" : "Simpan"}
+            </Button>
+          </div>
+        </div>
+      )}
       {missing && (
         <p id={`${id}-hint`} className="text-xs text-destructive">
           Wajib diisi sebelum terbit, mis. &quot;Patung naga hijau dilihat dari samping&quot;.

@@ -5,6 +5,7 @@ import { ChevronLeft, Eye, Layers } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/features/auth/dal";
+import { ArtworkAltDraftsProvider } from "@/features/artworks/components/alt-drafts-provider";
 import { ArtworkDetailForm } from "@/features/artworks/components/artwork-detail-form";
 import { ArtworkPhotos } from "@/features/artworks/components/artwork-photos";
 import { DeleteArtworkButton } from "@/features/artworks/components/delete-artwork-button";
@@ -75,49 +76,53 @@ export default async function ArtworkDetailPage({ params }: Props) {
         </p>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-        <div className="min-w-0 lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1">
-          <PublishPanel
-            artworkId={artwork.id}
-            slug={artwork.slug}
-            visibility={artwork.visibility}
-            publishedAt={artwork.publishedAt}
-            problems={problems}
-          />
+      {/* Draf teks alternatif dari Bantu AI (form detail) → editor alt per foto (kartu Foto). */}
+      <ArtworkAltDraftsProvider>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <div className="min-w-0 lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1">
+            <PublishPanel
+              artworkId={artwork.id}
+              slug={artwork.slug}
+              visibility={artwork.visibility}
+              publishedAt={artwork.publishedAt}
+              problems={problems}
+            />
+          </div>
+          <div className="grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1">
+            <ArtworkPhotos artworkId={artwork.id} images={artwork.images} />
+            <ArtworkDetailForm
+              artwork={{
+                id: artwork.id,
+                title: artwork.title,
+                slug: artwork.slug,
+                summary: artwork.summary,
+                description: artwork.description,
+                medium: artwork.medium,
+                year: artwork.year,
+                widthCm: artwork.widthCm,
+                heightCm: artwork.heightCm,
+                depthCm: artwork.depthCm,
+                materials: artwork.materials,
+                weightGram: artwork.weightGram,
+                projectId: artwork.projectId,
+                availability: artwork.availability,
+                priceIdr: artwork.priceIdr,
+                showPrice: artwork.showPrice,
+                isFeatured: artwork.isFeatured,
+                featuredOrder: artwork.featuredOrder,
+                publishedAt: artwork.publishedAt,
+              }}
+              projects={options.projects}
+              photos={artwork.images}
+            />
+            <ProcessContents
+              artworkId={artwork.id}
+              selected={artwork.contents.map((c) => c.content)}
+              options={options.postedContents}
+            />
+          </div>
         </div>
-        <div className="grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1">
-          <ArtworkPhotos artworkId={artwork.id} images={artwork.images} />
-          <ArtworkDetailForm
-            artwork={{
-              id: artwork.id,
-              title: artwork.title,
-              slug: artwork.slug,
-              summary: artwork.summary,
-              description: artwork.description,
-              medium: artwork.medium,
-              year: artwork.year,
-              widthCm: artwork.widthCm,
-              heightCm: artwork.heightCm,
-              depthCm: artwork.depthCm,
-              materials: artwork.materials,
-              weightGram: artwork.weightGram,
-              projectId: artwork.projectId,
-              availability: artwork.availability,
-              priceIdr: artwork.priceIdr,
-              showPrice: artwork.showPrice,
-              isFeatured: artwork.isFeatured,
-              featuredOrder: artwork.featuredOrder,
-              publishedAt: artwork.publishedAt,
-            }}
-            projects={options.projects}
-          />
-          <ProcessContents
-            artworkId={artwork.id}
-            selected={artwork.contents.map((c) => c.content)}
-            options={options.postedContents}
-          />
-        </div>
-      </div>
+      </ArtworkAltDraftsProvider>
     </>
   );
 }

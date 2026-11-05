@@ -20,6 +20,8 @@ import { slugify } from "@/lib/slug";
 import { updateArtwork } from "../actions";
 import { isAutoSlug } from "../rules";
 import { artworkDetailSchema, type ArtworkDetailFormValues, type ArtworkDetailInput } from "../schema";
+import { ArtworkPhotosAssist } from "./artwork-photos-assist";
+import type { PhotoItem } from "./photo-list";
 
 const NONE = "__none__";
 
@@ -74,9 +76,12 @@ function toDefaults(a: EditableArtwork): ArtworkDetailFormValues {
 export function ArtworkDetailForm({
   artwork,
   projects,
+  photos,
 }: {
   artwork: EditableArtwork;
   projects: { id: string; title: string }[];
+  /** Foto yang sudah diunggah, untuk Bantu AI "Dari foto". */
+  photos: PhotoItem[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -185,6 +190,7 @@ export function ArtworkDetailForm({
             label="Ringkasan satu kalimat"
             error={errors.summary?.message}
             hint="Tampil di bawah judul dan sebagai deskripsi saat tautan dibagikan."
+            action={<ArtworkPhotosAssist artworkId={artwork.id} photos={photos} form={form} />}
           >
             <Input
               id="artwork-summary"
@@ -404,17 +410,27 @@ function Field({
   label,
   error,
   hint,
+  action,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
   hint?: string;
+  /** Tombol kecil di kanan label (mis. Bantu AI). */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="grid min-w-0 content-start gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      {action ? (
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <Label htmlFor={id}>{label}</Label>
+          {action}
+        </div>
+      ) : (
+        <Label htmlFor={id}>{label}</Label>
+      )}
       {children}
       {error ? (
         <p className="text-xs text-destructive">{error}</p>

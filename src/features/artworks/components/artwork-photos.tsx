@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ImagePlus, Loader2, X, XCircle } from "lucide-react";
+import { CheckCircle2, ImagePlus, Loader2, Sparkles, X, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,8 @@ import {
   setArtworkCover,
   setArtworkImageProcess,
 } from "../actions";
+import { countAltDrafts } from "../alt-drafts";
+import { useAltDrafts } from "./alt-drafts-provider";
 import { PhotoList, type PhotoHandlers, type PhotoItem } from "./photo-list";
 
 // Sama dengan IMAGE_ACCEPT di src/lib/images.ts (modul server-only, jadi tidak diimpor di client).
@@ -49,11 +51,13 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
   const finishedInput = useRef<HTMLInputElement>(null);
   const processInput = useRef<HTMLInputElement>(null);
   const uploadKey = useRef(0);
+  const { drafts } = useAltDrafts();
 
   const sorted = [...items].sort(byOrder);
   const finished = sorted.filter((p) => !p.isProcess);
   const process = sorted.filter((p) => p.isProcess);
   const busy = pending || uploading;
+  const draftCount = countAltDrafts(drafts, items.map((p) => p.id));
 
   function run(action: () => Promise<ActionResult>, success?: string, optimistic?: () => void) {
     optimistic?.(); // di luar transition supaya langsung tampil
@@ -194,6 +198,15 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
             onChange={(e) => onPick(e, true)}
           />
         </div>
+
+        {draftCount > 0 && (
+          <p className="flex items-start gap-2 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm" role="status">
+            <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              {draftCount} teks alternatif dari AI masih draf. Periksa, lalu tekan Simpan di setiap foto (atau Buang).
+            </span>
+          </p>
+        )}
 
         {uploads.length > 0 && (
           <UploadQueue
