@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ProjectIdeasAssist } from "@/features/ai/components/project-ideas-assist";
 import { requireAdmin } from "@/features/auth/dal";
 import { AddPhotoDialog } from "@/features/projects/components/add-photo-dialog";
 import { CreateArtworkDialog } from "@/features/projects/components/create-artwork-dialog";
@@ -125,13 +126,19 @@ export default async function ProjectDetailPage({ params }: Props) {
       <section className="mb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold">Konten seri</h2>
-          <CreateSeriesDialog
-            projectId={project.id}
-            projectTitle={project.title}
-            nextPart={nextPart}
-            pillars={taxonomies.pillars.map(({ id, name, color }) => ({ id, name, color }))}
-            formats={taxonomies.formats.map(({ id, name }) => ({ id, name }))}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <ProjectIdeasAssist
+              project={{ id: project.id, title: project.title, medium: project.medium }}
+              pillars={taxonomies.pillars.map(({ id, name }) => ({ id, name }))}
+            />
+            <CreateSeriesDialog
+              projectId={project.id}
+              projectTitle={project.title}
+              nextPart={nextPart}
+              pillars={taxonomies.pillars.map(({ id, name, color }) => ({ id, name, color }))}
+              formats={taxonomies.formats.map(({ id, name }) => ({ id, name }))}
+            />
+          </div>
         </div>
         {project.contents.length > 0 ? (
           <ProjectContentList contents={project.contents} />

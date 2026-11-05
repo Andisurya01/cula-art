@@ -4,13 +4,14 @@ import { Lightbulb, SearchX } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+import { ProjectIdeasAssist } from "@/features/ai/components/project-ideas-assist";
 import { requireAdmin } from "@/features/auth/dal";
 import { IdeaBankLowBanner } from "@/features/ideas/components/idea-bank-low-banner";
 import { IdeaCard } from "@/features/ideas/components/idea-card";
 import { IdeaFiltersBar } from "@/features/ideas/components/idea-filters-bar";
 import { NewIdeaButton } from "@/features/ideas/components/idea-form-dialog";
 import { IdeaQuickAdd } from "@/features/ideas/components/idea-quick-add";
-import { getIdeaCounts, getIdeas } from "@/features/ideas/queries";
+import { getIdeaCounts, getIdeas, getUnfinishedProjectOptions } from "@/features/ideas/queries";
 import { parseIdeaFilters } from "@/features/ideas/schema";
 import { getTaxonomies } from "@/features/settings/queries";
 import { routes } from "@/lib/routes";
@@ -24,10 +25,11 @@ export default async function Page({
 }) {
   await requireAdmin();
   const filters = parseIdeaFilters(await searchParams);
-  const [ideas, counts, taxonomies] = await Promise.all([
+  const [ideas, counts, taxonomies, projects] = await Promise.all([
     getIdeas(filters),
     getIdeaCounts(),
     getTaxonomies(),
+    getUnfinishedProjectOptions(),
   ]);
 
   const options = {
@@ -41,7 +43,15 @@ export default async function Page({
       <PageHeader
         title="Bank Ide"
         description="Catat ide secepatnya, nilai potensi dan effort, lalu jadikan konten."
-        actions={<NewIdeaButton pillars={options.pillars}>Form lengkap</NewIdeaButton>}
+        actions={
+          <>
+            {/* Tanpa proyek berjalan tidak ada yang bisa dipilih, jadi tombolnya tidak ditampilkan. */}
+            {projects.length > 0 && (
+              <ProjectIdeasAssist projects={projects} pillars={options.pillars} className="h-8" />
+            )}
+            <NewIdeaButton pillars={options.pillars}>Form lengkap</NewIdeaButton>
+          </>
+        }
       />
 
       <div className="grid gap-4">

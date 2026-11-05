@@ -23,6 +23,7 @@ import { ideaSchema, type IdeaInput } from "../schema";
 import { ideaScore, MAX_IDEA_SCORE } from "../score";
 import type { IdeaListItem } from "../queries";
 import { ChipButton } from "./chip-button";
+import { IdeaExpandAssist } from "./idea-expand-assist";
 import { RatingPicker } from "./rating-picker";
 import type { PillarOption } from "./types";
 import { callAction } from "@/lib/action-client";
@@ -129,7 +130,10 @@ function IdeaForm({
       </DialogHeader>
 
       <div className="grid gap-2">
-        <Label htmlFor="idea-title">Judul</Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="idea-title">Judul</Label>
+          <IdeaExpandAssist form={form} ideaId={idea?.id} pillars={pillars} />
+        </div>
         <Input
           id="idea-title"
           autoComplete="off"

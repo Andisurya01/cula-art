@@ -1,5 +1,5 @@
 import "server-only";
-import type { Prisma } from "@prisma/client";
+import type { Medium, Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import type { IdeaFilters } from "./schema";
 import { sortIdeas } from "./score";
@@ -43,4 +43,13 @@ export async function getIdeaCounts() {
     db.idea.count(),
   ]);
   return { newCount, total };
+}
+
+/** Proyek yang belum selesai (tahap selain Selesai), untuk "Ide dari proyek" di Bank Ide. Terbaru diperbarui dulu. */
+export async function getUnfinishedProjectOptions(): Promise<{ id: string; title: string; medium: Medium }[]> {
+  return db.project.findMany({
+    where: { stage: { not: "DONE" } },
+    select: { id: true, title: true, medium: true },
+    orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+  });
 }
