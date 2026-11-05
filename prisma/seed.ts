@@ -104,6 +104,9 @@ async function main() {
     },
   });
 
+  // Panduan AI: nonaktif sampai pemilik mengisi ANTHROPIC_API_KEY dan menyalakannya di Pengaturan.
+  await prisma.aiGuide.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } });
+
   const counts = await Promise.all([
     prisma.pillar.count(),
     prisma.format.count(),

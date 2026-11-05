@@ -467,3 +467,56 @@ model ArtworkSlugRedirect {
 
   @@index([artworkId])
 }
+
+// ---------------------------------------------------------------------------
+// Asisten AI (Fase 3). Lihat docs/PRD.md bagian "Asisten AI (Studio)" dan src/features/ai/.
+// ---------------------------------------------------------------------------
+
+enum AiRunStatus {
+  RUNNING // dibuat sebelum panggilan dikirim (reservasi slot batas harian)
+  OK
+  ERROR
+  REFUSED // ditolak pengaman model (juga setelah fallback)
+}
+
+// Satu baris. Kolom *Json berisi JSON string (divalidasi Zod di src/features/ai/guide-schema.ts).
+model AiGuide {
+  id               String   @id @default("default")
+  isEnabled        Boolean  @default(false)
+  model            String   @default("claude-opus-5-5")
+  voiceJson        String   @default("{}") // gaya bahasa terstruktur
+  voiceNotes       String?
+  examplesJson     String   @default("[]") // maks. 10 contoh hook/caption terbaik
+  creatorFacts     String?
+  hashtagSetsJson  String   @default("{}") // per pilar (id) dan platform, plus umum
+  avoidNotes       String?
+  monthlyBudgetUsd Float    @default(10)
+  dailyCallLimit   Int      @default(100)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// Log setiap panggilan AI. Tanpa gambar dan tanpa isi prompt lengkap; hanya metadata dan hasil.
+model AiRun {
+  id               String      @id @default(cuid())
+  feature          String // lihat AI_FEATURES di src/features/ai/features.ts
+  model            String // model yang diminta ("mock" di mode uji)
+  promptVersion    String
+  targetType       String? // IDEA, PROJECT, CONTENT, POST, ARTWORK, EVAL
+  targetId         String?
+  inputTokens      Int         @default(0)
+  outputTokens     Int         @default(0)
+  cacheReadTokens  Int         @default(0)
+  cacheWriteTokens Int         @default(0)
+  costUsd          Float       @default(0) // token × harga model di src/features/ai/models.ts
+  durationMs       Int?
+  status           AiRunStatus @default(RUNNING)
+  errorMessage     String?
+  outputJson       String?
+  accepted         Boolean     @default(false) // pengguna menekan Pakai
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([createdAt])
+  @@index([feature, model, status, createdAt])
+}
