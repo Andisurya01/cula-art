@@ -48,3 +48,6 @@ next-env.d.ts
 # file unggahan (UPLOAD_DIR default)
 /uploads/
 /.test-uploads/
+
+# laporan set uji Asisten AI (npm run ai:eval)
+/.ai-evals/

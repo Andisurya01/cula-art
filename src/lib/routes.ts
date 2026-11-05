@@ -26,6 +26,8 @@ export const routes = {
     settings: `${STUDIO}/pengaturan`,
     /** Route Handler unggah foto profil (POST). */
     settingsProfilePhoto: `${STUDIO}/pengaturan/foto-profil`,
+    /** Route Handler Asisten AI (POST, respons NDJSON). */
+    ai: `${STUDIO}/ai`,
   },
   gallery: {
     home: "/",
