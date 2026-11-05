@@ -3,7 +3,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountSecurity } from "@/features/auth/components/account-security";
 import type { AccountSecurity as AccountSecurityData } from "@/features/auth/queries";
+import type { AiSettingsPageData } from "@/features/ai/queries";
 import type { SettingsPageData } from "../queries";
+import { AiGuideTab } from "./ai-guide/ai-guide-tab";
 import { GeneralSettingsCard } from "./general-settings-card";
 import { PillarCard } from "./pillar-card";
 import { PostingSlotsCard } from "./posting-slots-card";
@@ -13,7 +15,15 @@ import { ScoreWeightsCard } from "./score-weights-card";
 import { SimpleListCard } from "./simple-list-card";
 
 /** Pengaturan dibagi per tab; daftar tab bisa digeser horizontal di HP. */
-export function SettingsTabs({ data, account }: { data: SettingsPageData; account: AccountSecurityData }) {
+export function SettingsTabs({
+  data,
+  ai,
+  account,
+}: {
+  data: SettingsPageData;
+  ai: AiSettingsPageData;
+  account: AccountSecurityData;
+}) {
   const { settings } = data;
 
   return (
@@ -26,6 +36,7 @@ export function SettingsTabs({ data, account }: { data: SettingsPageData; accoun
           <TabsTrigger value="jadwal">Jadwal</TabsTrigger>
           <TabsTrigger value="skor">Skor</TabsTrigger>
           <TabsTrigger value="profil">Profil publik</TabsTrigger>
+          <TabsTrigger value="ai">Panduan AI</TabsTrigger>
           <TabsTrigger value="keamanan">Akun & keamanan</TabsTrigger>
         </TabsList>
       </div>
@@ -74,6 +85,10 @@ export function SettingsTabs({ data, account }: { data: SettingsPageData; accoun
       <TabsContent value="profil" className="grid max-w-3xl gap-4">
         <ProfilePhotoCard avatarKey={settings.profile.avatarKey} />
         <PublicProfileForm profile={settings.profile} />
+      </TabsContent>
+
+      <TabsContent value="ai" className="grid max-w-3xl gap-4">
+        <AiGuideTab data={ai} pillars={data.pillars} />
       </TabsContent>
 
       <TabsContent value="keamanan">
