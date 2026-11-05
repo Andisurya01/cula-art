@@ -9,12 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PLATFORMS, PLATFORM_LABELS } from "@/lib/labels";
 import type { ContentPost } from "@/features/contents/queries";
+import type { ContentFormInput } from "@/features/ai/prompts/content-common";
 import { createPost } from "../actions";
 import { PostVersionForm } from "./post-version-form";
 import { callAction } from "@/lib/action-client";
 
-/** Versi per platform (maksimal satu per platform). */
-export function PostVersions({ contentId, posts }: { contentId: string; posts: ContentPost[] }) {
+/** Versi per platform (maksimal satu per platform). `aiContent` = data konten tersimpan untuk Bantu AI Caption. */
+export function PostVersions({
+  contentId,
+  posts,
+  aiContent,
+}: {
+  contentId: string;
+  posts: ContentPost[];
+  aiContent: ContentFormInput;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const missing = PLATFORMS.filter((p) => !posts.some((post) => post.platform === p));
@@ -42,7 +51,11 @@ export function PostVersions({ contentId, posts }: { contentId: string; posts: C
       <CardContent className="grid grid-cols-1 gap-4">
         {posts.map((post) => (
           // Remount saat data post berubah di server (mis. setelah Pindah ke Posted).
-          <PostVersionForm key={`${post.id}-${post.updatedAt.getTime()}`} post={post} />
+          <PostVersionForm
+            key={`${post.id}-${post.updatedAt.getTime()}`}
+            post={post}
+            aiContent={aiContent}
+          />
         ))}
         {posts.length === 0 && (
           <p className="text-sm text-muted-foreground">

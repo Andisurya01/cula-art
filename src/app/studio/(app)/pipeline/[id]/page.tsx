@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, FolderOpen, Lightbulb } from "lucide-react";
 import { PillarBadge } from "@/components/pillar-badge";
 import { requireAdmin } from "@/features/auth/dal";
+import { toContentAiInput } from "@/features/contents/ai-input";
 import { ChecklistCard } from "@/features/contents/components/checklist-card";
 import { ContentDetailForm } from "@/features/contents/components/content-detail-form";
+import { ContentDraftProvider } from "@/features/contents/components/content-draft-provider";
 import { DeleteContentButton } from "@/features/contents/components/delete-content-button";
 import { StageControl } from "@/features/contents/components/stage-control";
 import { getContentDetail } from "@/features/contents/queries";
@@ -84,17 +86,24 @@ export default async function Page({ params }: Props) {
         />
       </div>
 
-      <div className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="md:col-start-1">
-          <ContentDetailForm content={content} options={options} />
+      {/* Caption & hashtag di versi platform membaca isi detail konten yang belum disimpan. */}
+      <ContentDraftProvider>
+        <div className="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="md:col-start-1">
+            <ContentDetailForm content={content} options={options} />
+          </div>
+          <div className="md:col-start-2 md:row-span-2 md:row-start-1">
+            <ChecklistCard contentId={content.id} items={content.checklist} />
+          </div>
+          <div className="md:col-start-1">
+            <PostVersions
+              contentId={content.id}
+              posts={content.posts}
+              aiContent={toContentAiInput(content.id, content)}
+            />
+          </div>
         </div>
-        <div className="md:col-start-2 md:row-span-2 md:row-start-1">
-          <ChecklistCard contentId={content.id} items={content.checklist} />
-        </div>
-        <div className="md:col-start-1">
-          <PostVersions contentId={content.id} posts={content.posts} />
-        </div>
-      </div>
+      </ContentDraftProvider>
     </div>
   );
 }

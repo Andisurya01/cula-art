@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateContent } from "../actions";
+import { toContentAiInput } from "../ai-input";
 import type { ContentDetail, ContentDetailOptions } from "../queries";
 import {
   contentDetailSchema,
@@ -25,6 +26,8 @@ import {
   type ContentDetailInput,
 } from "../schema";
 import { callAction } from "@/lib/action-client";
+import { HookAssist, ScriptAssist } from "./content-ai-assist";
+import { useContentDraft } from "./content-draft-provider";
 
 const NONE = "__none__";
 
@@ -60,6 +63,13 @@ export function ContentDetailForm({
     defaultValues: toDefaults(content),
   });
   const { errors, isDirty } = form.formState;
+
+  // Caption & hashtag di versi platform membaca isi form ini (boleh belum disimpan) saat Buat ditekan.
+  const draft = useContentDraft();
+  useEffect(
+    () => draft?.register(() => toContentAiInput(content.id, form.getValues())),
+    [draft, content.id, form],
+  );
 
   const onSubmit = form.handleSubmit((values) => {
     startTransition(async () => {
@@ -119,6 +129,7 @@ export function ContentDetailForm({
             id="content-hook-text"
             label="Teks hook (3 detik pertama)"
             error={errors.hookText?.message}
+            action={<HookAssist form={form} contentId={content.id} hookTypes={options.hookTypes} />}
           >
             <Textarea
               id="content-hook-text"
@@ -129,7 +140,12 @@ export function ContentDetailForm({
             />
           </Field>
 
-          <Field id="content-script" label="Script / storyboard" error={errors.script?.message}>
+          <Field
+            id="content-script"
+            label="Script / storyboard"
+            error={errors.script?.message}
+            action={<ScriptAssist form={form} contentId={content.id} />}
+          >
             <Textarea
               id="content-script"
               rows={5}
@@ -201,16 +217,26 @@ function Field({
   id,
   label,
   error,
+  action,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
+  /** Tombol kecil di kanan label (mis. Bantu AI); turun ke baris baru jika tidak muat. */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="grid min-w-0 content-start gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      {action ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <Label htmlFor={id}>{label}</Label>
+          {action}
+        </div>
+      ) : (
+        <Label htmlFor={id}>{label}</Label>
+      )}
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

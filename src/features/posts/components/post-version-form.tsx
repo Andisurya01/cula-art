@@ -33,6 +33,7 @@ import { toWibInputValue } from "@/lib/date";
 import { PLATFORM_LABELS, POST_TYPE_LABELS } from "@/lib/labels";
 import { PlatformBadge } from "@/features/contents/components/platform-badge";
 import type { ContentPost } from "@/features/contents/queries";
+import type { ContentFormInput } from "@/features/ai/prompts/content-common";
 import { deletePost, updatePost } from "../actions";
 import {
   POST_TYPES_BY_PLATFORM,
@@ -42,6 +43,8 @@ import {
 } from "../schema";
 
 import { callAction } from "@/lib/action-client";
+import { CaptionAssist } from "./caption-assist";
+
 function toDefaults(post: ContentPost): PostFormValues {
   return {
     postType: post.postType,
@@ -55,7 +58,14 @@ function toDefaults(post: ContentPost): PostFormValues {
 }
 
 /** Form satu versi platform (TikTok/Instagram) + hapus versi. */
-export function PostVersionForm({ post }: { post: ContentPost }) {
+export function PostVersionForm({
+  post,
+  aiContent,
+}: {
+  post: ContentPost;
+  /** Data konten tersimpan untuk Bantu AI Caption & hashtag (lihat CaptionAssist). */
+  aiContent: ContentFormInput;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const form = useForm<PostFormValues, unknown, PostFormOutput>({
@@ -171,7 +181,19 @@ export function PostVersionForm({ post }: { post: ContentPost }) {
         </Field>
       </div>
 
-      <Field id={id("caption")} label="Caption" error={errors.caption?.message}>
+      <Field
+        id={id("caption")}
+        label="Caption"
+        error={errors.caption?.message}
+        action={
+          <CaptionAssist
+            form={form}
+            postId={post.id}
+            platform={post.platform}
+            content={aiContent}
+          />
+        }
+      >
         <Textarea
           id={id("caption")}
           rows={3}
@@ -240,16 +262,26 @@ function Field({
   id,
   label,
   error,
+  action,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
+  /** Tombol kecil di kanan label (mis. Bantu AI); turun ke baris baru jika tidak muat. */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="grid min-w-0 content-start gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      {action ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <Label htmlFor={id}>{label}</Label>
+          {action}
+        </div>
+      ) : (
+        <Label htmlFor={id}>{label}</Label>
+      )}
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
