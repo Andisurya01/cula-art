@@ -475,6 +475,8 @@ Pola UI yang sama di semua tempat: tombol **Bantu AI** di samping field → pane
 - **Prompt di kode** (`src/features/ai/prompts/`), masing-masing punya versi yang dicatat di log.
 - **Log `AiRun`** untuk setiap panggilan: fitur, model, versi prompt, token, biaya, durasi, status, dan apakah draf dipakai.
 - **Error** (jaringan, batas rate, permintaan ditolak model) tampil sebagai toast; isi form tidak hilang.
+- **Fallback penolakan:** untuk Opus dan Sonnet, permintaan yang ditolak pengaman model diulang otomatis di model cadangan pilihan Anthropic (`fallbacks: "default"`, beta) dalam panggilan yang sama. Biaya dihitung per model yang menjawab.
+- **Mode uji** (`AI_MOCK=1`): jawaban contoh tanpa memanggil API (biaya 0), untuk pengembangan dan uji manual. Tidak boleh aktif di produksi.
 - **Set uji** 10-20 contoh per fitur di `src/features/ai/evals/`, dijalankan manual sebelum mengganti prompt atau model (setiap jalan memakai biaya API).
 
 ## Metrik, rumus, dan aturan saran
@@ -533,8 +535,8 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 | Session | id, tokenHash (unik), adminUserId, expiresAt, lastUsedAt, userAgent, ip | N:1 AdminUser |
 | LoginChallenge | id, tokenHash (unik), adminUserId, kind (VERIFY, SETUP), pendingTotpSecret, expiresAt | tahap login 10 menit antara password benar dan 2FA |
 | LoginAttempt | id, key (IP atau email), success, createdAt | dasar pembatasan login |
-| AiGuide | id, isEnabled, model, voiceNotes, examplesJson, creatorFacts, hashtagSetsJson (per pilar + platform), avoidNotes, monthlyBudgetUsd, dailyCallLimit | satu baris (Fase 3) |
-| AiRun | id, feature, model, promptVersion, targetType, targetId, inputTokens, outputTokens, cacheReadTokens, costUsd, durationMs, status (OK, ERROR, REFUSED), errorMessage, outputJson, accepted, createdAt | log setiap panggilan AI (Fase 3) |
+| AiGuide | id, isEnabled, model, voiceJson (formal/santai, campuran Inggris, sapaan, emoji, panjang caption, CTA favorit), voiceNotes, examplesJson, creatorFacts, hashtagSetsJson (per pilar + platform), avoidNotes, monthlyBudgetUsd, dailyCallLimit | satu baris (Fase 3) |
+| AiRun | id, feature, model, promptVersion, targetType, targetId, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, costUsd, durationMs, status (RUNNING, OK, ERROR, REFUSED), errorMessage, outputJson, accepted, createdAt | log setiap panggilan AI (Fase 3) |
 
 **Aturan data**
 
@@ -552,7 +554,9 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 - Artwork yang sudah terjual tidak dihapus, hanya diarsipkan (nanti dirujuk oleh pesanan).
 - File unggahan disimpan dengan nama acak (`storageKey`). Menghapus foto juga menghapus filenya.
 - AiRun tidak menyimpan gambar atau isi prompt lengkap, hanya metadata dan hasil (`outputJson`). `costUsd` dihitung dari jumlah token × harga model yang dicatat di kode.
-- Panggilan AI ditolak sebelum dikirim jika AI nonaktif, biaya bulan berjalan sudah mencapai `monthlyBudgetUsd`, atau jumlah panggilan hari ini sudah mencapai `dailyCallLimit`.
+- Panggilan AI ditolak sebelum dikirim jika AI nonaktif, biaya bulan berjalan sudah mencapai `monthlyBudgetUsd`, atau jumlah panggilan hari ini sudah mencapai `dailyCallLimit` (hari dan bulan WIB). Penolakan ini tidak dicatat.
+- Baris AiRun dibuat berstatus RUNNING sebelum panggilan dikirim, dalam transaksi yang sama dengan cek batas, supaya panggilan bersamaan tidak lolos batas. Baris RUNNING yang tertinggal tetap dihitung sebagai panggilan.
+- `accepted = true` saat pengguna menekan Pakai pada salah satu opsi run itu.
 
 ## Arsitektur teknis
 
@@ -667,7 +671,7 @@ flowchart LR
   F6["Fase 6: Toko<br/>Keranjang, checkout,<br/>pembayaran, ongkir,<br/>pesanan, stok/edisi"]
   F7["Nanti<br/>Impor API IG/TikTok,<br/>Notifikasi, Tanya data (chat AI)"]
   F1 --> F2
-  F2 -->|"Galeri live di domain"| F3
+  F2 --> F3
   F3 --> F4
   F4 -->|"metrik 10 post pertama tercatat"| F5
   F5 -->|"ada permintaan beli karya"| F6
@@ -724,6 +728,8 @@ Dirancang sekarang supaya model data Galeri tidak perlu dibongkar; detailnya dip
 - [x] Model default Claude Opus 5.5; model lebih murah hanya setelah dibandingkan dengan set uji.
 - [x] AI persiapan konten menjadi Fase 3 (tidak bergantung data metrik). AI analisis masuk Fase 5 bersama mesin aturan dan Review Mingguan. Akibatnya Data menjadi Fase 4, Saran Fase 5, Toko Fase 6.
 - [x] Batas default: US$10 per bulan dan 100 panggilan per hari, bisa diubah di Pengaturan.
+- [x] Rencana Fase 3 (`docs/FASE-3.md`) disetujui, termasuk fallback penolakan otomatis, mode uji `AI_MOCK`, status AiRun `RUNNING`, kolom `cacheWriteTokens`, dan gaya bahasa terstruktur (`voiceJson`).
+- [x] Deploy ke VPS (langkah 11 Fase 2) ditunda dan dilakukan belakangan. Fase 3 dimulai tanpa menunggu Galeri live; panduan `docs/DEPLOY.md` diperbarui di setiap fase yang menambah kebutuhan server (mis. `ANTHROPIC_API_KEY`).
 
 **Pertanyaan terbuka**
 

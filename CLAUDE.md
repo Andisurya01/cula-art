@@ -5,16 +5,16 @@ Satu web app, satu domain, dua sisi:
 - **Galeri** (publik, `/`): etalase karya gambar dan patung clay ala katalog marketplace. Nanti menjadi toko.
 - **Studio** (privat, `/studio`, wajib login): content planner untuk konten TikTok/Instagram (target 2-3 post per minggu, keputusan berbasis data) plus pengelolaan karya yang tampil di Galeri.
 
-Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 (selesai) ada di `docs/FASE-1.md`; rencana Fase 2 ada di `docs/FASE-2.md`.
+Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`.
 
-> Status kode (29 Okt 2026): Fase 2 selesai (Galeri publik, Studio di `/studio` dengan login + 2FA, menu Karya, unggah foto). Deploy ke VPS menunggu domain + VPS; panduan di `docs/DEPLOY.md`. Keputusan implementasi di akhir `docs/FASE-2.md`.
+> Status kode (29 Okt 2026): Fase 3 selesai (Asisten AI: Panduan AI, enam tombol Bantu AI, batas biaya, log `AiRun`, set uji). Fase 2 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
 
 ## Lingkungan
 
 - Dikembangkan dan dijalankan lokal di Windows (PowerShell). Semua npm script harus lintas platform: tanpa `rm -rf`, tanpa `FOO=1 cmd`, tanpa path absolut. Pakai paket seperti `rimraf` atau `cross-env` jika perlu.
 - Path folder proyek mengandung spasi (`repo eksperimen\content planner`): selalu beri tanda kutip pada path di perintah shell.
 - Package manager: npm. Node 20 atau lebih baru.
-- Database: PostgreSQL 18 lokal, role `galeri`, database `galeri_dev` (aplikasi) dan `galeri_test` (test integrasi). `.env` berisi password dan **tidak di-commit**; contoh nilai di `.env.example` (`DATABASE_URL`, `DATABASE_URL_TEST`, `UPLOAD_DIR`, `SITE_URL`).
+- Database: PostgreSQL 18 lokal, role `galeri`, database `galeri_dev` (aplikasi) dan `galeri_test` (test integrasi). `.env` berisi password dan **tidak di-commit**; contoh nilai di `.env.example` (`DATABASE_URL`, `DATABASE_URL_TEST`, `UPLOAD_DIR`, `SITE_URL`, `ANTHROPIC_API_KEY`, `AI_MOCK`). Kunci API ditulis pengguna sendiri; jangan pernah menampilkan isi `.env`. `AI_MOCK=1` = mode uji AI tanpa API (untuk uji browser/pengembangan), tidak pernah di produksi.
 - PostgreSQL di laptop ini bukan service Windows: cluster `C:Usersandispgdata-kce` (dipakai bersama proyek lain). Jika mati, jalankan dari PowerShell `Start-Process pg_ctl.exe -ArgumentList start,-D,C:/Users/andis/pgdata-kce,-l,C:/Users/andis/pgdata-kce/server.log -WindowStyle Hidden` (jangan dari Bash), lalu tunggu `pg_isready`.
 - File unggahan di `UPLOAD_DIR` (default `./uploads`, di-gitignore). Path relatif mengikuti **cwd proses**, bukan folder proyek: preview pane (`next start <folder>` dari folder home) butuh path absolut di `.env` lokal. Test memakai `.test-uploads/<pid>`.
 - Preview pane: konfigurasi `content-planner` di `C:Usersandis.claudelaunch.json` menjalankan `next start -p 3100`, jadi `npm run build` dulu; hentikan preview sebelum `prisma generate`/`migrate` (Windows mengunci DLL engine). Pane sering tidak menggambar: kendalikan lewat `javascript_tool`/`form_input`.
@@ -42,6 +42,9 @@ src/app/sitemap.ts, robots.ts
 src/features/<domain>/           # components/, actions.ts, schema.ts, queries.ts
 src/features/auth/               # dal.ts (requireAdmin), session, totp, password, login-actions.ts
 src/features/gallery/            # queries.ts (satu-satunya pintu data Galeri), dto.ts, copy.ts (teks Galeri), format.ts, catalog.ts, revalidate.ts
+src/features/ai/                 # Asisten AI: client.ts (satu-satunya pembaca ANTHROPIC_API_KEY + mode uji), prompts/ (berversi, murni),
+                                 # context.ts (data per fitur, allowlist), run.ts, limits.ts, guide*.ts, components/ (panel Bantu AI), evals/
+src/app/studio/ai/route.ts       # POST Asisten AI → NDJSON (partial/done/error)
 src/lib/routes.ts                # SEMUA path internal (href, router.push, redirect, revalidatePath)
 src/lib/storage.ts, images.ts    # simpan/baca/hapus file; sharp (resize 2400, WebP 82, tanpa EXIF)
 src/lib/upload-route.ts          # helper Route Handler unggah (server); upload-client.ts = XHR + progres (client)
@@ -80,6 +83,7 @@ npm run typecheck           # tsc --noEmit
 npm run test                # vitest: proyek unit + integration (*.int.test.ts ke galeri_test, migrasi otomatis)
 npm run build               # butuh PostgreSQL jalan (halaman Galeri di-prerender)
 npm run admin:create        # akun pemilik (sekali); admin:reset-2fa, admin:reset-password untuk darurat
+npm run ai:eval -- <fitur|semua> [--model …] [--batas n] [--panduan-db] [--konfirmasi]   # set uji AI; --konfirmasi = BERBIAYA (tanya pengguna dulu), kecuali AI_MOCK=1
 ```
 
 `TEST_DB_NAME=galeri_xxx_test npx vitest run …` memakai database test lain (nama wajib berakhiran `_test`), supaya beberapa run test integrasi bisa paralel.
@@ -87,7 +91,7 @@ npm run admin:create        # akun pemilik (sekali); admin:reset-2fa, admin:rese
 Catatan versi (Oktober 2026):
 
 - Next.js 16.4: baca `AGENTS.md` dan `node_modules/next/dist/docs/` sebelum memakai API Next. `params`/`searchParams` adalah Promise. `cacheComponents` sengaja dimatikan; layout Studio memakai `dynamic = "force-dynamic"`; layout Galeri `revalidate = 3600` + revalidate on-demand (`revalidateGallery()`).
-- Server Action dibatasi 1 MB, jadi unggah foto lewat Route Handler (`receiveImageUpload` dari `src/lib/upload-route.ts`, client `uploadWithProgress`). `proxy.ts` membuffer body; batasnya dinaikkan ke 16 MB di `next.config.ts`.
+- Server Action dibatasi 1 MB, jadi unggah foto lewat Route Handler (`receiveImageUpload` dari `src/lib/upload-route.ts`, client `uploadWithProgress`). `proxy.ts` membuffer body (batas 2 MB di `next.config.ts`), jadi route unggah dikeluarkan dari matcher proxy dan dijaga `requireAdmin()` sendiri; route unggah baru harus ditambahkan ke pengecualian matcher itu.
 - CSP tanpa nonce (`next.config.ts`): tanpa skrip/iframe/gambar pihak ketiga (Studio boleh gambar `https:` untuk foto URL lama). Gambar unggahan lewat `next/image` dengan `src="/media/<key>"`. `expireTime: 3600` supaya browser tidak menyajikan halaman Galeri basi (`stale-while-revalidate` default 1 tahun).
 - og:image Galeri = JPEG dari `opengraph-image.ts` per segmen (`src/features/gallery/og-image.ts`); jangan isi `openGraph.images` manual di halaman Galeri.
 - Prisma 6.x, Vitest 4 (`vitest.config.mts`, proyek `unit` dan `integration`). `prisma migrate dev` menolak jalan non-interaktif jika ada peringatan data; buat SQL dengan `prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script` ke folder migrasi baru, lalu `prisma migrate deploy`.
@@ -99,12 +103,14 @@ Catatan versi (Oktober 2026):
 - Client memanggil Server Action lewat `callAction(() => action(input))` (`src/lib/action-client.ts`) atau `useMutation` + `unwrap`, supaya request gagal jadi toast, bukan halaman crash.
 - Tambah/kurang hari pada instant WIB pakai `addWibDays` (bukan `addDays` date-fns, yang mengikuti zona waktu runtime). Validasi input tanggal pakai `isValidWibDateString` / `isValidWibInputValue`.
 - Keputusan implementasi Fase 1 dicatat di bagian akhir `docs/FASE-1.md`.
+- Asisten AI (`@anthropic-ai/sdk` 1.x): `client.beta.messages.stream` + structured output lewat `src/features/ai/output-schema.ts` (bukan `betaZodOutputFormat` SDK, yang membuang `enum`; tanpa auto-parse: `stop_reason` dicek dulu, lalu Zod). Skema output ikut menentukan cache prompt, jadi buat skema yang stabil (mis. nomor foto, bukan id), effort per fitur di prompt, thinking adaptif bawaan (jangan kirim `thinking: disabled`/`budget_tokens`, ditolak Opus 5.5), `fallbacks: "default"` + beta `server-side-fallback-2026-07-01` untuk Opus/Sonnet (bukan Haiku). Biaya dari `usage.iterations` × harga di `src/features/ai/models.ts`. Prompt sistem (instruksi dasar + Panduan AI) harus deterministik supaya ter-cache; data per permintaan di pesan user.
+- Fitur AI baru: tambah prompt di `src/features/ai/prompts/` (+ `FEATURE_PROMPTS`, `CONTEXT_LOADERS`, sampel `mock.ts`, kasus `evals/`), lalu pakai `useAiAssist` + `AiAssistPanel` di komponen. Mengubah teks tugas/skema → naikkan versi prompt dan hash di `prompts.test.ts`. Test memakai mock (`vi.mock` `./client`), tidak pernah API asli.
 
 ## Fase
 
 - **Fase 1 (fondasi Studio):** selesai, lihat `docs/FASE-1.md`.
 - **Fase 2 (Galeri + auth):** selesai (deploy menunggu VPS), lihat `docs/FASE-2.md`. Studio pindah ke `/studio`, PostgreSQL, login + 2FA + sesi + `proxy.ts` + `requireAdmin()`, menu Karya + unggah foto (sharp, hapus EXIF), profil publik, Galeri (Beranda, Katalog, Detail, Tentang), SEO, deploy ke domain.
-- **Fase 3 (Asisten AI, persiapan konten):** Panduan AI di Pengaturan, tombol Bantu AI (kembangkan ide, ide dari proyek, hook, script/shot list, caption + hashtag, teks karya dari foto), batas biaya, log `AiRun`, set uji. Lihat PRD bagian "Asisten AI".
+- **Fase 3 (Asisten AI, persiapan konten):** selesai, lihat `docs/FASE-3.md`. Panduan AI di Pengaturan, tombol Bantu AI (kembangkan ide, ide dari proyek, hook, script/shot list, caption + hashtag, teks karya dari foto), batas biaya, log `AiRun`, set uji. Lihat PRD bagian "Asisten AI".
 - **Fase 4 (data):** Postingan, input metrik H+1/H+7, snapshot followers, `lib/analytics/grouping.ts`, Analitik (Recharts), Beranda Studio penuh. Siapkan ID post platform + sumber metrik untuk impor API nanti.
 - **Fase 5 (saran + AI analisis):** `lib/analytics/rules.ts`, Eksperimen, Review Mingguan (+ draf ringkasan AI), "Kenapa?" di detail post, PWA + capture ide offline, ekspor/backup.
 - **Fase 6 (toko):** keranjang, checkout, pembayaran, ongkir, pesanan.

@@ -2,7 +2,9 @@
 # Caddy mengurus sertifikat HTTPS (Let's Encrypt) otomatis dan memperbarui sendiri.
 
 namaanda.com {
-	encode zstd gzip
+	# Asisten AI (/studio/ai) mengalirkan hasil bertahap; tidak dikompres supaya tidak tertahan di buffer.
+	@compressible not path /studio/ai
+	encode @compressible zstd gzip
 
 	header {
 		# HSTS hanya di sini (bukan di Next.js), supaya development lokal lewat http tetap jalan.

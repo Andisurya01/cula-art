@@ -107,11 +107,20 @@ sudo -u galeri tee /srv/galeri/app/.env > /dev/null <<'EOF'
 DATABASE_URL="postgresql://galeri:TEMPEL_PASSWORD_DI_SINI@localhost:5432/galeri_prod?schema=public"
 UPLOAD_DIR="/srv/galeri/uploads"
 SITE_URL="https://namaanda.com"
+ANTHROPIC_API_KEY="TEMPEL_KUNCI_API_DI_SINI"
 EOF
 sudo chmod 600 /srv/galeri/app/.env
 ```
 
 `SITE_URL` dipakai saat build (sitemap, Open Graph) dan saat jalan (tautan WhatsApp). `DATABASE_URL_TEST` tidak dibutuhkan di server.
+
+**Asisten AI (Fase 3):**
+
+- `ANTHROPIC_API_KEY` dibuat sendiri di Anthropic Console (console.anthropic.com → API keys). Sebaiknya buat kunci khusus untuk server (beda dari kunci laptop), supaya bisa dicabut terpisah.
+- Pasang **batas pengeluaran bulanan** di Console (Settings → Limits) sebagai pengaman kedua, di luar batas di Pengaturan → Panduan AI.
+- Server butuh akses keluar HTTPS ke `api.anthropic.com` (firewall `ufw` di langkah 1 hanya membatasi koneksi masuk).
+- **Jangan** isi `AI_MOCK` di server. Mode itu hanya untuk uji lokal (jawaban contoh, tanpa API).
+- AI nonaktif setelah migrasi pertama; nyalakan di Pengaturan → Panduan AI setelah kunci terpasang. Jika kunci diganti, jalankan `sudo systemctl restart galeri` (variabel lingkungan hanya dibaca saat start).
 
 Build pertama:
 
@@ -245,6 +254,7 @@ Jika build gagal, server masih berhenti: perbaiki lalu build ulang, atau `git ch
 - [ ] `https://namaanda.com/studio` dalam keadaan logout diarahkan ke `/masuk`.
 - [ ] Backup pertama ada di `/var/backups/galeri` dan salinannya di lokasi lain; uji pulihkan sekali.
 - [ ] Tautan di bio TikTok/Instagram diganti ke domain baru.
+- [ ] Pengaturan → Panduan AI: "Kunci API: terpasang", isi panduan, nyalakan AI, lalu coba satu tombol Bantu AI. Batas pengeluaran di Anthropic Console sudah dipasang.
 - [ ] (Opsional) Daftarkan `https://namaanda.com/sitemap.xml` di Google Search Console.
 
 ## Masalah umum
@@ -255,6 +265,8 @@ Jika build gagal, server masih berhenti: perbaiki lalu build ulang, atau `git ch
 | `/api/health` 503 | PostgreSQL jalan? `DATABASE_URL` benar? `systemctl status postgresql` |
 | Sertifikat tidak terbit | DNS belum mengarah ke VPS, port 80/443 tertutup (`ufw status`) |
 | Foto gagal diunggah | Ukuran > 15 MB atau HEIC; izin tulis `/srv/galeri/uploads` (pemilik `galeri`) |
+| Bantu AI: "Kunci API Anthropic belum terpasang/ditolak" | `ANTHROPIC_API_KEY` di `/srv/galeri/app/.env`, lalu `sudo systemctl restart galeri`; kunci masih aktif di Console? |
+| Bantu AI: "Batas biaya/panggilan tercapai" | Pengaturan → Panduan AI (batas bulanan/harian, pemakaian bulan ini) |
 | Login selalu kembali ke `/masuk` | Akses lewat `http://` atau IP: cookie sesi `Secure` hanya terkirim lewat HTTPS domain |
 | Perubahan karya tidak muncul di Galeri | Halaman di-cache; aksi Studio me-revalidate otomatis, cadangan maksimal 1 jam |
 | Foto yang dihapus masih terbuka lewat `/_next/image?url=…` | Varian hasil optimasi disimpan maks. 1 hari. Untuk menghapus segera: `sudo rm -rf /srv/galeri/app/.next/cache/images` |
