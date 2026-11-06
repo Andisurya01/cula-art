@@ -11,6 +11,7 @@ import type {
   PostType,
   ProjectStage,
 } from "@prisma/client";
+import type { MetricStatus } from "@/lib/analytics/snapshots";
 
 export const CONTENT_STAGES = [
   "PLANNING",
@@ -104,6 +105,28 @@ export const AVAILABILITY_LABELS: Record<Availability, string> = {
   AVAILABLE: "Tersedia",
   RESERVED: "Dipesan",
   SOLD: "Terjual",
+};
+
+/** Label field `views` per platform: TikTok melaporkan views, Instagram melaporkan reach. */
+export const VIEWS_LABELS: Record<Platform, string> = {
+  TIKTOK: "Views",
+  INSTAGRAM: "Reach",
+};
+
+export const METRIC_STATUSES = [
+  "NEED_H1",
+  "NEED_H7",
+  "WAITING_H1",
+  "WAITING_H7",
+  "COMPLETE",
+] as const satisfies readonly MetricStatus[];
+
+export const METRIC_STATUS_LABELS: Record<MetricStatus, string> = {
+  WAITING_H1: "Menunggu H+1",
+  NEED_H1: "Perlu H+1",
+  WAITING_H7: "Menunggu H+7",
+  NEED_H7: "Perlu H+7",
+  COMPLETE: "Lengkap",
 };
 
 /** Ide berstatus Baru kurang dari angka ini → "bank ide menipis". */

@@ -20,6 +20,7 @@ export const routes = {
     /** Route Handler unggah foto karya (POST). */
     artworkPhotoUpload: (id: string) => `${STUDIO}/karya/${encodeURIComponent(id)}/foto`,
     posts: `${STUDIO}/postingan`,
+    post: (id: string) => `${STUDIO}/postingan/${encodeURIComponent(id)}`,
     analytics: `${STUDIO}/analitik`,
     experiments: `${STUDIO}/eksperimen`,
     review: `${STUDIO}/review`,
@@ -44,6 +45,7 @@ export const routePatterns = {
   content: `${STUDIO}/pipeline/[id]`,
   project: `${STUDIO}/proyek/[id]`,
   artwork: `${STUDIO}/karya/[id]`,
+  post: `${STUDIO}/postingan/[id]`,
   galleryArtwork: "/karya/[slug]",
 } as const;
 

@@ -6,6 +6,7 @@ describe("routes", () => {
   it("path Studio dan Galeri", () => {
     expect(routes.studio.home).toBe("/studio");
     expect(routes.studio.content("abc")).toBe("/studio/pipeline/abc");
+    expect(routes.studio.post("abc")).toBe("/studio/postingan/abc");
     expect(routes.studio.artworkPreview("x1")).toBe("/studio/karya/x1/pratinjau");
     expect(routes.gallery.artwork("kepala naga")).toBe("/karya/kepala%20naga");
   });

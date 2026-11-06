@@ -1,6 +1,9 @@
 // Fungsi murni untuk metrik konten. Tidak boleh import Prisma, React, atau Next.
 // Rumus mengikuti docs/PRD.md bagian "Metrik, rumus, dan aturan saran".
 
+/** Sama dengan enum Prisma `Platform`; ditulis ulang karena modul ini tidak boleh import Prisma. */
+export type AnalyticsPlatform = "TIKTOK" | "INSTAGRAM";
+
 export type MetricInput = {
   views: number;
   likes: number;
