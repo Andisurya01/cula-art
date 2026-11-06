@@ -48,6 +48,12 @@ enum SnapshotKind {
   CUSTOM
 }
 
+// Asal angka metrik. Fase 4 hanya MANUAL; API disiapkan untuk impor TikTok/Instagram nanti.
+enum DataSource {
+  MANUAL
+  API
+}
+
 enum ProjectStage {
   PLANNING
   IN_PROGRESS
@@ -227,23 +233,27 @@ model Post {
   postedAt    DateTime?
   url         String?
   durationSec Int?
+  externalId  String? // ID post di platform, untuk impor API nanti
   snapshots   MetricSnapshot[]
   experiments ExperimentPost[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
   @@unique([contentId, platform])
+  @@unique([platform, externalId])
   @@index([scheduledAt])
   @@index([postedAt])
 }
 
-// Aturan "postId + kind unik kecuali CUSTOM" ditegakkan di Server Action,
-// karena Prisma 6 belum mendukung partial unique index di schema.
+// "postId + kind unik kecuali CUSTOM" = partial unique index
+// `MetricSnapshot_postId_kind_key` yang ditulis manual di migrasi 20261105090000_data,
+// karena schema Prisma 6 belum bisa menyatakannya. `@@index` di bawah tetap dipakai CUSTOM.
 model MetricSnapshot {
   id             String       @id @default(cuid())
   postId         String
   post           Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
   kind           SnapshotKind
+  source         DataSource   @default(MANUAL)
   recordedAt     DateTime     @default(now())
   views          Int          @default(0)
   likes          Int          @default(0)
@@ -264,6 +274,7 @@ model AccountSnapshot {
   platform  Platform
   date      DateTime // tanggal WIB, disimpan sebagai 00.00 WIB dalam UTC
   followers Int
+  source    DataSource @default(MANUAL)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
