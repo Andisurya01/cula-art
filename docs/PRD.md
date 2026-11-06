@@ -143,11 +143,12 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 
 ### 1. Beranda
 
-- Kartu progres minggu ini: "2 dari 3 post", dengan streak minggu berturut-turut yang memenuhi target.
-- Tugas hari ini: konten di Pipeline yang dijadwalkan dikerjakan atau diposting hari ini.
-- Metrik tertunda: post yang sudah lewat 24 jam atau 7 hari tapi metriknya belum diisi, dengan tombol isi cepat.
-- 3 kartu saran teratas dari mesin aturan.
-- Grafik mini followers TikTok dan Instagram 30 hari terakhir.
+- Kartu progres minggu ini: "2 dari 3 post" tayang (plus yang terjadwal), dengan streak: minggu WIB berturut-turut dengan post tayang ≥ target, dihitung per konten, memakai target saat ini. Minggu berjalan menambah streak jika sudah memenuhi target, dan tidak memutusnya jika belum.
+- Tugas hari ini: post terjadwal hari ini; post lewat jadwal yang belum tayang (maks. 7 hari ke belakang); konten terjadwal ≤ 2 hari lagi yang belum Siap Posting. Jadwal pengerjaan tidak punya data sendiri, jadi tidak ikut.
+- Metrik tertunda: post yang sudah lewat 24 jam atau 7 hari tapi metriknya belum diisi, dengan tombol isi cepat yang langsung membuka form H+1 atau H+7. H+1 tampil lebih dulu.
+- Pengingat snapshot followers jika suatu platform belum punya snapshot dalam 7 hari terakhir.
+- 3 kartu saran teratas dari mesin aturan (Fase 5).
+- Grafik mini followers TikTok dan Instagram 30 hari terakhir, satu grafik per platform.
 
 ### 2. Bank Ide
 
@@ -164,7 +165,8 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 - Detail konten: judul, pilar, format, tipe hook, teks hook 3 detik pertama, script/storyboard, shot list, target durasi, proyek dan nomor part seri.
 - Checklist produksi bawaan: hook di 3 detik pertama, subtitle, cover, CTA, caption, hashtag, audio. Bisa diubah di Pengaturan.
 - Versi per platform: satu konten punya versi TikTok dan Instagram, masing-masing dengan caption, hashtag, jadwal, status sendiri.
-- Pindah ke Posted meminta link post dan waktu posting aktual, lalu otomatis membuat jadwal input metrik.
+- Pindah ke Posted meminta link post dan waktu posting aktual. Status metrik H+1 dan H+7 lalu dihitung dari waktu posting, tanpa tabel jadwal.
+- Versi platform yang sudah tayang menampilkan badge status metrik dan tautan ke detail post.
 - Penanda kartu macet jika di kolom yang sama lebih dari 7 hari.
 
 ### 4. Kalender
@@ -185,21 +187,21 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 
 ### 6. Postingan
 
-- Daftar post per platform; filter platform, pilar, rentang tanggal.
-- Badge status metrik: Perlu H+1, Perlu H+7, Lengkap.
-- Form metrik singkat (< 1 menit): views, likes, komentar, shares, saves, followers dari post, rata-rata waktu tonton, completion rate (opsional).
-- Snapshot followers akun per platform, diminta sekali seminggu saat review.
-- Detail post: metrik terhitung (ER, save rate, dll.) dan perbandingan terhadap median post sebelumnya.
+- Daftar post yang sudah tayang, per platform; filter platform (termasuk Semua), pilar, status metrik, rentang tanggal, di URL. Tidak ada total lintas platform.
+- Badge status metrik, dihitung dari `postedAt`: < 24 jam **Menunggu H+1**; 24 jam sampai 7 hari tanpa H+1 **Perlu H+1**; sudah ada H+1 dan belum 7 hari **Menunggu H+7**; ≥ 7 hari tanpa H+7 **Perlu H+7** (H+1 tidak ditagih lagi); ada H+7 **Lengkap**.
+- Form metrik singkat (< 1 menit): views (TikTok) atau reach (Instagram), likes, komentar, shares, saves, followers dari post; rata-rata waktu tonton dan completion rate opsional dan dilipat. Input menerima format aplikasi (`12.345`, `12,3K`, `1,2rb`, `1,2jt`). Field selain views yang kosong berarti 0. `recordedAt` otomatis saat disimpan. Likes > views hanya peringatan. Snapshot `CUSTOM` belum punya UI.
+- Snapshot followers akun per platform; input ada di Postingan, Analitik, dan pengingat Beranda (nanti juga diminta saat Review Mingguan).
+- Detail post: tautan ke post asli dan konten, snapshot H+1 dan H+7 (bisa diubah dan dihapus), metrik terhitung (ER, save rate, dll.), skor, skor relatif, dan perbandingan terhadap median post sebelumnya. Angka dari cadangan H+1 diberi penanda.
 
 ### 7. Analitik
 
-- Filter: platform, rentang waktu (7, 30, 90 hari), medium.
-- Kartu KPI: total post, rata-rata ER, followers bertambah, post per minggu.
-- Grafik garis followers per platform.
-- Grafik batang median skor per pilar, format, tipe hook, hari, jam posting.
+- Filter di URL: tab platform TikTok dan Instagram **tanpa pilihan "Semua"** (KPI dan grafik selalu satu platform), rentang waktu (7, 30, 90 hari), medium. Medium memakai `project.medium`, lalu `idea.medium`; konten tanpa keduanya hanya muncul saat Semua medium. Followers tidak terpengaruh filter medium.
+- Kartu KPI: total post, rata-rata ER, followers bertambah (snapshot terakhir dikurangi snapshot pertama dalam rentang; kurang dari 2 snapshot tampil "—"), post per minggu. Pembanding target 3 bulan hanya jika sudah diisi.
+- Grafik garis followers platform aktif.
+- Grafik batang median skor per pilar, format, tipe hook, hari, jam posting (WIB).
 - Tabel top 5 dan bottom 5 post berdasarkan skor relatif.
-- Perbandingan TikTok vs Instagram untuk konten yang sama.
-- Grup dengan kurang dari 3 post diberi label "data belum cukup".
+- Perbandingan TikTok vs Instagram untuk konten yang sama: bagian terpisah dari tab, angka di kolom platformnya sendiri, tanpa total gabungan.
+- Grup dengan kurang dari 3 post tampil redup dan diberi label "data belum cukup".
 
 ### 8. Eksperimen
 
@@ -220,6 +222,7 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 
 - Kelola pilar (nama, warna, porsi target), format, tipe hook, item checklist.
 - Target mingguan post dan slot posting default.
+- Target 3 bulan (opsional): followers dan ER per platform, sebagai pembanding di Analitik.
 - Handle TikTok dan Instagram.
 - Bobot skor konten.
 - Profil publik untuk Galeri: nama tampilan, tagline, bio singkat, foto profil, kota (opsional), tautan Instagram/TikTok, nomor WhatsApp dan email kontak. Field yang kosong tidak ditampilkan di Galeri.
@@ -374,7 +377,7 @@ Keputusan dan saran memakai angka H+7.
 3. Saat merekam, pindahkan ke Produksi; centang checklist.
 4. Setelah edit, pindahkan ke Siap Posting; tulis caption dan hashtag per platform.
 5. Drag kartu ke slot kosong di Kalender.
-6. Setelah posting, pindahkan ke Posted dan tempel link. Sistem membuat jadwal metrik H+1 dan H+7.
+6. Setelah posting, pindahkan ke Posted dan tempel link. Status metrik H+1 dan H+7 dihitung dari waktu posting.
 
 **Flow 4: Mengisi metrik**
 
@@ -481,12 +484,12 @@ Pola UI yang sama di semua tempat: tombol **Bantu AI** di samping field → pane
 
 ## Metrik, rumus, dan aturan saran
 
-Semua angka dihitung dari snapshot H+7 (fallback H+1), hanya dibandingkan dalam platform yang sama. Views TikTok dan reach Instagram disimpan di field `views` tapi tidak pernah dicampur.
+Semua angka dihitung dari snapshot H+7 (fallback H+1, diberi penanda di detail dan tabel), hanya dibandingkan dalam platform yang sama. Views TikTok dan reach Instagram disimpan di field `views` tapi tidak pernah dicampur; label di UI mengikuti platform.
 
 - **Engagement rate:** `ER = (likes + comments + shares + saves) / views × 100%`
 - **Save rate** = saves / views · **Share rate** = shares / views · **Follow rate** = follows / views × 1000
 - **Skor konten** (bobot default, bisa diubah): `Skor = (likes + 2·comments + 3·shares + 3·saves + 5·follows) / views × 1000`
-- **Skor relatif** = skor post / median skor 10 post terakhir di platform yang sama. 1,5 = 50% lebih baik dari biasanya.
+- **Skor relatif** = skor post / median skor sampai 10 post sebelumnya (berdasarkan `postedAt`, sudah punya skor, tidak terikat rentang filter) di platform yang sama. 1,5 = 50% lebih baik dari biasanya. Pembanding kurang dari 3 post atau median 0: tampil "—" dan post tidak masuk top/bottom.
 - `views = 0` → semua rate = 0 (bukan NaN/Infinity).
 
 **Aturan saran otomatis** (aktif hanya jika grup punya ≥ 3 post; Beranda menampilkan 3 teratas)
@@ -520,9 +523,9 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 | Idea | id, title, notes, medium, potential (1-5), effort (1-5), status (NEW, PICKED, ARCHIVED), refUrl, createdAt | N:1 Pillar; 1:0..1 Content |
 | Content | id, ideaId, projectId, seriesPart, title, pillarId, formatId, hookTypeId, hookText, script, shotList, targetDurationSec, stage (PLANNING, PRODUCTION, EDITING, READY, POSTED), stageChangedAt | 1:N Post, ChecklistItem |
 | ChecklistItem | id, contentId, label, done, order | N:1 Content |
-| Post | id, contentId, platform (TIKTOK, INSTAGRAM), postType (VIDEO, REEL, CAROUSEL, STORY), caption, hashtags, scheduledAt, postedAt, url, durationSec | 1:N MetricSnapshot |
-| MetricSnapshot | id, postId, kind (H1, H7, CUSTOM), recordedAt, views, likes, comments, shares, saves, follows, avgWatchSec, completionRate | N:1 Post |
-| AccountSnapshot | id, platform, date, followers | unik per platform+date |
+| Post | id, contentId, platform (TIKTOK, INSTAGRAM), postType (VIDEO, REEL, CAROUSEL, STORY), caption, hashtags, scheduledAt, postedAt, url, durationSec, externalId (ID post di platform, opsional, untuk impor API nanti) | 1:N MetricSnapshot |
+| MetricSnapshot | id, postId, kind (H1, H7, CUSTOM), source (MANUAL, API), recordedAt, views, likes, comments, shares, saves, follows, avgWatchSec, completionRate | N:1 Post |
+| AccountSnapshot | id, platform, date, followers, source (MANUAL, API) | unik per platform+date |
 | Experiment | id, hypothesis, variable, decidingMetric, result (SUPPORTED, REJECTED, INCONCLUSIVE), notes | 1:N ExperimentPost |
 | ExperimentPost | experimentId, postId, variant (A, B) | penghubung |
 | WeeklyReview | id, weekStart, wins, repeat, stop, focusNext, summaryJson | satu per minggu |
@@ -540,8 +543,8 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 
 **Aturan data**
 
-- `postId + kind` unik (kecuali CUSTOM).
-- `platform + date` di AccountSnapshot unik.
+- `postId + kind` unik (kecuali CUSTOM), ditegakkan partial unique index di database.
+- `platform + date` di AccountSnapshot unik. `platform + externalId` di Post unik; `externalId` boleh kosong.
 - Content ke POSTED butuh minimal satu Post dengan `postedAt` dan `url`.
 - Satu Content punya maksimal satu Post per platform (`contentId + platform` unik).
 - Format dan tipe hook boleh kosong selama Perencanaan–Editing, wajib saat Content pindah ke Siap Posting atau Posted.
@@ -571,7 +574,7 @@ Monolit Next.js (App Router, TypeScript) + Prisma. Logika analitik = fungsi murn
 | Form | React Hook Form + Zod |
 | State UI | Zustand |
 | Drag and drop | dnd-kit |
-| Grafik | Recharts |
+| Grafik | Recharts (hanya Studio; Galeri tidak memuatnya) |
 | Tanggal | date-fns + date-fns-tz |
 | PWA | Serwist (hanya untuk Studio) |
 | Auth | Sesi di database + password scrypt + 2FA TOTP; `proxy.ts` untuk cek cepat, `requireAdmin()` untuk cek sesungguhnya |
@@ -601,7 +604,9 @@ src/
     ideas/        # components, actions.ts, schema.ts, queries.ts
     contents/
     posts/
-    metrics/
+    metrics/      # snapshot metrik dan followers, skor per post, Postingan
+    analytics/    # halaman Analitik
+    home/         # Beranda Studio
     projects/
     artworks/     # Studio: CRUD karya, unggah foto, publikasi
     gallery/      # Galeri: query publik (hanya field publik), kartu produk
@@ -614,9 +619,15 @@ src/
     storage.ts        # simpan/baca/hapus file unggahan
     images.ts         # sharp: resize, WebP, hapus metadata
     analytics/
-      metrics.ts      # ER, rate, skor, skor relatif
-      grouping.ts     # median per pilar/format/hook/jam
-      rules.ts        # mesin aturan saran
+      metrics.ts      # ER, rate, skor, median
+      snapshots.ts    # snapshot yang dipakai, status metrik, metrik tertunda
+      scoring.ts      # skor dan skor relatif per post, per platform; top/bottom
+      grouping.ts     # median per pilar/format/hook/hari/jam
+      kpi.ts          # KPI satu platform, followers bertambah
+      streak.ts       # streak mingguan
+      tasks.ts        # tugas hari ini, pengingat snapshot followers
+      compare.ts      # TikTok vs Instagram untuk konten yang sama
+      rules.ts        # mesin aturan saran (Fase 5)
     date.ts           # helper minggu & WIB
     db.ts             # Prisma client
 prisma/
@@ -666,7 +677,7 @@ flowchart LR
   F1["Fase 1: Fondasi Studio ✅<br/>Pengaturan & pilar, Bank Ide,<br/>Pipeline, Detail konten,<br/>Kalender, Proyek & seri"]
   F2["Fase 2: Galeri + Auth<br/>Studio pindah ke /studio, login,<br/>menu Karya + unggah foto,<br/>Beranda, Katalog, Detail, SEO,<br/>deploy ke domain"]
   F3["Fase 3: Asisten AI (persiapan)<br/>Panduan AI, Kembangkan ide,<br/>hook, script, caption,<br/>teks karya dari foto, log biaya"]
-  F4["Fase 4: Data<br/>Postingan, Metrik H+1/H+7,<br/>Snapshot followers,<br/>Analitik, Beranda Studio penuh"]
+  F4["Fase 4: Data ✅<br/>Postingan, Metrik H+1/H+7,<br/>Snapshot followers,<br/>Analitik, Beranda Studio penuh"]
   F5["Fase 5: Saran + AI analisis<br/>Mesin aturan, Eksperimen,<br/>Review mingguan + draf AI,<br/>PWA offline, Ekspor/backup"]
   F6["Fase 6: Toko<br/>Keranjang, checkout,<br/>pembayaran, ongkir,<br/>pesanan, stok/edisi"]
   F7["Nanti<br/>Impor API IG/TikTok,<br/>Notifikasi, Tanya data (chat AI)"]
@@ -678,7 +689,7 @@ flowchart LR
   F6 --> F7
 ```
 
-Fase 4 (Data) menyiapkan struktur untuk impor API: ID post dari platform di Post, dan sumber data (manual/API) di MetricSnapshot.
+Fase 4 (Data) menyiapkan struktur untuk impor API: ID post dari platform di Post, dan sumber data (manual/API) di MetricSnapshot dan AccountSnapshot. Panggilan API-nya sendiri belum ada.
 
 **Fase 6: Toko (garis besar)**
 
@@ -731,10 +742,19 @@ Dirancang sekarang supaya model data Galeri tidak perlu dibongkar; detailnya dip
 - [x] Rencana Fase 3 (`docs/FASE-3.md`) disetujui, termasuk fallback penolakan otomatis, mode uji `AI_MOCK`, status AiRun `RUNNING`, kolom `cacheWriteTokens`, dan gaya bahasa terstruktur (`voiceJson`).
 - [x] Deploy ke VPS (langkah 11 Fase 2) ditunda dan dilakukan belakangan. Fase 3 dimulai tanpa menunggu Galeri live; panduan `docs/DEPLOY.md` diperbarui di setiap fase yang menambah kebutuhan server (mis. `ANTHROPIC_API_KEY`).
 
+**Keputusan (5 November 2026, Fase 4)**
+
+Rinciannya D1-D11 di `docs/FASE-4.md`; isinya sudah tertulis di menu 1, 6, 7 dan "Metrik, rumus, dan aturan saran".
+
+- [x] Analitik per platform tanpa pilihan "Semua". Hanya daftar Postingan yang menampilkan semua platform.
+- [x] Status metrik dan skor relatif dihitung saat dibaca, tanpa tabel jadwal.
+- [x] Target 3 bulan opsional: pembanding hanya tampil jika sudah diisi.
+- [x] Sebelum Review Mingguan ada (Fase 5), Beranda mengingatkan snapshot followers yang lewat 7 hari.
+
 **Pertanyaan terbuka**
 
 - [ ] Nama brand final dan domain?
-- [ ] Target followers dan ER 3 bulan pertama untuk TikTok dan Instagram?
+- [ ] Target followers dan ER 3 bulan pertama untuk TikTok dan Instagram? (Sudah bisa diisi di Pengaturan → Jadwal; opsional.)
 - [ ] Akun Instagram sudah Business/Creator?
 - [ ] Gambar dan clay di akun yang sama atau terpisah?
 - [ ] Porsi pilar default (30/30/15/15/10) sudah sesuai?

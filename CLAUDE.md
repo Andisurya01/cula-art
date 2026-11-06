@@ -5,9 +5,9 @@ Satu web app, satu domain, dua sisi:
 - **Galeri** (publik, `/`): etalase karya gambar dan patung clay ala katalog marketplace. Nanti menjadi toko.
 - **Studio** (privat, `/studio`, wajib login): content planner untuk konten TikTok/Instagram (target 2-3 post per minggu, keputusan berbasis data) plus pengelolaan karya yang tampil di Galeri.
 
-Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`.
+Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`.
 
-> Status kode (29 Okt 2026): Fase 3 selesai (Asisten AI: Panduan AI, enam tombol Bantu AI, batas biaya, log `AiRun`, set uji). Fase 2 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
+> Status kode (6 Nov 2026): Fase 4 selesai (Postingan, metrik H+1/H+7, snapshot followers, Analitik, Beranda Studio penuh, target 3 bulan). Fase 1-3 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
 
 ## Lingkungan
 
@@ -28,7 +28,7 @@ Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur bar
 - React Hook Form + Zod (schema yang sama dipakai di client dan Server Actions)
 - Zustand hanya untuk state UI (filter, tampilan kalender, drag state)
 - dnd-kit, date-fns + date-fns-tz, lucide-react, next-themes, Vitest
-- sharp (gambar), qrcode (QR setup 2FA). Fase 3: `@anthropic-ai/sdk` (Asisten AI). Fase 4+: Recharts. Fase 5: Serwist (PWA, hanya Studio)
+- sharp (gambar), qrcode (QR setup 2FA). Fase 3: `@anthropic-ai/sdk` (Asisten AI). Fase 4: Recharts 3 (hanya Studio, lewat `src/components/charts/`). Fase 5: Serwist (PWA, hanya Studio)
 
 ## Struktur
 
@@ -45,11 +45,16 @@ src/features/gallery/            # queries.ts (satu-satunya pintu data Galeri), 
 src/features/ai/                 # Asisten AI: client.ts (satu-satunya pembaca ANTHROPIC_API_KEY + mode uji), prompts/ (berversi, murni),
                                  # context.ts (data per fitur, allowlist), run.ts, limits.ts, guide*.ts, components/ (panel Bantu AI), evals/
 src/app/studio/ai/route.ts       # POST Asisten AI → NDJSON (partial/done/error)
+src/features/metrics/            # snapshot metrik + followers, getScoredPosts (status + skor semua post), parse-count.ts, format.ts,
+                                 # post-filters.ts, components/ (MetricFormButton, AccountSnapshotButton, status badge, Postingan)
+src/features/analytics/          # halaman Analitik: filter URL, select-posts.ts, targets.ts, components/
+src/features/home/               # Beranda Studio: queries.ts, derive.ts, components/
+src/components/charts/           # SATU-SATUNYA pengimpor recharts: TimeLineChart, GroupBarChart, warna per platform
 src/lib/routes.ts                # SEMUA path internal (href, router.push, redirect, revalidatePath)
 src/lib/storage.ts, images.ts    # simpan/baca/hapus file; sharp (resize 2400, WebP 82, tanpa EXIF)
 src/lib/upload-route.ts          # helper Route Handler unggah (server); upload-client.ts = XHR + progres (client)
 src/lib/slug.ts, site.ts         # slugify + slug unik; SITE_URL/absoluteUrl
-src/lib/analytics/               # metrics.ts, grouping.ts, rules.ts  (fungsi murni, tanpa Prisma/React)
+src/lib/analytics/               # metrics, snapshots, scoring, grouping, kpi, streak, tasks, compare, ai-usage; rules.ts di Fase 5 (fungsi murni, tanpa Prisma/React)
 src/lib/date.ts                  # helper minggu & WIB
 src/lib/db.ts                    # Prisma client singleton
 src/test/                        # helper test: db.ts (resetDatabase), next-headers.ts (mock), global-setup.ts
@@ -84,6 +89,7 @@ npm run test                # vitest: proyek unit + integration (*.int.test.ts k
 npm run build               # butuh PostgreSQL jalan (halaman Galeri di-prerender)
 npm run admin:create        # akun pemilik (sekali); admin:reset-2fa, admin:reset-password untuk darurat
 npm run ai:eval -- <fitur|semua> [--model …] [--batas n] [--panduan-db] [--konfirmasi]   # set uji AI; --konfirmasi = BERBIAYA (tanya pengguna dulu), kecuali AI_MOCK=1
+npx tsx scripts/demo-metrics.ts [--jumlah 1000] [--hapus]   # data contoh metrik berlabel [Demo] di galeri_dev; hapus lagi setelah uji
 ```
 
 `TEST_DB_NAME=galeri_xxx_test npx vitest run …` memakai database test lain (nama wajib berakhiran `_test`), supaya beberapa run test integrasi bisa paralel.
@@ -105,13 +111,20 @@ Catatan versi (Oktober 2026):
 - Keputusan implementasi Fase 1 dicatat di bagian akhir `docs/FASE-1.md`.
 - Asisten AI (`@anthropic-ai/sdk` 1.x): `client.beta.messages.stream` + structured output lewat `src/features/ai/output-schema.ts` (bukan `betaZodOutputFormat` SDK, yang membuang `enum`; tanpa auto-parse: `stop_reason` dicek dulu, lalu Zod). Skema output ikut menentukan cache prompt, jadi buat skema yang stabil (mis. nomor foto, bukan id), effort per fitur di prompt, thinking adaptif bawaan (jangan kirim `thinking: disabled`/`budget_tokens`, ditolak Opus 5.5), `fallbacks: "default"` + beta `server-side-fallback-2026-07-01` untuk Opus/Sonnet (bukan Haiku). Biaya dari `usage.iterations` × harga di `src/features/ai/models.ts`. Prompt sistem (instruksi dasar + Panduan AI) harus deterministik supaya ter-cache; data per permintaan di pesan user.
 - Fitur AI baru: tambah prompt di `src/features/ai/prompts/` (+ `FEATURE_PROMPTS`, `CONTEXT_LOADERS`, sampel `mock.ts`, kasus `evals/`), lalu pakai `useAiAssist` + `AiAssistPanel` di komponen. Mengubah teks tugas/skema → naikkan versi prompt dan hash di `prompts.test.ts`. Test memakai mock (`vi.mock` `./client`), tidak pernah API asli.
+- Metrik: `getScoredPosts()` (`src/features/metrics/queries.ts`) satu-satunya sumber status dan skor per post. Skor relatif butuh riwayat penuh per platform, jadi selalu dihitung dari semua post tayang, lalu halaman menyaring hasilnya; jangan menghitung ulang setelah menyaring. Fungsi di `lib/analytics` menyaring platform sendiri supaya pemanggil tidak bisa mencampur.
+- `MetricSnapshot` unik per `postId + kind` (kecuali CUSTOM) lewat partial unique index yang ditulis manual di migrasi `20261105090000_data`; schema Prisma tidak bisa menyatakannya dan `prisma migrate diff` tidak melaporkannya. Upsert snapshot = `updateMany` lalu `create`, tangkap P2002. Jangan menghapus index itu saat membuat migrasi baru.
+- Input angka metrik lewat `parseCount` (`12.345`, `12,3K`, `1,2rb`, `1,2jt`). Schema idempoten: string dari form, atau bilangan bulat hasil parse di client. `inputMode="numeric"` tidak punya huruf di HP, jadi form metrik dan snapshot followers punya tombol akhiran K/jt (`CountSuffixChips`). Di form metrik, Enter pindah ke field berikutnya: field kosong berarti 0, jadi form tidak boleh tersimpan setengah isi.
+- Format angka UI dari `src/features/metrics/format.ts` (null/NaN → "—"). Jangan `notation: "compact"` Intl: hasilnya bisa beda antara Node dan browser (hydration).
+- Grafik: warna seri hanya `SERIES_COLORS[platform]` (`--series-tiktok`, `--series-instagram`, lolos validator dataviz di kedua mode), satu platform per grafik, jadi tanpa legend. Test statis `charts-boundary.static.test.ts` menjaga Recharts tetap di luar Galeri.
+- `getSettings()` hanya membaca lalu membuat baris jika belum ada, dan di-`cache` per request; aman dipanggil paralel. Jangan kembali ke `upsert` (dua upsert paralel pada tabel kosong gagal P2002).
+- `proxy.ts` menulis ulang cookie sesi sebagai httpOnly di setiap request. Untuk menguji sesi yang hilang, hapus baris `Session` di database, bukan cookie lewat JS.
 
 ## Fase
 
 - **Fase 1 (fondasi Studio):** selesai, lihat `docs/FASE-1.md`.
 - **Fase 2 (Galeri + auth):** selesai (deploy menunggu VPS), lihat `docs/FASE-2.md`. Studio pindah ke `/studio`, PostgreSQL, login + 2FA + sesi + `proxy.ts` + `requireAdmin()`, menu Karya + unggah foto (sharp, hapus EXIF), profil publik, Galeri (Beranda, Katalog, Detail, Tentang), SEO, deploy ke domain.
 - **Fase 3 (Asisten AI, persiapan konten):** selesai, lihat `docs/FASE-3.md`. Panduan AI di Pengaturan, tombol Bantu AI (kembangkan ide, ide dari proyek, hook, script/shot list, caption + hashtag, teks karya dari foto), batas biaya, log `AiRun`, set uji. Lihat PRD bagian "Asisten AI".
-- **Fase 4 (data):** Postingan, input metrik H+1/H+7, snapshot followers, `lib/analytics/grouping.ts`, Analitik (Recharts), Beranda Studio penuh. Siapkan ID post platform + sumber metrik untuk impor API nanti.
+- **Fase 4 (data):** selesai, lihat `docs/FASE-4.md`. Postingan, input metrik H+1/H+7, snapshot followers, `lib/analytics`, Analitik (Recharts), Beranda Studio penuh, target 3 bulan. Kolom `Post.externalId` dan `source` sudah ada untuk impor API nanti.
 - **Fase 5 (saran + AI analisis):** `lib/analytics/rules.ts`, Eksperimen, Review Mingguan (+ draf ringkasan AI), "Kenapa?" di detail post, PWA + capture ide offline, ekspor/backup.
 - **Fase 6 (toko):** keranjang, checkout, pembayaran, ongkir, pesanan.
 

@@ -9,7 +9,7 @@ _Nama sementara; sebelumnya Content Growth Planner._ Satu web app di satu domain
 | 1. Fondasi | Pengaturan, Bank Ide, Pipeline + detail konten, Kalender, Proyek & Seri, Beranda ringkas | Selesai 28 Okt 2026 ([docs/FASE-1.md](docs/FASE-1.md)) |
 | 2. Galeri + Auth | Studio di `/studio` + login 2FA, menu Karya + unggah foto, Galeri publik (Beranda, Katalog, Detail, Tentang), SEO | Selesai 29 Okt 2026, deploy menunggu domain + VPS ([docs/FASE-2.md](docs/FASE-2.md), [docs/DEPLOY.md](docs/DEPLOY.md)) |
 | 3. Asisten AI | Panduan AI, draf ide/hook/script/caption, teks karya dari foto, batas biaya + log, set uji | Selesai 29 Okt 2026 ([docs/FASE-3.md](docs/FASE-3.md)) |
-| 4. Data | Postingan, metrik H+1/H+7, snapshot followers, Analitik, Beranda Studio penuh | Belum |
+| 4. Data | Postingan, metrik H+1/H+7, snapshot followers, Analitik, Beranda Studio penuh, target 3 bulan | Selesai 6 Nov 2026 ([docs/FASE-4.md](docs/FASE-4.md)) |
 | 5. Saran + AI analisis | Mesin aturan, Eksperimen, Review Mingguan (+ draf AI), PWA offline, ekspor/backup | Belum |
 | 6. Toko | Keranjang, checkout, pembayaran, ongkir, pesanan | Belum |
 
@@ -47,7 +47,10 @@ _Nama sementara; sebelumnya Content Growth Planner._ Satu web app di satu domain
 4. Buka `http://localhost:3000/masuk`, login, pindai QR dengan aplikasi authenticator, simpan 10 kode pemulihan. Studio ada di `/studio`, Galeri publik di `/`.
 5. Asisten AI (opsional): isi `ANTHROPIC_API_KEY` (atau `AI_MOCK=1` untuk mencoba tanpa biaya), restart server, lalu Studio → Pengaturan → Panduan AI: isi panduan dan nyalakan AI. Pasang juga batas pengeluaran di Anthropic Console.
 
-Data contoh Galeri (opsional): `npx tsx scripts/demo-gallery.ts` (hapus lagi dengan `--hapus`).
+Data contoh (opsional, hapus lagi dengan `--hapus`):
+
+- Galeri: `npx tsx scripts/demo-gallery.ts`.
+- Metrik: `npx tsx scripts/demo-metrics.ts` (`--jumlah 1000` untuk uji performa). Hanya menyentuh data berlabel `[Demo]`.
 
 ## Script
 
@@ -67,7 +70,7 @@ Satu fitur dianggap selesai jika `lint`, `typecheck`, `test`, dan `build` lolos.
 
 ## Stack
 
-Next.js 16 (App Router, Server Actions, `proxy.ts`) · TypeScript strict · Prisma 6 + PostgreSQL 18 · Tailwind 4 + Shadcn/ui · TanStack Query · React Hook Form + Zod · Zustand · dnd-kit · date-fns + date-fns-tz · sharp · qrcode · Claude API (`@anthropic-ai/sdk`) · Vitest 4.
+Next.js 16 (App Router, Server Actions, `proxy.ts`) · TypeScript strict · Prisma 6 + PostgreSQL 18 · Tailwind 4 + Shadcn/ui · TanStack Query · React Hook Form + Zod · Zustand · dnd-kit · date-fns + date-fns-tz · sharp · qrcode · Claude API (`@anthropic-ai/sdk`) · Recharts (hanya Studio) · Vitest 4.
 
 ## Struktur
 
@@ -82,11 +85,14 @@ src/features/<domain>/          components/, actions.ts (Server Actions, diawali
 src/features/auth/              sesi, TOTP, password, lockout, requireAdmin (dal.ts)
 src/features/gallery/           satu-satunya pintu data Galeri (queries.ts → DTO publik), teks Galeri (copy.ts)
 src/features/ai/                Asisten AI: client.ts (satu-satunya pembaca ANTHROPIC_API_KEY), prompts/ (berversi), run.ts, limits.ts, components/ (panel Bantu AI), evals/ (set uji)
+src/features/metrics/           snapshot metrik dan followers, skor per post, Postingan
+src/features/analytics/         halaman Analitik; src/features/home/ Beranda Studio
+src/components/charts/          grafik Recharts (hanya Studio)
 src/lib/                        routes.ts (semua path), storage.ts + images.ts (unggah, sharp), slug.ts, date.ts (WIB), db.ts
-src/lib/analytics/              fungsi murni metrik (ER, skor, skor relatif) dan pemakaian AI + unit test
+src/lib/analytics/              fungsi murni: metrik, status, skor, median per grup, KPI, streak, tugas hari ini, pemakaian AI + unit test
 src/test/                       helper test (database test, mock next/headers)
 prisma/                         schema.prisma, migrations/, seed.ts
-scripts/                        admin-*.ts, demo-gallery.ts, ai-eval.ts
+scripts/                        admin-*.ts, demo-gallery.ts, demo-metrics.ts, ai-eval.ts
 deploy/                         Caddyfile, galeri.service, galeri-backup.sh
 docs/                           PRD, rencana fase, DEPLOY
 ```
@@ -95,6 +101,6 @@ docs/                           PRD, rencana fase, DEPLOY
 
 - Semua waktu disimpan UTC dan ditampilkan dalam WIB.
 - Tombol **+ Ide** ada di semua halaman Studio; di desktop tekan `N` (saat tidak sedang mengetik).
-- Metrik TikTok dan Instagram tidak pernah dicampur dalam satu agregat.
+- Metrik TikTok dan Instagram tidak pernah dicampur dalam satu agregat. Analitik selalu per platform; hanya daftar Postingan yang menampilkan keduanya, per baris.
 - Asisten AI hanya membuat draf di form; tidak ada yang tersimpan sampai tombol Simpan (atau "Simpan sebagai ide") ditekan. Setiap panggilan dicek terhadap batas biaya/harian dan dicatat di `AiRun`.
 - Galeri hanya menampilkan karya Terbit; harga hanya jika "Tampilkan harga" aktif. Foto unggahan diproses ulang tanpa metadata EXIF/GPS.
