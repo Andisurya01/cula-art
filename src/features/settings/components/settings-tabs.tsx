@@ -6,6 +6,7 @@ import type { AccountSecurity as AccountSecurityData } from "@/features/auth/que
 import type { AiSettingsPageData } from "@/features/ai/queries";
 import type { SettingsPageData } from "../queries";
 import { AiGuideTab } from "./ai-guide/ai-guide-tab";
+import { FollowerTargetCard } from "./follower-target-card";
 import { GeneralSettingsCard } from "./general-settings-card";
 import { PillarCard } from "./pillar-card";
 import { PostingSlotsCard } from "./posting-slots-card";
@@ -76,6 +77,7 @@ export function SettingsTabs({
       <TabsContent value="jadwal" className="grid gap-4">
         <GeneralSettingsCard weeklyPostTarget={settings.weeklyPostTarget} />
         <PostingSlotsCard slots={settings.postingSlots} />
+        <FollowerTargetCard target={settings.followerTarget} />
       </TabsContent>
 
       <TabsContent value="skor">

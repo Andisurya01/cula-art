@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DEFAULT_SCORE_WEIGHTS, type ScoreWeights } from "@/lib/analytics/metrics";
 import { normalizeWhatsapp } from "@/features/gallery/format";
+import { parseCount, parsePercent } from "@/features/metrics/parse-count";
 
 export const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam HH:mm");
 
@@ -295,3 +296,59 @@ export const scoreWeightsInputSchema = z.object({
   saves: weightInput,
   follows: weightInput,
 }) satisfies z.ZodType<ScoreWeights>;
+
+// ---------------------------------------------------------------------------
+// Target 3 bulan (tab Jadwal). Opsional (D11): kosong berarti target itu tidak diisi.
+// Idempoten: menerima teks dari form maupun angka hasil parse, karena client mengirim hasil resolver.
+// ---------------------------------------------------------------------------
+
+function isEmptyTarget(value: string | number | null | undefined): value is "" | null | undefined {
+  return value === null || value === undefined || (typeof value === "string" && value.trim() === "");
+}
+
+const targetFollowers = z
+  .union([z.string(), z.number()])
+  .nullish()
+  .transform((value, ctx) => {
+    if (isEmptyTarget(value)) return undefined;
+    // Angka non-bulat ditolak di sini: `parseCount("12.345")` akan membacanya sebagai dua belas ribu.
+    const parsed =
+      typeof value === "number" && !Number.isInteger(value) ? null : parseCount(String(value));
+    if (parsed === null) {
+      ctx.addIssue({ code: "custom", message: "Isi angka, mis. 12.345 atau 12,3K" });
+      return z.NEVER;
+    }
+    return parsed;
+  });
+
+const targetEr = z
+  .union([z.string(), z.number()])
+  .nullish()
+  .transform((value, ctx) => {
+    if (isEmptyTarget(value)) return undefined;
+    const parsed = typeof value === "number" ? value : parsePercent(value);
+    if (parsed === null || parsed < 0) {
+      ctx.addIssue({ code: "custom", message: "Isi persen, mis. 8,5" });
+      return z.NEVER;
+    }
+    if (parsed > 100) {
+      ctx.addIssue({ code: "custom", message: "Target ER maksimal 100%" });
+      return z.NEVER;
+    }
+    return parsed;
+  });
+
+/** Dipakai bersama form (zodResolver) dan aksi `updateFollowerTarget`. Field kosong tidak ikut ke hasil. */
+export const followerTargetInputSchema = z
+  .object({
+    tiktokFollowers: targetFollowers,
+    igFollowers: targetFollowers,
+    tiktokEr: targetEr,
+    igEr: targetEr,
+  })
+  .transform((values): FollowerTarget =>
+    Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined)),
+  )
+  .pipe(followerTargetSchema);
+export type FollowerTargetInput = z.input<typeof followerTargetInputSchema>;
+export type FollowerTargetValues = z.output<typeof followerTargetInputSchema>;

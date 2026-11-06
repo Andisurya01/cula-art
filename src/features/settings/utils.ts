@@ -1,6 +1,6 @@
 // Fungsi murni untuk menu Pengaturan (tanpa Prisma/React) — diuji di utils.test.ts.
 
-import { slotKey, sortSlots, type PostingSlot } from "./schema";
+import { slotKey, sortSlots, type FollowerTarget, type PostingSlot } from "./schema";
 
 /**
  * Pindahkan `id` satu langkah ke atas/bawah dalam daftar berurutan.
@@ -38,4 +38,16 @@ export function addSlot(slots: PostingSlot[], slot: PostingSlot, max = 21): AddS
 export function removeSlot(slots: PostingSlot[], slot: PostingSlot): PostingSlot[] {
   const key = slotKey(slot);
   return slots.filter((s) => slotKey(s) !== key);
+}
+
+/** Target tersimpan → teks form Target 3 bulan; yang belum diisi jadi string kosong, ER memakai koma. */
+export function followerTargetFormValues(target: FollowerTarget): Record<keyof FollowerTarget, string> {
+  const count = (value: number | undefined) => (value === undefined ? "" : String(value));
+  const percent = (value: number | undefined) => count(value).replace(".", ",");
+  return {
+    tiktokFollowers: count(target.tiktokFollowers),
+    igFollowers: count(target.igFollowers),
+    tiktokEr: percent(target.tiktokEr),
+    igEr: percent(target.igEr),
+  };
 }

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanHandleInput,
+  followerTargetInputSchema,
+  followerTargetSchema,
   generalSettingsSchema,
   normalizeWhatsappInput,
+  parseFollowerTarget,
   PROFILE_LIMITS,
   publicProfileSchema,
   WHATSAPP_ERROR,
@@ -185,5 +188,90 @@ describe("generalSettingsSchema", () => {
   it("target 1-14", () => {
     expect(generalSettingsSchema.safeParse({ weeklyPostTarget: 0 }).success).toBe(false);
     expect(generalSettingsSchema.safeParse({ weeklyPostTarget: 15 }).success).toBe(false);
+  });
+});
+
+describe("followerTargetInputSchema", () => {
+  const FULL = { tiktokFollowers: "12,3K", igFollowers: "5.000", tiktokEr: "8,5", igEr: "4.25%" };
+  const PARSED = { tiktokFollowers: 12300, igFollowers: 5000, tiktokEr: 8.5, igEr: 4.25 };
+
+  it("mengubah format aplikasi menjadi angka", () => {
+    expect(followerTargetInputSchema.parse(FULL)).toStrictEqual(PARSED);
+    expect(followerTargetInputSchema.parse({ igFollowers: "1,2jt" })).toStrictEqual({ igFollowers: 1_200_000 });
+  });
+
+  it.each([
+    ["string kosong", { tiktokFollowers: "", igFollowers: "", tiktokEr: "", igEr: "" }],
+    ["hanya spasi", { tiktokFollowers: "  ", igFollowers: "\n", tiktokEr: " ", igEr: "\t" }],
+    ["null", { tiktokFollowers: null, igFollowers: null, tiktokEr: null, igEr: null }],
+    ["objek kosong", {}],
+  ])("semua kosong boleh dan berarti tanpa target: %s", (_name, input) => {
+    expect(followerTargetInputSchema.parse(input)).toStrictEqual({});
+  });
+
+  it("field kosong tidak ikut ke hasil, jadi tidak tertulis di JSON", () => {
+    const result = followerTargetInputSchema.parse({ ...FULL, tiktokEr: "", igFollowers: "  " });
+    expect(result).toStrictEqual({ tiktokFollowers: 12300, igEr: 4.25 });
+    expect(JSON.stringify(result)).toBe('{"tiktokFollowers":12300,"igEr":4.25}');
+  });
+
+  it("0 adalah target yang diisi, bukan kosong", () => {
+    expect(followerTargetInputSchema.parse({ tiktokFollowers: "0", igEr: "0" })).toStrictEqual({
+      tiktokFollowers: 0,
+      igEr: 0,
+    });
+    expect(followerTargetInputSchema.parse({ tiktokFollowers: 0, igEr: 0 })).toStrictEqual({
+      tiktokFollowers: 0,
+      igEr: 0,
+    });
+  });
+
+  it("ER menerima koma, titik, dan batas 0-100", () => {
+    expect(followerTargetInputSchema.parse({ tiktokEr: "8,5" }).tiktokEr).toBe(8.5);
+    expect(followerTargetInputSchema.parse({ tiktokEr: "8.5" }).tiktokEr).toBe(8.5);
+    expect(followerTargetInputSchema.parse({ igEr: "100" }).igEr).toBe(100);
+    expect(followerTargetInputSchema.parse({ igEr: "100%" }).igEr).toBe(100);
+  });
+
+  it.each([
+    ["ER di atas 100", { tiktokEr: "100,5" }, "tiktokEr", "Target ER maksimal 100%"],
+    ["ER angka di atas 100", { igEr: 101 }, "igEr", "Target ER maksimal 100%"],
+    ["ER negatif", { igEr: "-1" }, "igEr", "Isi persen, mis. 8,5"],
+    ["ER angka negatif", { tiktokEr: -0.5 }, "tiktokEr", "Isi persen, mis. 8,5"],
+    ["ER huruf", { tiktokEr: "abc" }, "tiktokEr", "Isi persen, mis. 8,5"],
+    ["followers negatif", { igFollowers: "-5" }, "igFollowers", "Isi angka, mis. 12.345 atau 12,3K"],
+    ["followers angka negatif", { igFollowers: -5 }, "igFollowers", "Isi angka, mis. 12.345 atau 12,3K"],
+    ["followers desimal", { tiktokFollowers: "12,3" }, "tiktokFollowers", "Isi angka, mis. 12.345 atau 12,3K"],
+    ["followers angka desimal", { tiktokFollowers: 12.345 }, "tiktokFollowers", "Isi angka, mis. 12.345 atau 12,3K"],
+    ["followers huruf", { tiktokFollowers: "abc" }, "tiktokFollowers", "Isi angka, mis. 12.345 atau 12,3K"],
+    ["followers terlalu besar", { tiktokFollowers: 3_000_000_000 }, "tiktokFollowers", "Isi angka, mis. 12.345 atau 12,3K"],
+  ])("menolak %s", (_name, input, field, message) => {
+    const result = followerTargetInputSchema.safeParse(input);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({ path: [field], message });
+  });
+
+  it("menandai semua field yang salah sekaligus", () => {
+    const result = followerTargetInputSchema.safeParse({ tiktokFollowers: "abc", igEr: "200" });
+    expect(result.error?.issues.map((issue) => issue.path[0])).toEqual(["tiktokFollowers", "igEr"]);
+  });
+
+  it("idempoten: hasil parse (dikirim form ke aksi) lolos lagi tanpa berubah", () => {
+    const once = followerTargetInputSchema.parse(FULL);
+    expect(followerTargetInputSchema.parse(once)).toStrictEqual(once);
+    const partial = followerTargetInputSchema.parse({ igEr: "4,25" });
+    expect(followerTargetInputSchema.parse(partial)).toStrictEqual(partial);
+    expect(followerTargetInputSchema.parse({})).toStrictEqual({});
+  });
+
+  it("hasilnya lolos skema baca dan kembali utuh lewat parseFollowerTarget", () => {
+    const result = followerTargetInputSchema.parse(FULL);
+    expect(followerTargetSchema.safeParse(result).success).toBe(true);
+    expect(parseFollowerTarget(JSON.stringify(result))).toStrictEqual(PARSED);
+    expect(parseFollowerTarget(JSON.stringify(followerTargetInputSchema.parse({})))).toStrictEqual({});
+  });
+
+  it("key lain diabaikan", () => {
+    expect(followerTargetInputSchema.parse({ igEr: "1", weeklyPostTarget: 3 })).toStrictEqual({ igEr: 1 });
   });
 });

@@ -109,6 +109,13 @@ describe("updatePublicProfile", () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
+  it("getSettings paralel pada tabel kosong tidak gagal dan hanya membuat satu baris", async () => {
+    expect(await db.setting.count()).toBe(0);
+    const results = await Promise.all(Array.from({ length: 5 }, () => getSettings()));
+    expect(results.every((s) => s.postingSlots.length === DEFAULT_POSTING_SLOTS.length)).toBe(true);
+    expect(await db.setting.count()).toBe(1);
+  });
+
   it("baris Setting yang belum ada dibuat dengan slot posting default", async () => {
     expect(await db.setting.count()).toBe(0);
     expect((await updatePublicProfile(PROFILE)).ok).toBe(true);

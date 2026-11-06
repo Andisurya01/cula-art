@@ -1,4 +1,6 @@
 import "server-only";
+import { cache } from "react";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
   DEFAULT_POSTING_SLOTS,
@@ -19,13 +21,26 @@ export function settingCreateData() {
   };
 }
 
-/** Setting satu baris, sudah di-parse. Dibuat dengan default jika belum ada. */
-export async function getSettings() {
-  const row = await db.setting.upsert({
-    where: { id: SETTING_ID },
-    update: {},
-    create: settingCreateData(),
-  });
+/**
+ * Baca dulu, buat hanya jika belum ada. Bukan `upsert`: halaman Studio memanggil ini paralel dengan
+ * query lain, dan dua upsert bersamaan pada tabel kosong saling menabrak (P2002).
+ */
+async function loadSettingRow() {
+  const existing = await db.setting.findUnique({ where: { id: SETTING_ID } });
+  if (existing) return existing;
+  try {
+    return await db.setting.create({ data: settingCreateData() });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return db.setting.findUniqueOrThrow({ where: { id: SETTING_ID } });
+    }
+    throw error;
+  }
+}
+
+/** Setting satu baris, sudah di-parse. Dibuat dengan default jika belum ada. Sekali per request. */
+export const getSettings = cache(async () => {
+  const row = await loadSettingRow();
   return {
     weeklyPostTarget: row.weeklyPostTarget,
     postingSlots: parsePostingSlots(row.postingSlotsJson),
@@ -45,7 +60,7 @@ export async function getSettings() {
       tiktokHandle: row.tiktokHandle,
     },
   };
-}
+});
 export type Settings = Awaited<ReturnType<typeof getSettings>>;
 
 /** Daftar master (pilar/format/hook). `includeInactive` untuk Pengaturan. */

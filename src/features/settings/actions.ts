@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { fail, fromZodError, ok, type ActionResult } from "@/lib/action";
-import { routes } from "@/lib/routes";
+import { routePatterns, routes } from "@/lib/routes";
 import { deleteFilesQuietly } from "@/lib/storage";
 import { requireAdmin } from "@/features/auth/dal";
 import { revalidateGallery } from "@/features/gallery/revalidate";
@@ -13,6 +13,7 @@ import { SETTING_ID, settingCreateData } from "./queries";
 import {
   createSimpleItemSchema,
   deleteItemSchema,
+  followerTargetInputSchema,
   generalSettingsSchema,
   moveItemSchema,
   pillarInputSchema,
@@ -43,11 +44,14 @@ function revalidateFor(kind: MasterKind) {
   if (kind !== "checklist") revalidatePath(routes.studio.home, "layout");
 }
 
+/** Target tampil di Analitik; bobot mengubah skor semua post, jadi Postingan dan detailnya ikut. */
 function revalidateSettingRow() {
   revalidatePath(routes.studio.settings);
   revalidatePath(routes.studio.home);
   revalidatePath(routes.studio.calendar);
   revalidatePath(routes.studio.analytics);
+  revalidatePath(routes.studio.posts);
+  revalidatePath(routePatterns.post, "page");
 }
 
 function isUniqueError(error: unknown): boolean {
@@ -433,6 +437,22 @@ export async function updateScoreWeights(input: unknown): Promise<ActionResult> 
     where: { id: SETTING_ID },
     update: { scoreWeightsJson },
     create: { id: SETTING_ID, scoreWeightsJson },
+  });
+  revalidateSettingRow();
+  return ok();
+}
+
+/** Target 3 bulan: menimpa seluruh target; field kosong tidak ditulis, semua kosong berarti tanpa target. */
+export async function updateFollowerTarget(input: unknown): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = followerTargetInputSchema.safeParse(input);
+  if (!parsed.success) return fromZodError(parsed.error);
+
+  const followerTargetJson = JSON.stringify(parsed.data);
+  await db.setting.upsert({
+    where: { id: SETTING_ID },
+    update: { followerTargetJson },
+    create: { ...settingCreateData(), followerTargetJson },
   });
   revalidateSettingRow();
   return ok();

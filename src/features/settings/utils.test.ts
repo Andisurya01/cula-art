@@ -1,6 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { hasDuplicateSlot, postingSlotsInputSchema } from "./schema";
-import { activeShareTotal, addSlot, moveId, removeSlot } from "./utils";
+import { followerTargetInputSchema, hasDuplicateSlot, postingSlotsInputSchema } from "./schema";
+import { activeShareTotal, addSlot, followerTargetFormValues, moveId, removeSlot } from "./utils";
+
+describe("followerTargetFormValues", () => {
+  it("target kosong menjadi string kosong di semua field", () => {
+    expect(followerTargetFormValues({})).toEqual({
+      tiktokFollowers: "",
+      igFollowers: "",
+      tiktokEr: "",
+      igEr: "",
+    });
+  });
+
+  it("angka menjadi teks; ER memakai koma; 0 tetap tampil", () => {
+    expect(
+      followerTargetFormValues({ tiktokFollowers: 12300, igFollowers: 0, tiktokEr: 8.5, igEr: 0 }),
+    ).toEqual({ tiktokFollowers: "12300", igFollowers: "0", tiktokEr: "8,5", igEr: "0" });
+  });
+
+  it("teks form terbaca kembali oleh schema tanpa berubah", () => {
+    const target = { tiktokFollowers: 1_200_000, igEr: 4.25 };
+    expect(followerTargetInputSchema.parse(followerTargetFormValues(target))).toStrictEqual(target);
+    expect(followerTargetInputSchema.parse(followerTargetFormValues({}))).toStrictEqual({});
+  });
+});
 
 describe("moveId", () => {
   const ids = ["a", "b", "c"];
