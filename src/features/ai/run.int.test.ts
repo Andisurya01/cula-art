@@ -196,14 +196,32 @@ describe("runAiFeature: ditolak sebelum dikirim (tanpa AiRun)", () => {
     // Biaya terburuk hook (Opus, fallback → harga termahal): ±6.000 × US$25/juta ≈ US$0,15 per panggilan.
     await seed({ monthlyBudgetUsd: 0.5 });
     await db.aiRun.create({ data: { feature: "hook", model: "m", promptVersion: "v", status: "OK", costUsd: 0.3 } });
+    // Panggilan yang terkirim ditahan sampai semua panggilan diputuskan. Tanpa ini hasilnya bergantung
+    // waktu: jawaban yang lebih cepat dari antrean transaksi mengganti biaya pesanan dengan biaya
+    // sebenarnya, lalu panggilan berikutnya ikut lolos.
+    let decided = 0;
+    let release = () => {};
+    const allDecided = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const markDecided = () => {
+      decided += 1;
+      if (decided === 5) release();
+    };
     stream.mockImplementation(async (params, options) => {
-      await new Promise((r) => setTimeout(r, 50));
+      markDecided();
+      await allDecided;
       return reply(HOOKS)(params, options);
     });
-    const results = await Promise.all(Array.from({ length: 5 }, () => run("hook", hookInput())));
-    const sent = results.filter((r) => r.outcome.ok).length;
-    expect(sent).toBeGreaterThanOrEqual(1);
-    expect(sent).toBeLessThanOrEqual(2);
+    const results = await Promise.all(
+      Array.from({ length: 5 }, async () => {
+        const result = await run("hook", hookInput());
+        if (!result.outcome.ok) markDecided();
+        return result;
+      }),
+    );
+    // Terpakai 0,3 → 0,45 → 0,6: panggilan ketiga dan seterusnya ditolak karena sudah ≥ 0,5.
+    expect(results.filter((r) => r.outcome.ok)).toHaveLength(2);
     expect(results.filter((r) => !r.outcome.ok).every((r) => !r.outcome.ok && r.outcome.error === AI_MESSAGES.monthlyBudget(0.5))).toBe(true);
     // Setelah selesai, biaya pesanan diganti biaya sebenarnya.
     const done = await db.aiRun.findMany({ where: { status: "OK", feature: "hook", model: "claude-opus-5-5" } });
