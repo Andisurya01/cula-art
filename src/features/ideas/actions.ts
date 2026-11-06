@@ -48,6 +48,8 @@ function revalidateIdeaRoutes() {
   revalidatePath(routes.studio.ideas);
   revalidatePath(routes.studio.home);
   revalidatePath(routes.studio.pipeline);
+  // Medium ide menentukan filter medium di Analitik untuk konten tanpa proyek.
+  revalidatePath(routes.studio.analytics);
 }
 
 function toIdeaData(input: IdeaInput) {

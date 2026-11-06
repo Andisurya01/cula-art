@@ -14,4 +14,6 @@ export function revalidateProject(projectId?: string, options: { contents?: bool
     revalidatePath(routePatterns.content, "page");
   }
   revalidatePath(routes.studio.home);
+  // Medium proyek menentukan filter medium di Analitik.
+  revalidatePath(routes.studio.analytics);
 }
