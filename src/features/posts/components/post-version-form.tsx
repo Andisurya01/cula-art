@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,8 +32,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toWibInputValue } from "@/lib/date";
 import { PLATFORM_LABELS, POST_TYPE_LABELS } from "@/lib/labels";
+import { routes } from "@/lib/routes";
 import { PlatformBadge } from "@/features/contents/components/platform-badge";
 import type { ContentPost } from "@/features/contents/queries";
+import { MetricStatusBadge } from "@/features/metrics/components/metric-status-badge";
 import type { ContentFormInput } from "@/features/ai/prompts/content-common";
 import { deletePost, updatePost } from "../actions";
 import {
@@ -107,9 +110,20 @@ export function PostVersionForm({
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3 rounded-lg border p-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <PlatformBadge platform={post.platform} full />
+          {post.metricStatus && (
+            <>
+              <MetricStatusBadge status={post.metricStatus} />
+              <Link
+                href={routes.studio.post(post.id)}
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Lihat metrik
+              </Link>
+            </>
+          )}
           {post.url && (
             <a
               href={post.url}

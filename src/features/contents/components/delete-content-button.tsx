@@ -58,7 +58,7 @@ export function DeleteContentButton({
         <AlertDialogHeader>
           <AlertDialogTitle>Hapus konten ini?</AlertDialogTitle>
           <AlertDialogDescription>
-            “{title}” beserta versi platform dan checklist-nya akan dihapus permanen.
+            “{title}” beserta versi platform, metrik, dan checklist-nya akan dihapus permanen.
             {fromIdea && " Ide asalnya dikembalikan ke status Baru di Bank Ide."}
           </AlertDialogDescription>
         </AlertDialogHeader>

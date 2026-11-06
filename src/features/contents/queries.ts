@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { db } from "@/lib/db";
+import { metricStatus } from "@/lib/analytics/snapshots";
 import { POSTED_COLUMN_LIMIT, type PipelineCard } from "./board";
 
 const cardSelect = {
@@ -72,6 +73,7 @@ export const getContentDetail = cache(async (id: string) => {
           url: true,
           durationSec: true,
           updatedAt: true,
+          snapshots: { select: { kind: true } },
         },
         orderBy: { platform: "asc" },
       },
@@ -98,10 +100,18 @@ export const getContentDetail = cache(async (id: string) => {
     }),
   ]);
 
+  const now = new Date();
   return {
-    content,
+    content: {
+      ...content,
+      posts: content.posts.map(({ snapshots, ...post }) => ({
+        ...post,
+        /** Status metrik versi yang sudah tayang; `null` = belum tayang. */
+        metricStatus: post.postedAt ? metricStatus(post.postedAt, snapshots, now) : null,
+      })),
+    },
     options: { pillars, formats, hookTypes, projects },
-    now: new Date(),
+    now,
   };
 });
 export type ContentDetailData = NonNullable<Awaited<ReturnType<typeof getContentDetail>>>;

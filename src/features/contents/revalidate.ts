@@ -15,6 +15,10 @@ export function revalidateContent(
   revalidatePath(routes.studio.home);
   revalidatePath(routes.studio.projects, "layout"); // daftar + detail proyek (konten proyek)
   revalidatePath(routes.studio.ideas);
+  // Mengubah atau menghapus post mengubah daftar Postingan, skor relatif post lain, dan Analitik.
+  revalidatePath(routes.studio.posts);
+  revalidatePath(routePatterns.post, "page");
+  revalidatePath(routes.studio.analytics);
   // Tautan post TikTok/IG tampil sebagai video proses di detail karya Galeri.
   revalidateGallery();
 }
