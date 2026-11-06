@@ -1,19 +1,65 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { rangeStart } from "@/lib/analytics/kpi";
+import { pendingMetrics } from "@/lib/analytics/snapshots";
+import { weeklyStreak } from "@/lib/analytics/streak";
+import { followerSnapshotReminders, taskWindow, todayTasks } from "@/lib/analytics/tasks";
 import { endOfWibWeek, isStale, startOfWibWeek, STALE_AFTER_DAYS } from "@/lib/date";
 import { CONTENT_STAGES } from "@/lib/labels";
+import {
+  getFollowerSnapshots,
+  getLatestFollowerSnapshots,
+  getScoredPosts,
+} from "@/features/metrics/queries";
 import { getSettings } from "@/features/settings/queries";
+import {
+  followerCards,
+  followerDomain,
+  FOLLOWER_RANGE_DAYS,
+  groupWeekItems,
+  weekProgress,
+} from "./derive";
+
+/** Baris metrik tertunda yang tampil di Beranda; sisanya lewat tautan ke Postingan. */
+export const PENDING_METRICS_LIMIT = 8;
+
+/** Post belum tayang di dalam jendela tugas (D7), sudah berisi judul dan stage konten. */
+async function getTaskPosts(now: Date) {
+  const { from, to } = taskWindow(now);
+  const rows = await db.post.findMany({
+    where: { postedAt: null, scheduledAt: { gte: from, lt: to } },
+    select: {
+      contentId: true,
+      platform: true,
+      scheduledAt: true,
+      postedAt: true,
+      content: { select: { title: true, stage: true } },
+    },
+    orderBy: [{ scheduledAt: "asc" }, { platform: "asc" }],
+  });
+  return rows.map(({ content, ...post }) => ({ ...post, title: content.title, stage: content.stage }));
+}
 
 /**
- * Data Beranda Fase 1. "Post minggu ini" dihitung per konten (bukan per platform):
- * satu konten yang tayang di TikTok dan Instagram tetap dihitung satu post terhadap target.
+ * Semua data Beranda untuk satu `now`. Tidak ada query per baris: semua dimuat sekali lalu dihitung
+ * oleh fungsi murni, supaya halaman tetap < 1 detik dengan 1.000 post.
  */
 export async function getHomeOverview(now: Date = new Date()) {
   const weekStart = startOfWibWeek(now);
   const weekEnd = endOfWibWeek(now);
   const staleBefore = new Date(now.getTime() - STALE_AFTER_DAYS * 86_400_000);
 
-  const [settings, weekPosts, stageGroups, staleContents, newIdeaCount] = await Promise.all([
+  const [
+    { weeklyPostTarget: target },
+    weekPosts,
+    stageGroups,
+    staleContents,
+    newIdeaCount,
+    taskPosts,
+    scoredPosts,
+    followerRows,
+    latestFollowers,
+  ] = await Promise.all([
     getSettings(),
     db.post.findMany({
       where: {
@@ -23,7 +69,6 @@ export async function getHomeOverview(now: Date = new Date()) {
         ],
       },
       select: {
-        id: true,
         platform: true,
         scheduledAt: true,
         postedAt: true,
@@ -31,7 +76,7 @@ export async function getHomeOverview(now: Date = new Date()) {
           select: { id: true, title: true, pillar: { select: { name: true, color: true } } },
         },
       },
-      orderBy: [{ scheduledAt: "asc" }],
+      orderBy: [{ scheduledAt: "asc" }, { platform: "asc" }],
     }),
     db.content.groupBy({ by: ["stage"], _count: { _all: true } }),
     db.content.findMany({
@@ -47,39 +92,13 @@ export async function getHomeOverview(now: Date = new Date()) {
       take: 10,
     }),
     db.idea.count({ where: { status: "NEW" } }),
+    getTaskPosts(now),
+    getScoredPosts(now),
+    getFollowerSnapshots({ from: rangeStart(now, FOLLOWER_RANGE_DAYS) }),
+    getLatestFollowerSnapshots(),
   ]);
 
-  const byContent = new Map<
-    string,
-    {
-      contentId: string;
-      title: string;
-      pillar: { name: string; color: string };
-      at: Date;
-      posted: boolean;
-      platforms: (typeof weekPosts)[number]["platform"][];
-    }
-  >();
-  for (const post of weekPosts) {
-    const at = post.postedAt ?? post.scheduledAt;
-    if (!at) continue;
-    const existing = byContent.get(post.content.id);
-    if (existing) {
-      existing.platforms.push(post.platform);
-      existing.posted ||= post.postedAt !== null;
-      if (at < existing.at) existing.at = at;
-    } else {
-      byContent.set(post.content.id, {
-        contentId: post.content.id,
-        title: post.content.title,
-        pillar: post.content.pillar,
-        at,
-        posted: post.postedAt !== null,
-        platforms: [post.platform],
-      });
-    }
-  }
-  const weekItems = [...byContent.values()].sort((a, b) => a.at.getTime() - b.at.getTime());
+  const weekItems = groupWeekItems(weekPosts);
 
   const stageCounts = Object.fromEntries(CONTENT_STAGES.map((s) => [s, 0])) as Record<
     (typeof CONTENT_STAGES)[number],
@@ -87,13 +106,24 @@ export async function getHomeOverview(now: Date = new Date()) {
   >;
   for (const group of stageGroups) stageCounts[group.stage] = group._count._all;
 
+  const pending = pendingMetrics(scoredPosts, now);
+
   return {
     weekStart,
-    target: settings.weeklyPostTarget,
+    target,
     weekItems,
-    postedThisWeek: weekItems.filter((i) => i.posted).length,
+    progress: weekProgress(weekItems, target),
+    streak: weeklyStreak(scoredPosts, target, now),
+    tasks: todayTasks(taskPosts, now),
+    pendingMetrics: pending.slice(0, PENDING_METRICS_LIMIT),
+    pendingTotal: pending.length,
+    followerCards: followerCards(followerRows),
+    followerDomain: followerDomain(now),
+    followerReminders: followerSnapshotReminders(latestFollowers, now),
+    latestFollowers,
     stageCounts,
     staleContents: staleContents.filter((c) => isStale(c.stageChangedAt, now)),
     newIdeaCount,
   };
 }
+export type HomeOverview = Awaited<ReturnType<typeof getHomeOverview>>;
