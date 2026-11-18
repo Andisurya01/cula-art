@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/features/auth/dal";
 import { AiStatusProvider } from "@/features/ai/components/ai-status";
 import { getAiStatus } from "@/features/ai/queries";
+import { OfflineIdeaSync } from "@/features/pwa/components/offline-idea-sync";
+import { StudioServiceWorker } from "@/features/pwa/components/studio-service-worker";
 
 // Semua halaman Studio membaca database pada setiap request (tanpa prerender/cache).
 export const dynamic = "force-dynamic";
@@ -14,6 +16,10 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: { default: "Studio", template: "%s · Studio" },
   robots: { index: false, follow: false },
+  // PWA hanya untuk Studio (E10): manifest dan service worker tidak pernah dipasang di Galeri.
+  manifest: "/studio.webmanifest",
+  appleWebApp: { capable: true, title: "Studio", statusBarStyle: "default" },
+  icons: { apple: "/studio-icons/apple-touch-icon.png" },
 };
 
 export default async function StudioLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +44,8 @@ export default async function StudioLayout({ children }: { children: React.React
           <BottomNav />
           <QuickIdeaFab />
           <QuickIdeaDialog pillars={pillars} />
+          <OfflineIdeaSync />
+          <StudioServiceWorker />
         </div>
       </AiStatusProvider>
     </StudioProviders>

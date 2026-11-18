@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginFlow } from "@/features/auth/components/login-flow";
+import { ClearStudioCaches } from "@/features/pwa/components/clear-studio-caches";
 import { getCurrentSession } from "@/features/auth/session";
 import { safeNextPath } from "@/lib/routes";
 
@@ -23,6 +24,8 @@ export default async function LoginPage({
 
   return (
     <main className="flex min-h-svh items-center justify-center px-4 py-10">
+      {/* Keluar atau sesi habis: cache service worker Studio dihapus (antrean ide offline tetap). */}
+      {!signedIn && <ClearStudioCaches />}
       <LoginFlow next={next} signedIn={signedIn} />
     </main>
   );

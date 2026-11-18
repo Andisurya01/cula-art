@@ -21,32 +21,50 @@ export async function createQuickIdea(input: unknown): Promise<ActionResult<{ id
   await requireAdmin();
   const parsed = quickIdeaSchema.safeParse(input);
   if (!parsed.success) return fromZodError(parsed.error);
+  const { title, medium, offlineId } = parsed.data;
+  let pillarId = parsed.data.pillarId ?? null;
 
-  // Daftar pilar di dialog global bisa basi (mis. pilar dinonaktifkan dari perangkat lain).
-  if (parsed.data.pillarId) {
-    const pillar = await db.pillar.findUnique({
-      where: { id: parsed.data.pillarId },
-      select: { isActive: true },
-    });
-    if (!pillar?.isActive) return fail("Pilar sudah tidak aktif. Muat ulang halaman lalu coba lagi.");
+  // Kirim ulang ide yang sudah tersimpan (respons sebelumnya hilang, antrean offline): kembalikan yang ada.
+  if (offlineId) {
+    const existing = await db.idea.findUnique({ where: { offlineId }, select: { id: true } });
+    if (existing) return ok({ id: existing.id });
   }
 
-  const idea = await db.idea.create({
-    data: {
-      title: parsed.data.title,
-      pillarId: parsed.data.pillarId ?? null,
-      medium: parsed.data.medium ?? null,
-    },
-  });
+  // Daftar pilar di dialog global bisa basi (mis. pilar dinonaktifkan dari perangkat lain).
+  if (pillarId) {
+    const pillar = await db.pillar.findUnique({ where: { id: pillarId }, select: { isActive: true } });
+    if (!pillar?.isActive) {
+      // Ide dari perangkat (bisa dicatat berjam-jam sebelumnya) tidak boleh hilang: simpan tanpa pilar.
+      if (!offlineId) return fail("Pilar sudah tidak aktif. Muat ulang halaman lalu coba lagi.");
+      pillarId = null;
+    }
+  }
+
+  let idea: { id: string };
+  try {
+    idea = await db.idea.create({
+      data: { title, pillarId, medium: medium ?? null, offlineId: offlineId ?? null },
+      select: { id: true },
+    });
+  } catch (error) {
+    // Dua kiriman bersamaan dengan offlineId sama: yang kalah memakai ide yang sudah dibuat.
+    if (offlineId && prismaErrorCode(error) === "P2002") {
+      const existing = await db.idea.findUnique({ where: { offlineId }, select: { id: true } });
+      if (existing) return ok({ id: existing.id });
+    }
+    throw error;
+  }
 
   revalidatePath(routes.studio.ideas);
   revalidatePath(routes.studio.home);
+  revalidatePath(routes.studio.review); // saran "Ide menipis"
   return ok({ id: idea.id });
 }
 
 function revalidateIdeaRoutes() {
   revalidatePath(routes.studio.ideas);
   revalidatePath(routes.studio.home);
+  revalidatePath(routes.studio.review); // saran "Ide menipis"
   revalidatePath(routes.studio.pipeline);
   // Medium ide menentukan filter medium di Analitik untuk konten tanpa proyek.
   revalidatePath(routes.studio.analytics);

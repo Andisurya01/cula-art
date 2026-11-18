@@ -23,7 +23,8 @@ import { quickIdeaSchema, type QuickIdeaInput } from "@/features/ideas/schema";
 import { MEDIUMS, MEDIUM_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { useLayoutUi } from "./ui-store";
-import { callAction } from "@/lib/action-client";
+import { callAction, NETWORK_ERROR_MESSAGE } from "@/lib/action-client";
+import { addToQueue, isQueueSupported, newOfflineId } from "@/features/pwa/idb";
 
 export type PillarOption = { id: string; name: string; color: string };
 
@@ -64,8 +65,26 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
 
   const onSubmit = form.handleSubmit((values) => {
     startTransition(async () => {
-      const result = await callAction(() => createQuickIdea(values));
+      // Id perangkat per ide: jika respons hilang lalu ide masuk antrean offline, server tidak membuat ide kedua.
+      const offlineId = newOfflineId();
+      const result = await callAction(() => createQuickIdea({ ...values, offlineId }));
       if (!result.ok) {
+        if (result.error === NETWORK_ERROR_MESSAGE && isQueueSupported()) {
+          try {
+            await addToQueue({
+              id: offlineId,
+              title: values.title.trim(),
+              medium: values.medium ?? null,
+              pillarId: values.pillarId ?? null,
+              createdAt: Date.now(),
+            });
+            toast.success("Tidak ada koneksi. Ide disimpan di perangkat dan dikirim saat online.");
+            onOpenChange(false);
+            return;
+          } catch {
+            // IndexedDB tidak tersedia: tampilkan error jaringan biasa, isi form tetap.
+          }
+        }
         toast.error(result.error);
         return;
       }

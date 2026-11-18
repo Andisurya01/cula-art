@@ -7,7 +7,8 @@ const isDev = process.env.NODE_ENV === "development";
 
 // CSP tanpa nonce supaya halaman Galeri tetap bisa di-cache. 'unsafe-inline' untuk skrip dibutuhkan
 // skrip inline Next.js dan next-themes; tidak ada skrip/iframe pihak ketiga. HSTS dipasang di Caddy.
-function contentSecurityPolicy({ externalImages }: { externalImages: boolean }) {
+function contentSecurityPolicy({ studio }: { studio: boolean }) {
+  const externalImages = studio;
   return [
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
@@ -17,6 +18,9 @@ function contentSecurityPolicy({ externalImages }: { externalImages: boolean }) 
     "font-src 'self'",
     "connect-src 'self'",
     "media-src 'self'",
+    // PWA hanya Studio (E10): service worker /studio-sw.js dan manifest /studio.webmanifest milik sendiri.
+    `worker-src ${studio ? "'self'" : "'none'"}`,
+    "manifest-src 'self'",
     "object-src 'none'",
     "frame-src 'none'",
     "base-uri 'self'",
@@ -61,12 +65,12 @@ const nextConfig: NextConfig = {
     proxyClientMaxBodySize: "2mb",
   },
   async headers() {
-    const studio = securityHeaders(contentSecurityPolicy({ externalImages: true }));
+    const studio = securityHeaders(contentSecurityPolicy({ studio: true }));
     return [
       // Sumber saling lepas supaya satu path hanya mendapat satu header CSP.
       {
         source: "/:path((?!studio(?:/|$)).*)",
-        headers: securityHeaders(contentSecurityPolicy({ externalImages: false })),
+        headers: securityHeaders(contentSecurityPolicy({ studio: false })),
       },
       { source: "/studio", headers: studio },
       { source: "/studio/:path*", headers: studio },

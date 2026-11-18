@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { clearStudioCaches } from "@/features/pwa/cache";
 import { useRunAction } from "@/features/settings/components/use-run-action";
 import { callAction } from "@/lib/action-client";
 import { formatWib } from "@/lib/date";
@@ -262,6 +263,8 @@ function SignOutCard() {
 
   function onLogout(action: () => Promise<void>) {
     startTransition(async () => {
+      // Cache service worker Studio dihapus dulu (E10); antrean ide offline tetap.
+      await clearStudioCaches();
       // Berhasil → server redirect ke /masuk.
       await callAction(async () => {
         await action();

@@ -6,6 +6,8 @@ export const quickIdeaSchema = z.object({
   title: z.string().trim().min(1, "Judul wajib diisi").max(200, "Judul maksimal 200 karakter"),
   pillarId: z.string().min(1).optional(),
   medium: z.enum(MEDIUMS).optional(),
+  /** Kunci idempoten dari perangkat (antrean offline, E10): kirim ulang dengan id sama tidak menggandakan ide. */
+  offlineId: z.string().min(1).max(100).optional(),
 });
 export type QuickIdeaInput = z.infer<typeof quickIdeaSchema>;
 

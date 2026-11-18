@@ -1,0 +1,187 @@
+<!doctype html>
+<!--
+  Halaman offline Studio (E10). Disajikan service worker (/studio-sw.js) saat navigasi Studio gagal.
+  Mandiri: tanpa skrip Next dan tanpa data, supaya tetap jalan setelah deploy baru. Ide disimpan ke IndexedDB
+  (nama/versi/store sama dengan src/features/pwa/offline-queue.ts, dicek test) lalu dikirim lewat
+  createQuickIdea oleh Studio saat online lagi.
+-->
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#171717" />
+    <link rel="manifest" href="/studio.webmanifest" />
+    <link rel="icon" href="/studio-icons/icon-192.png" />
+    <title>Studio offline</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fafafa;
+        --card: #ffffff;
+        --fg: #171717;
+        --muted: #5c5c5c;
+        --border: #e2e2e2;
+        --primary: #171717;
+        --primary-fg: #fafafa;
+        --accent: #b45309;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0a0a0a;
+          --card: #171717;
+          --fg: #f5f5f5;
+          --muted: #a3a3a3;
+          --border: #2e2e2e;
+          --primary: #f5f5f5;
+          --primary-fg: #171717;
+          --accent: #f59e0b;
+        }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100svh; background: var(--bg); color: var(--fg); line-height: 1.5; }
+      main { max-width: 32rem; margin: 0 auto; padding: max(1.25rem, env(safe-area-inset-top)) 1rem 2rem; }
+      h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+      p { margin: 0 0 0.75rem; color: var(--muted); font-size: 0.9rem; }
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; }
+      label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
+      input[type="text"] { width: 100%; font: inherit; font-size: 1rem; padding: 0.6rem 0.7rem; border-radius: 0.5rem; border: 1px solid var(--border); background: var(--bg); color: var(--fg); }
+      fieldset { border: 0; padding: 0; margin: 0.9rem 0 0; }
+      legend { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; padding: 0; }
+      .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .chips input { position: absolute; opacity: 0; pointer-events: none; }
+      .chips span { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.8rem; cursor: pointer; }
+      .chips input:checked + span { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+      .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+      button { font: inherit; font-weight: 600; border-radius: 0.5rem; padding: 0.6rem 1rem; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--fg); }
+      button.primary { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); width: 100%; margin-top: 1rem; }
+      .error { color: #dc2626; font-size: 0.8rem; margin: 0.35rem 0 0; min-height: 1em; }
+      .badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--accent); }
+      ul { margin: 0.5rem 0 0; padding-left: 1.1rem; font-size: 0.9rem; overflow-wrap: anywhere; }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Studio sedang offline</h1>
+      <p>Halaman Studio butuh koneksi ke server. Ide tetap bisa dicatat di sini: tersimpan di perangkat ini dan masuk Bank Ide saat Studio dibuka lagi dengan koneksi.</p>
+
+      <form id="idea-form" class="card" novalidate>
+        <label for="title">Ide baru</label>
+        <input id="title" name="title" type="text" maxlength="200" autocomplete="off" placeholder="mis. Time-lapse gambar tangan hari ke-30" required />
+        <p id="title-error" class="error" role="alert"></p>
+        <fieldset>
+          <legend>Medium (opsional)</legend>
+          <div class="chips">
+            <label><input type="radio" name="medium" value="DRAWING" /><span>Gambar</span></label>
+            <label><input type="radio" name="medium" value="CLAY" /><span>Clay</span></label>
+            <label><input type="radio" name="medium" value="MIXED" /><span>Campuran</span></label>
+          </div>
+        </fieldset>
+        <button type="submit" class="primary">Simpan ide di perangkat</button>
+      </form>
+
+      <section class="card" aria-live="polite">
+        <div class="row">
+          <span id="queue-count" class="badge">Belum ada ide yang menunggu sinkron.</span>
+          <button id="retry" type="button">Coba buka Studio</button>
+        </div>
+        <ul id="queue-list"></ul>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        // Harus sama dengan OFFLINE_IDEA_DB di src/features/pwa/offline-queue.ts.
+        var DB_NAME = "studio-offline";
+        var DB_VERSION = 1;
+        var STORE = "ideas";
+        var TITLE_MAX = 200;
+        var MEDIUMS = ["DRAWING", "CLAY", "MIXED"];
+
+        function openDb() {
+          return new Promise(function (resolve, reject) {
+            var request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = function () {
+              var db = request.result;
+              if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: "id" });
+            };
+            request.onsuccess = function () { resolve(request.result); };
+            request.onerror = function () { reject(request.error); };
+          });
+        }
+
+        function tx(mode, run) {
+          return openDb().then(function (db) {
+            return new Promise(function (resolve, reject) {
+              var t = db.transaction(STORE, mode);
+              var result = run(t.objectStore(STORE));
+              t.oncomplete = function () { db.close(); resolve(result && "result" in result ? result.result : undefined); };
+              t.onerror = function () { db.close(); reject(t.error); };
+            });
+          });
+        }
+
+        function newId() {
+          if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+          return "off-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+        }
+
+        var countEl = document.getElementById("queue-count");
+        var listEl = document.getElementById("queue-list");
+        var form = document.getElementById("idea-form");
+        var titleEl = document.getElementById("title");
+        var errorEl = document.getElementById("title-error");
+
+        function render() {
+          return tx("readonly", function (store) { return store.getAll(); }).then(function (items) {
+            items = (items || []).sort(function (a, b) { return a.createdAt - b.createdAt; });
+            countEl.textContent = items.length
+              ? items.length + " ide menunggu sinkron"
+              : "Belum ada ide yang menunggu sinkron.";
+            listEl.textContent = "";
+            items.forEach(function (item) {
+              var li = document.createElement("li");
+              li.textContent = item.title;
+              listEl.appendChild(li);
+            });
+          }).catch(function () {
+            countEl.textContent = "Penyimpanan perangkat tidak tersedia di browser ini.";
+          });
+        }
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var title = titleEl.value.trim();
+          if (!title) { errorEl.textContent = "Judul wajib diisi"; titleEl.focus(); return; }
+          if (title.length > TITLE_MAX) { errorEl.textContent = "Judul maksimal 200 karakter"; return; }
+          errorEl.textContent = "";
+          var checked = form.querySelector('input[name="medium"]:checked');
+          var medium = checked && MEDIUMS.indexOf(checked.value) >= 0 ? checked.value : null;
+          var item = { id: newId(), title: title, medium: medium, createdAt: Date.now() };
+          tx("readwrite", function (store) { store.add(item); }).then(function () {
+            form.reset();
+            titleEl.focus();
+            return render();
+          }).catch(function () {
+            errorEl.textContent = "Gagal menyimpan di perangkat. Coba lagi.";
+          });
+        });
+
+        document.getElementById("retry").addEventListener("click", function () { window.location.href = "/studio"; });
+        // Kembali online: buka Studio (yang mengirim antrean ke Bank Ide), kecuali sedang mengetik ide yang belum
+        // disimpan; ide itu dikirim setelah disimpan.
+        function openStudioIfIdle() {
+          if (titleEl.value.trim()) {
+            countEl.textContent = "Online lagi. Simpan ide ini, lalu ketuk Coba buka Studio untuk mengirim antrean.";
+            return;
+          }
+          window.location.replace("/studio");
+        }
+        window.addEventListener("online", openStudioIfIdle);
+        render();
+      })();
+    </script>
+  </body>
+</html>
