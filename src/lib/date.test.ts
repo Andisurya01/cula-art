@@ -4,6 +4,7 @@ import {
   daysSince,
   endOfWibWeek,
   formatWib,
+  formatWibWeekRange,
   isStale,
   isValidWibDateString,
   isValidWibInputValue,
@@ -132,5 +133,14 @@ describe("addWibDays", () => {
     const start = wibToUtc("2027-03-25");
     expect(toWibDateString(addWibDays(start, 4))).toBe("2027-03-29");
     expect(addWibDays(start, -1).toISOString()).toBe(wibToUtc("2027-03-24").toISOString());
+  });
+});
+
+describe("formatWibWeekRange", () => {
+  it("rentang Senin-Minggu WIB, bulan panjang atau singkat, lintas bulan dan tahun", () => {
+    expect(formatWibWeekRange(wibToUtc("2026-11-09"))).toBe("9-15 November 2026");
+    expect(formatWibWeekRange(wibToUtc("2026-11-30"))).toBe("30 November-6 Desember 2026");
+    expect(formatWibWeekRange(wibToUtc("2025-12-29"))).toBe("29 Desember 2025-4 Januari 2026");
+    expect(formatWibWeekRange(wibToUtc("2026-10-26"), { short: true })).toBe("26 Okt-1 Nov 2026");
   });
 });

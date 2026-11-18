@@ -23,7 +23,12 @@ export const routes = {
     post: (id: string) => `${STUDIO}/postingan/${encodeURIComponent(id)}`,
     analytics: `${STUDIO}/analitik`,
     experiments: `${STUDIO}/eksperimen`,
+    experiment: (id: string) => `${STUDIO}/eksperimen/${encodeURIComponent(id)}`,
     review: `${STUDIO}/review`,
+    /** Review Mingguan untuk minggu tertentu: `weekStart` = Senin `yyyy-MM-dd` WIB. */
+    reviewWeek: (weekStart: string) => `${STUDIO}/review?minggu=${encodeURIComponent(weekStart)}`,
+    /** Route Handler ekspor (GET), mis. `ide.csv`, `data.json`. */
+    exportFile: (file: string) => `${STUDIO}/ekspor/${encodeURIComponent(file)}`,
     settings: `${STUDIO}/pengaturan`,
     /** Route Handler unggah foto profil (POST). */
     settingsProfilePhoto: `${STUDIO}/pengaturan/foto-profil`,
@@ -46,6 +51,7 @@ export const routePatterns = {
   project: `${STUDIO}/proyek/[id]`,
   artwork: `${STUDIO}/karya/[id]`,
   post: `${STUDIO}/postingan/[id]`,
+  experiment: `${STUDIO}/eksperimen/[id]`,
   galleryArtwork: "/karya/[slug]",
 } as const;
 

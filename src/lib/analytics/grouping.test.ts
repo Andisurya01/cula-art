@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { wibToUtc } from "@/lib/date";
-import { groupScores, type GroupingPost } from "./grouping";
+import { durationBucket, groupScores, type GroupingPost } from "./grouping";
 
 const clay = { id: "p-clay", name: "Proses Clay" };
 const gambar = { id: "p-gambar", name: "Progres Gambar" };
@@ -21,7 +21,15 @@ function post(partial: Partial<GroupingPost> & { score: number }): GroupingPost 
 
 describe("groupScores", () => {
   it("data kosong → semua dimensi kosong", () => {
-    expect(groupScores([], "TIKTOK")).toEqual({ pillar: [], format: [], hookType: [], day: [], hour: [] });
+    expect(groupScores([], "TIKTOK")).toEqual({
+      pillar: [],
+      format: [],
+      hookType: [],
+      day: [],
+      hour: [],
+      dayHour: [],
+      duration: [],
+    });
   });
 
   it("median per pilar dengan penanda enoughData (≥ 3 post)", () => {
@@ -111,5 +119,54 @@ describe("groupScores", () => {
     const { day, hour } = groupScores(posts, "TIKTOK");
     expect(day.map((r) => r.label)).toEqual(["Senin", "Rabu", "Minggu"]);
     expect(hour.map((r) => r.label)).toEqual(["07.00", "09.00", "21.00"]);
+  });
+});
+
+describe("groupScores: hari+jam dan durasi", () => {
+  it("hari+jam WIB per kombinasi, urut hari lalu jam; dekat tengah malam ikut hari WIB", () => {
+    const rows = groupScores(
+      [
+        post({ score: 1, postedAt: wibToUtc("2026-11-07", "19:10") }), // Sabtu
+        post({ score: 3, postedAt: wibToUtc("2026-11-14", "19:40") }), // Sabtu
+        post({ score: 2, postedAt: wibToUtc("2026-11-03", "19:00") }), // Selasa
+        post({ score: 5, postedAt: wibToUtc("2026-11-03", "23:50") }), // Selasa 23.50 WIB = 16.50 UTC
+        post({ score: 9, postedAt: new Date("2026-11-03T17:10:00.000Z") }), // Rabu 00.10 WIB
+      ],
+      "TIKTOK",
+    ).dayHour;
+    expect(rows.map((r) => [r.key, r.label, r.postCount, r.medianScore])).toEqual([
+      ["2-19", "Selasa 19.00", 1, 2],
+      ["2-23", "Selasa 23.00", 1, 5],
+      ["3-0", "Rabu 00.00", 1, 9],
+      ["6-19", "Sabtu 19.00", 2, 2],
+    ]);
+  });
+
+  it("durasi per kelompok, post tanpa durasi tidak ikut", () => {
+    const rows = groupScores(
+      [
+        post({ score: 1, durationSec: 12 }),
+        post({ score: 3, durationSec: 45 }),
+        post({ score: 5, durationSec: 30 }),
+        post({ score: 7, durationSec: 59 }),
+        post({ score: 9, durationSec: null }),
+        post({ score: 9 }),
+      ],
+      "TIKTOK",
+    ).duration;
+    expect(rows.map((r) => [r.key, r.postCount, r.medianScore, r.enoughData])).toEqual([
+      ["d15", 1, 1, false],
+      ["d60", 3, 5, true],
+    ]);
+  });
+
+  it("durationBucket: batas kelompok, 0/negatif/null → null", () => {
+    expect(durationBucket(14.9)?.key).toBe("d15");
+    expect(durationBucket(15)?.key).toBe("d30");
+    expect(durationBucket(60)?.label).toBe("≥ 60 dtk");
+    expect(durationBucket(0)).toBeNull();
+    expect(durationBucket(-3)).toBeNull();
+    expect(durationBucket(null)).toBeNull();
+    expect(durationBucket(Number.NaN)).toBeNull();
   });
 });

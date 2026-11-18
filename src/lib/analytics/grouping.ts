@@ -1,4 +1,5 @@
-// Fungsi murni: median skor per pilar, format, tipe hook, hari, dan jam (WIB), untuk satu platform.
+// Fungsi murni: median skor per pilar, format, tipe hook, hari, jam, hari+jam (WIB), dan durasi, untuk satu
+// platform. `score` boleh berisi skor relatif (aturan saran 4-6 dan AI analisis memakai skor relatif).
 // Tidak boleh import Prisma, React, atau Next.
 
 import { DAY_LABELS, toWibTimeString, wibIsoDay } from "@/lib/date";
@@ -17,6 +18,8 @@ export type GroupingPost = {
   pillar: NamedRef;
   format: NamedRef | null;
   hookType: NamedRef | null;
+  /** Durasi video (detik); tanpa durasi → tidak masuk grup durasi. */
+  durationSec?: number | null;
 };
 
 export type GroupRow = {
@@ -34,7 +37,32 @@ export type GroupedScores = {
   hookType: GroupRow[];
   day: GroupRow[];
   hour: GroupRow[];
+  /** Kombinasi hari + jam (WIB), kunci `hari-jam` (mis. `6-19` = Sabtu 19.00). Dasar aturan "Jam terbaik". */
+  dayHour: GroupRow[];
+  /** Kelompok durasi (`durationBucket`). */
+  duration: GroupRow[];
 };
+
+/** Batas atas (eksklusif, detik) kelompok durasi; terakhir tanpa batas. */
+const DURATION_BUCKETS: { key: string; label: string; below: number }[] = [
+  { key: "d15", label: "< 15 dtk", below: 15 },
+  { key: "d30", label: "15-29 dtk", below: 30 },
+  { key: "d60", label: "30-59 dtk", below: 60 },
+  { key: "d60+", label: "≥ 60 dtk", below: Number.POSITIVE_INFINITY },
+];
+
+/** Kelompok durasi video; tanpa durasi (atau durasi tidak valid) → `null`. */
+export function durationBucket(durationSec: number | null | undefined): { key: string; label: string } | null {
+  if (durationSec === null || durationSec === undefined || !Number.isFinite(durationSec) || durationSec <= 0) return null;
+  const bucket = DURATION_BUCKETS.find((b) => durationSec < b.below)!;
+  return { key: bucket.key, label: bucket.label };
+}
+
+function wibHour(date: Date): number {
+  return Number(toWibTimeString(date).slice(0, 2));
+}
+
+const hourLabel = (hour: number) => `${String(hour).padStart(2, "0")}.00`;
 
 function toRows(
   posts: readonly GroupingPost[],
@@ -67,9 +95,16 @@ function ranked(rows: GroupRow[]): GroupRow[] {
   );
 }
 
-/** Hari dan jam mengikuti urutan waktu, bukan peringkat. */
+/** Hari dan jam mengikuti urutan waktu, bukan peringkat. Kunci `hari-jam` diurutkan hari lalu jam. */
 function chronological(rows: GroupRow[]): GroupRow[] {
-  return rows.sort((a, b) => Number(a.key) - Number(b.key));
+  const order = (key: string) => key.split("-").reduce((sum, part) => sum * 100 + Number(part), 0);
+  return rows.sort((a, b) => order(a.key) - order(b.key));
+}
+
+/** Kelompok durasi mengikuti urutan durasi. */
+function byDuration(rows: GroupRow[]): GroupRow[] {
+  const order = (key: string) => DURATION_BUCKETS.findIndex((b) => b.key === key);
+  return rows.sort((a, b) => order(a.key) - order(b.key));
 }
 
 /**
@@ -91,9 +126,17 @@ export function groupScores(posts: readonly GroupingPost[], platform: AnalyticsP
     ),
     hour: chronological(
       toRows(own, (p) => {
-        const hour = Number(toWibTimeString(p.postedAt).slice(0, 2));
-        return { key: String(hour), label: `${String(hour).padStart(2, "0")}.00` };
+        const hour = wibHour(p.postedAt);
+        return { key: String(hour), label: hourLabel(hour) };
       }),
     ),
+    dayHour: chronological(
+      toRows(own, (p) => {
+        const day = wibIsoDay(p.postedAt);
+        const hour = wibHour(p.postedAt);
+        return { key: `${day}-${hour}`, label: `${DAY_LABELS[day]} ${hourLabel(hour)}` };
+      }),
+    ),
+    duration: byDuration(toRows(own, (p) => durationBucket(p.durationSec))),
   };
 }

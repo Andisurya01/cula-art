@@ -130,6 +130,19 @@ export function wibMonthGrid(date: Date): Date[] {
   return Array.from({ length: days }, (_, i) => addWibDays(gridStart, i));
 }
 
+/**
+ * Rentang minggu Senin-Minggu WIB: "9-15 November 2026", "30 November-6 Desember 2026",
+ * "29 Desember 2025-4 Januari 2026". `short` memakai nama bulan singkat ("9-15 Nov 2026").
+ */
+export function formatWibWeekRange(weekStart: Date, options: { short?: boolean } = {}): string {
+  const month = options.short ? "MMM" : "MMMM";
+  const last = addWibDays(weekStart, 6);
+  const sameYear = formatWib(weekStart, "yyyy") === formatWib(last, "yyyy");
+  const sameMonth = sameYear && formatWib(weekStart, "MM") === formatWib(last, "MM");
+  const start = formatWib(weekStart, sameMonth ? "d" : sameYear ? `d ${month}` : `d ${month} yyyy`);
+  return `${start}-${formatWib(last, `d ${month} yyyy`)}`;
+}
+
 /** Selisih hari kalender WIB (`to - from`). */
 export function wibDaysBetween(from: Date, to: Date): number {
   const a = toWibDateString(from);
