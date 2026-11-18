@@ -5,9 +5,9 @@ Satu web app, satu domain, dua sisi:
 - **Galeri** (publik, `/`): etalase karya gambar dan patung clay ala katalog marketplace. Nanti menjadi toko.
 - **Studio** (privat, `/studio`, wajib login): content planner untuk konten TikTok/Instagram (target 2-3 post per minggu, keputusan berbasis data) plus pengelolaan karya yang tampil di Galeri.
 
-Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`.
+Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`, Fase 5 di `docs/FASE-5.md`.
 
-> Status kode (6 Nov 2026): Fase 4 selesai (Postingan, metrik H+1/H+7, snapshot followers, Analitik, Beranda Studio penuh, target 3 bulan). Fase 1-3 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
+> Status kode (8 Nov 2026): Fase 5 selesai (mesin aturan + kartu saran, Eksperimen, Review Mingguan + draf AI, "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON). Fase 1-4 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
 
 ## Lingkungan
 
@@ -28,7 +28,7 @@ Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur bar
 - React Hook Form + Zod (schema yang sama dipakai di client dan Server Actions)
 - Zustand hanya untuk state UI (filter, tampilan kalender, drag state)
 - dnd-kit, date-fns + date-fns-tz, lucide-react, next-themes, Vitest
-- sharp (gambar), qrcode (QR setup 2FA). Fase 3: `@anthropic-ai/sdk` (Asisten AI). Fase 4: Recharts 3 (hanya Studio, lewat `src/components/charts/`). Fase 5: Serwist (PWA, hanya Studio)
+- sharp (gambar), qrcode (QR setup 2FA). Fase 3: `@anthropic-ai/sdk` (Asisten AI). Fase 4: Recharts 3 (hanya Studio, lewat `src/components/charts/`). Fase 5: PWA dengan service worker sendiri (tanpa Serwist, hanya Studio)
 
 ## Struktur
 
@@ -49,12 +49,17 @@ src/features/metrics/            # snapshot metrik + followers, getScoredPosts (
                                  # post-filters.ts, components/ (MetricFormButton, AccountSnapshotButton, status badge, Postingan)
 src/features/analytics/          # halaman Analitik: filter URL, select-posts.ts, targets.ts, components/
 src/features/home/               # Beranda Studio: queries.ts, derive.ts, components/
+src/features/suggestions/        # input mesin aturan (queries.ts, satu kali baca), dismissSuggestion, copy.ts (teks + tautan), kartu saran
+src/features/experiments/        # Eksperimen A/B; src/features/reviews/ Review Mingguan (ringkasan beku di summaryJson)
+src/features/export/             # ekspor CSV/JSON; Route Handler src/app/studio/ekspor/[file]/route.ts
+src/features/pwa/                # antrean ide offline (offline-queue.ts murni, idb.ts), pendaftaran service worker, hapus cache
+public/studio-sw.js              # service worker Studio (scope /studio); studio-offline.html, studio.webmanifest, studio-icons/
 src/components/charts/           # SATU-SATUNYA pengimpor recharts: TimeLineChart, GroupBarChart, warna per platform
 src/lib/routes.ts                # SEMUA path internal (href, router.push, redirect, revalidatePath)
 src/lib/storage.ts, images.ts    # simpan/baca/hapus file; sharp (resize 2400, WebP 82, tanpa EXIF)
 src/lib/upload-route.ts          # helper Route Handler unggah (server); upload-client.ts = XHR + progres (client)
 src/lib/slug.ts, site.ts         # slugify + slug unik; SITE_URL/absoluteUrl
-src/lib/analytics/               # metrics, snapshots, scoring, grouping, kpi, streak, tasks, compare, ai-usage; rules.ts di Fase 5 (fungsi murni, tanpa Prisma/React)
+src/lib/analytics/               # metrics, snapshots, scoring, grouping, kpi, streak, tasks, compare, ai-usage, rules (saran), experiments, review (fungsi murni, tanpa Prisma/React/Next)
 src/lib/date.ts                  # helper minggu & WIB
 src/lib/db.ts                    # Prisma client singleton
 src/test/                        # helper test: db.ts (resetDatabase), next-headers.ts (mock), global-setup.ts
@@ -118,6 +123,10 @@ Catatan versi (Oktober 2026):
 - Grafik: warna seri hanya `SERIES_COLORS[platform]` (`--series-tiktok`, `--series-instagram`, lolos validator dataviz di kedua mode), satu platform per grafik, jadi tanpa legend. Test statis `charts-boundary.static.test.ts` menjaga Recharts tetap di luar Galeri.
 - `getSettings()` hanya membaca lalu membuat baris jika belum ada, dan di-`cache` per request; aman dipanggil paralel. Jangan kembali ke `upsert` (dua upsert paralel pada tabel kosong gagal P2002).
 - `proxy.ts` menulis ulang cookie sesi sebagai httpOnly di setiap request. Untuk menguji sesi yang hilang, hapus baris `Session` di database, bukan cookie lewat JS.
+- Saran: `computeSuggestions` (`lib/analytics/rules.ts`) murni; masukannya dari `getRuleInput(now)` (`features/suggestions/queries.ts`). Panggil `getSuggestions`/`getSuggestionViews` dengan `now` yang sama dengan halaman supaya `getScoredPosts` (cache per request, berkunci argumen) tidak dihitung dua kali. Kunci saran `aturan:platform:subjek` harus stabil; aturan baru wajib test positif/negatif dan pemisahan platform. Aksi yang mengubah data saran me-revalidate Beranda dan Review (`revalidateMetrics`/`revalidateContent` sudah, juga Eksperimen).
+- AI analisis (`review-draft`, `post-why`): pengambil data di `features/ai/analysis-context.ts`, angka dari `lib/analytics`; grup < 3 post dikirim tanpa median dengan label `NOT_ENOUGH_DATA` ("data belum cukup"). Aturan angka bersama ada di `prompts/analysis-common.ts` (bagian teks tugas berversi).
+- PWA: service worker `public/studio-sw.js` ditulis sendiri, file statis di luar matcher proxy (tanpa login), didaftarkan hanya oleh `StudioServiceWorker` di layout Studio dengan scope `/studio` (bukan `/studio/`, supaya Beranda ikut). Hanya meng-cache halaman offline, manifest, dan ikon; HTML Studio tidak pernah. Mengubah service worker atau `studio-offline.html` → naikkan `VERSION` di service worker. Konstanta IndexedDB di halaman offline harus sama dengan `OFFLINE_IDEA_DB` (dicek test). Ide offline dikirim dengan `offlineId` (unik di `Idea`) supaya kirim ulang tidak menggandakan. CSP: `worker-src 'self'` di Studio, `'none'` di Galeri.
+- Ekspor: tabel baru di schema wajib masuk daftar ekspor JSON atau daftar pengecualian auth (dicek test terhadap DMMF Prisma).
 
 ## Fase
 
@@ -125,7 +134,7 @@ Catatan versi (Oktober 2026):
 - **Fase 2 (Galeri + auth):** selesai (deploy menunggu VPS), lihat `docs/FASE-2.md`. Studio pindah ke `/studio`, PostgreSQL, login + 2FA + sesi + `proxy.ts` + `requireAdmin()`, menu Karya + unggah foto (sharp, hapus EXIF), profil publik, Galeri (Beranda, Katalog, Detail, Tentang), SEO, deploy ke domain.
 - **Fase 3 (Asisten AI, persiapan konten):** selesai, lihat `docs/FASE-3.md`. Panduan AI di Pengaturan, tombol Bantu AI (kembangkan ide, ide dari proyek, hook, script/shot list, caption + hashtag, teks karya dari foto), batas biaya, log `AiRun`, set uji. Lihat PRD bagian "Asisten AI".
 - **Fase 4 (data):** selesai, lihat `docs/FASE-4.md`. Postingan, input metrik H+1/H+7, snapshot followers, `lib/analytics`, Analitik (Recharts), Beranda Studio penuh, target 3 bulan. Kolom `Post.externalId` dan `source` sudah ada untuk impor API nanti.
-- **Fase 5 (saran + AI analisis):** `lib/analytics/rules.ts`, Eksperimen, Review Mingguan (+ draf ringkasan AI), "Kenapa?" di detail post, PWA + capture ide offline, ekspor/backup.
+- **Fase 5 (saran + AI analisis):** selesai, lihat `docs/FASE-5.md`. Mesin aturan `lib/analytics/rules.ts` + kartu saran Beranda (Sembunyikan 7 hari), Eksperimen A/B, Review Mingguan (+ draf ringkasan AI), "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON.
 - **Fase 6 (toko):** keranjang, checkout, pembayaran, ongkir, pesanan.
 
 Aturan Asisten AI (berlaku mulai Fase 3):

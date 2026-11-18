@@ -147,7 +147,8 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 - Tugas hari ini: post terjadwal hari ini; post lewat jadwal yang belum tayang (maks. 7 hari ke belakang); konten terjadwal ≤ 2 hari lagi yang belum Siap Posting. Jadwal pengerjaan tidak punya data sendiri, jadi tidak ikut.
 - Metrik tertunda: post yang sudah lewat 24 jam atau 7 hari tapi metriknya belum diisi, dengan tombol isi cepat yang langsung membuka form H+1 atau H+7. H+1 tampil lebih dulu.
 - Pengingat snapshot followers jika suatu platform belum punya snapshot dalam 7 hari terakhir.
-- 3 kartu saran teratas dari mesin aturan (Fase 5).
+- 3 kartu saran teratas dari mesin aturan (urutan prioritas aturan); "Lihat semua" membuka sisanya di tempat. Setiap saran punya tautan tindakan dan tombol **Sembunyikan 7 hari** (per aturan + platform + subjek).
+- Pengingat Review Mingguan mulai Minggu 18.00 WIB sampai review minggu itu tersimpan; Senin-Selasa tampil "Review minggu lalu belum diisi".
 - Grafik mini followers TikTok dan Instagram 30 hari terakhir, satu grafik per platform.
 
 ### 2. Bank Ide
@@ -191,7 +192,7 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 - Badge status metrik, dihitung dari `postedAt`: < 24 jam **Menunggu H+1**; 24 jam sampai 7 hari tanpa H+1 **Perlu H+1**; sudah ada H+1 dan belum 7 hari **Menunggu H+7**; ≥ 7 hari tanpa H+7 **Perlu H+7** (H+1 tidak ditagih lagi); ada H+7 **Lengkap**.
 - Form metrik singkat (< 1 menit): views (TikTok) atau reach (Instagram), likes, komentar, shares, saves, followers dari post; rata-rata waktu tonton dan completion rate opsional dan dilipat. Input menerima format aplikasi (`12.345`, `12,3K`, `1,2rb`, `1,2jt`). Field selain views yang kosong berarti 0. `recordedAt` otomatis saat disimpan. Likes > views hanya peringatan. Snapshot `CUSTOM` belum punya UI.
 - Snapshot followers akun per platform; input ada di Postingan, Analitik, dan pengingat Beranda (nanti juga diminta saat Review Mingguan).
-- Detail post: tautan ke post asli dan konten, snapshot H+1 dan H+7 (bisa diubah dan dihapus), metrik terhitung (ER, save rate, dll.), skor, skor relatif, dan perbandingan terhadap median post sebelumnya. Angka dari cadangan H+1 diberi penanda.
+- Detail post: tautan ke post asli dan konten, snapshot H+1 dan H+7 (bisa diubah dan dihapus), metrik terhitung (ER, save rate, dll.), skor, skor relatif, dan perbandingan terhadap median post sebelumnya. Angka dari cadangan H+1 diberi penanda. Tombol AI **Kenapa?** (hanya untuk post yang punya skor relatif) dan daftar eksperimen yang memakai post itu.
 
 ### 7. Analitik
 
@@ -205,17 +206,20 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 
 ### 8. Eksperimen
 
-- Hipotesis, variabel (hook, format, jam, durasi, cover), metrik penentu.
-- Hubungkan post varian A dan B.
-- Setelah semua post punya H+7, tampilkan perbandingan; tandai Terbukti / Tidak terbukti / Belum jelas + catatan.
+- Satu platform per eksperimen. Hipotesis selalu dibaca "B lebih baik dari A", dengan deskripsi varian A dan B.
+- Variabel dari daftar (hook, format, jam, durasi, cover, lainnya) dan metrik penentu dari daftar (skor, ER, save rate, share rate, follow rate, views/reach).
+- Hubungkan post yang sudah tayang di platform itu ke varian A atau B; satu post hanya masuk satu varian per eksperimen.
+- Setelah semua post punya H+7, tampilkan median metrik penentu per varian dan selisih %; sebelumnya tampil "menunggu H+7 untuk N post". Perbandingan hanya memakai angka H+7.
+- Usulan otomatis: ≥ 2 post per varian dan B unggul ≥ 10% → Terbukti; A unggul ≥ 10% → Tidak terbukti; selain itu Belum jelas. Halaman menyebut bahwa ini bukan uji statistik; Andi sendiri yang menandai kesimpulan dan catatan.
+- Daftar berjalan / selesai, hapus dengan konfirmasi. Detail post menampilkan eksperimen yang memakainya.
 
 ### 9. Review Mingguan
 
-- Pengingat Minggu malam di Beranda.
-- Ringkasan otomatis: post vs target, followers bertambah, post terbaik dan terburuk, saran aktif.
-- Refleksi: Apa yang berhasil? Apa yang diulang? Apa yang dihentikan?
+- Minggu = Senin-Minggu WIB. Pengingat di Beranda mulai Minggu 18.00 WIB. Halaman default ke minggu yang perlu di-review, dan bisa pindah minggu.
+- Ringkasan otomatis: post vs target (per konten), followers bertambah per platform, post terbaik dan terburuk per platform (skor relatif), dan saran aktif. Ringkasan dibekukan saat review disimpan.
+- Refleksi: Apa yang berhasil? Apa yang diulang? Apa yang dihentikan? Tombol AI **Draf ringkasan** mengisi form sebagai draf.
 - Isi snapshot followers per platform.
-- Fokus minggu depan + pilih 2-3 konten untuk slot minggu depan.
+- Fokus minggu depan + pilih 2-3 konten dan jadwalkan ke slot kosong minggu depan (aksi penjadwalan Kalender). Konten terpilih tersimpan di review.
 - Riwayat review.
 
 ### 10. Pengaturan
@@ -228,7 +232,7 @@ Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP,
 - Profil publik untuk Galeri: nama tampilan, tagline, bio singkat, foto profil, kota (opsional), tautan Instagram/TikTok, nomor WhatsApp dan email kontak. Field yang kosong tidak ditampilkan di Galeri.
 - Akun dan keamanan: ganti password, daftar sesi aktif, keluar dari semua perangkat.
 - Panduan AI dan pemakaian AI (mulai Fase 3, lihat bagian "Asisten AI").
-- Ekspor CSV/JSON dan backup database.
+- Ekspor (tab sendiri): CSV per data (ide, konten, post + metrik H+1/H+7, snapshot followers, karya) dengan pemisah `;`, BOM UTF-8, dan waktu WIB, supaya langsung terbuka benar di Excel berlocale Indonesia. JSON lengkap berisi semua tabel data, tanpa tabel auth (AdminUser, Session, LoginChallenge, LoginAttempt) dan tanpa file foto (hanya `storageKey`). Backup database tetap lewat cron server; impor/pulihkan belum ada.
 
 ### 11. Karya (untuk Galeri)
 
@@ -368,7 +372,7 @@ Keputusan dan saran memakai angka H+7.
 
 1. Ketuk + Ide dari halaman mana pun.
 2. Ketik judul; pilih pilar dan medium jika sempat.
-3. Simpan. Ide masuk Bank Ide berstatus Baru (tersimpan offline jika tidak ada internet).
+3. Simpan. Ide masuk Bank Ide berstatus Baru. Tanpa internet, ide disimpan di perangkat (dialog + Ide, atau halaman offline Studio) dan dikirim sekali saat online lagi.
 
 **Flow 3: Dari ide sampai posting**
 
@@ -462,8 +466,8 @@ Pola UI yang sama di semua tempat: tombol **Bantu AI** di samping field → pane
 
 ### Fitur analisis (Fase 5, bersama mesin aturan)
 
-- **Review Mingguan → Draf ringkasan:** narasi dari ringkasan angka minggu itu (post vs target, top/bottom post, median per pilar/format/hook/jam, saran aturan yang aktif) dan 3 usulan fokus minggu depan. Mengisi form refleksi sebagai draf.
-- **Detail post → Kenapa?:** penjelasan kenapa post di atas/bawah median, membandingkan tag (pilar, format, hook, jam, durasi) dengan post sebanding di platform yang sama.
+- **Review Mingguan → Draf ringkasan** (`review-draft`): narasi dari ringkasan angka minggu itu (post vs target, top/bottom post, median skor relatif per pilar/format/hook/jam, saran aturan yang aktif), draf jawaban tiga pertanyaan refleksi, dan 3 usulan fokus minggu depan. Mengisi form review sebagai draf; tersimpan hanya lewat Simpan. Perkiraan dengan Opus 5.5: US$0,08-0,15 per draf.
+- **Detail post → Kenapa?** (`post-why`, hanya untuk post yang punya skor relatif): penjelasan kenapa post di atas/bawah biasanya, membandingkan tag (pilar, format, hook, hari, jam, durasi) dengan grup post sebanding di platform yang sama (tanpa post itu). Hasilnya hanya ditampilkan dan bisa disalin. Perkiraan: US$0,04-0,08.
 - **Saran aturan** (`rules.ts`) tetap deterministik. AI hanya menambahkan kalimat penjelas bila diminta.
 - Grup dengan kurang dari 3 post dikirim berlabel "data belum cukup", dan AI wajib menyebutkannya, bukan menarik kesimpulan.
 - **Nanti:** "Tanya data" (chat) dengan alat yang hanya bisa membaca ringkasan agregat.
@@ -494,6 +498,13 @@ Semua angka dihitung dari snapshot H+7 (fallback H+1, diberi penanda di detail d
 
 **Aturan saran otomatis** (aktif hanya jika grup punya ≥ 3 post; Beranda menampilkan 3 teratas)
 
+Mesin aturan (`lib/analytics/rules.ts`) adalah fungsi murni yang dihitung saat halaman dibuka. Aturan 4-8 memakai skor relatif dan dihitung terpisah per platform; "unggul" berarti median skor relatif ≥ 1,2. Satu saran per aturan per platform. Tafsiran rincinya ada di E1-E5 `docs/FASE-5.md`:
+
+- Ritme terancam: mulai Kamis WIB, jika konten tayang + terjadwal minggu ini < target (per konten). Saran menyebut maks. 2 konten Siap Posting yang belum terjadwal.
+- Lanjutkan seri: proyek belum Selesai, part tayang terakhir punya skor relatif ≥ 1 di salah satu platform, dan part berikutnya belum tayang atau terjadwal.
+- Crosspost tertinggal: skor relatif ≥ 1,2 di satu platform, tayang ≤ 30 hari lalu, dan belum ada versi tayang atau terjadwal di platform lain.
+- Pilar terabaikan: pilar aktif dengan porsi target > 0 tanpa post tayang 14 hari. Hanya aktif jika total konten tayang ≥ 3.
+
 | Prioritas | Aturan | Kondisi | Contoh saran |
 | --- | --- | --- | --- |
 | 1 | Ritme terancam | Post minggu ini < target dan hari ≥ Kamis | "Masih kurang 1 post. Konten siap: Time-lapse tangan Part 2." |
@@ -520,15 +531,16 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 | HookType | id, name, isActive | 1:N Content |
 | Project | id, title, medium (DRAWING, CLAY, MIXED), stage, startDate, endDate, notes | 1:N Content, ProjectPhoto |
 | ProjectPhoto | id, projectId, url atau storageKey (unggahan) + width, height, caption, takenAt | N:1 Project |
-| Idea | id, title, notes, medium, potential (1-5), effort (1-5), status (NEW, PICKED, ARCHIVED), refUrl, createdAt | N:1 Pillar; 1:0..1 Content |
+| Idea | id, title, notes, medium, potential (1-5), effort (1-5), status (NEW, PICKED, ARCHIVED), refUrl, offlineId (kunci perangkat untuk ide offline, unik, opsional), createdAt | N:1 Pillar; 1:0..1 Content |
 | Content | id, ideaId, projectId, seriesPart, title, pillarId, formatId, hookTypeId, hookText, script, shotList, targetDurationSec, stage (PLANNING, PRODUCTION, EDITING, READY, POSTED), stageChangedAt | 1:N Post, ChecklistItem |
 | ChecklistItem | id, contentId, label, done, order | N:1 Content |
 | Post | id, contentId, platform (TIKTOK, INSTAGRAM), postType (VIDEO, REEL, CAROUSEL, STORY), caption, hashtags, scheduledAt, postedAt, url, durationSec, externalId (ID post di platform, opsional, untuk impor API nanti) | 1:N MetricSnapshot |
 | MetricSnapshot | id, postId, kind (H1, H7, CUSTOM), source (MANUAL, API), recordedAt, views, likes, comments, shares, saves, follows, avgWatchSec, completionRate | N:1 Post |
 | AccountSnapshot | id, platform, date, followers, source (MANUAL, API) | unik per platform+date |
-| Experiment | id, hypothesis, variable, decidingMetric, result (SUPPORTED, REJECTED, INCONCLUSIVE), notes | 1:N ExperimentPost |
-| ExperimentPost | experimentId, postId, variant (A, B) | penghubung |
-| WeeklyReview | id, weekStart, wins, repeat, stop, focusNext, summaryJson | satu per minggu |
+| Experiment | id, hypothesis, platform, variable (HOOK, FORMAT, TIME, DURATION, COVER, OTHER), variantA, variantB, decidingMetric (SCORE, ER, SAVE_RATE, SHARE_RATE, FOLLOW_RATE, VIEWS), result (SUPPORTED, REJECTED, INCONCLUSIVE; kosong = berjalan), notes, concludedAt | 1:N ExperimentPost (Fase 5) |
+| ExperimentPost | experimentId, postId, variant (A, B) | penghubung; satu post satu varian per eksperimen |
+| WeeklyReview | id, weekStart (Senin 00.00 WIB), wins, repeat, stop, focusNext, summaryJson (ringkasan beku), plannedContentIds | satu per minggu (Fase 5) |
+| SuggestionDismissal | id, key (aturan:platform:subjek, unik), until | "Sembunyikan 7 hari" (Fase 5) |
 | Setting | id, weeklyPostTarget, postingSlotsJson, scoreWeightsJson, tiktokHandle, igHandle, followerTargetJson, siteName, tagline, bio (singkat, Beranda), aboutText (panjang, Tentang), avatarKey, city, whatsapp, contactEmail | satu baris |
 | Artwork | id, slug (unik), title, summary, description, medium, year, widthCm, heightCm, depthCm, materials, weightGram, projectId, visibility (DRAFT, PUBLISHED, ARCHIVED), availability (NOT_FOR_SALE, AVAILABLE, RESERVED, SOLD), priceIdr, showPrice, isFeatured, featuredOrder, publishedAt | N:1 Project; 1:N ArtworkImage; N:M Content |
 | ArtworkImage | id, artworkId, storageKey, width, height, alt, order, isCover, isProcess (foto progres untuk bagian Proses, bukan foto karya jadi) | N:1 Artwork |
@@ -539,7 +551,7 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 | LoginChallenge | id, tokenHash (unik), adminUserId, kind (VERIFY, SETUP), pendingTotpSecret, expiresAt | tahap login 10 menit antara password benar dan 2FA |
 | LoginAttempt | id, key (IP atau email), success, createdAt | dasar pembatasan login |
 | AiGuide | id, isEnabled, model, voiceJson (formal/santai, campuran Inggris, sapaan, emoji, panjang caption, CTA favorit), voiceNotes, examplesJson, creatorFacts, hashtagSetsJson (per pilar + platform), avoidNotes, monthlyBudgetUsd, dailyCallLimit | satu baris (Fase 3) |
-| AiRun | id, feature, model, promptVersion, targetType, targetId, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, costUsd, durationMs, status (RUNNING, OK, ERROR, REFUSED), errorMessage, outputJson, accepted, createdAt | log setiap panggilan AI (Fase 3) |
+| AiRun | id, feature, model, promptVersion, targetType (IDEA, PROJECT, CONTENT, POST, ARTWORK, REVIEW, EVAL), targetId, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, costUsd, durationMs, status (RUNNING, OK, ERROR, REFUSED), errorMessage, outputJson, accepted, createdAt | log setiap panggilan AI (Fase 3) |
 
 **Aturan data**
 
@@ -559,7 +571,10 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 - AiRun tidak menyimpan gambar atau isi prompt lengkap, hanya metadata dan hasil (`outputJson`). `costUsd` dihitung dari jumlah token × harga model yang dicatat di kode.
 - Panggilan AI ditolak sebelum dikirim jika AI nonaktif, biaya bulan berjalan sudah mencapai `monthlyBudgetUsd`, atau jumlah panggilan hari ini sudah mencapai `dailyCallLimit` (hari dan bulan WIB). Penolakan ini tidak dicatat.
 - Baris AiRun dibuat berstatus RUNNING sebelum panggilan dikirim, dalam transaksi yang sama dengan cek batas, supaya panggilan bersamaan tidak lolos batas. Baris RUNNING yang tertinggal tetap dihitung sebagai panggilan.
-- `accepted = true` saat pengguna menekan Pakai pada salah satu opsi run itu.
+- `accepted = true` saat pengguna menekan Pakai pada salah satu opsi run itu (untuk Kenapa?: Salin).
+- Eksperimen: post harus sudah tayang dan platformnya sama dengan eksperimen. Platform eksperimen hanya bisa diganti sebelum ada post.
+- Review Mingguan: satu per minggu WIB; minggu depan tidak bisa di-review. Ringkasan dihitung server saat disimpan, bukan dari client.
+- Ide offline membawa `offlineId` acak dari perangkat; kirim ulang dengan id yang sama tidak membuat ide kedua.
 
 ## Arsitektur teknis
 
@@ -576,7 +591,7 @@ Monolit Next.js (App Router, TypeScript) + Prisma. Logika analitik = fungsi murn
 | Drag and drop | dnd-kit |
 | Grafik | Recharts (hanya Studio; Galeri tidak memuatnya) |
 | Tanggal | date-fns + date-fns-tz |
-| PWA | Serwist (hanya untuk Studio) |
+| PWA | Service worker ditulis sendiri (`public/studio-sw.js`, scope `/studio`, hanya Studio). Serwist tidak dipakai (alasan di `docs/FASE-5.md`) |
 | Auth | Sesi di database + password scrypt + 2FA TOTP; `proxy.ts` untuk cek cepat, `requireAdmin()` untuk cek sesungguhnya |
 | Penyimpanan file | Disk server (folder `uploads/` di luar repo) lewat `lib/storage.ts`, bisa diganti S3-compatible |
 | Pemrosesan gambar | sharp (resize, WebP, hapus EXIF) |
@@ -612,8 +627,11 @@ src/
     gallery/      # Galeri: query publik (hanya field publik), kartu produk
     auth/         # login, sesi, pembatasan login, requireAdmin()
     ai/           # klien Claude, prompts/ (berversi), skema output, batas biaya, log AiRun, evals/
+    suggestions/  # input mesin aturan, Sembunyikan 7 hari, kartu saran (Fase 5)
     experiments/
     reviews/
+    export/       # CSV/JSON (Fase 5)
+    pwa/          # antrean ide offline, service worker (Fase 5)
     settings/
   lib/
     storage.ts        # simpan/baca/hapus file unggahan
@@ -628,6 +646,8 @@ src/
       tasks.ts        # tugas hari ini, pengingat snapshot followers
       compare.ts      # TikTok vs Instagram untuk konten yang sama
       rules.ts        # mesin aturan saran (Fase 5)
+      experiments.ts  # median per varian, selisih %, usulan kesimpulan (Fase 5)
+      review.ts       # minggu review, pengingat, ringkasan minggu (Fase 5)
     date.ts           # helper minggu & WIB
     db.ts             # Prisma client
 prisma/
@@ -639,7 +659,8 @@ prisma/
 
 - Halaman = Server Component yang memanggil `queries.ts`.
 - Mutasi = Server Actions + Zod, optimistic update via TanStack Query.
-- Saran dihitung on-demand saat Beranda dibuka (`rules.ts`), tanpa background job di MVP.
+- Saran dihitung on-demand saat Beranda atau Review dibuka (`rules.ts`), tanpa background job di MVP.
+- Service worker Studio hanya meng-cache halaman offline, manifest, dan ikon. HTML Studio tidak pernah di-cache. Navigasi yang gagal menampilkan halaman offline dengan form + Ide (IndexedDB). Logout menghapus cache, tetapi antrean ide tetap.
 - Halaman Studio selalu dinamis. Halaman Galeri di-cache; aksi karya di Studio memanggil `revalidatePath` untuk `/`, `/karya`, dan `/karya/[slug]`.
 - Setiap Server Action Studio dimulai dengan `await requireAdmin()`.
 - Panggilan AI: Server Action/Route Handler → `requireAdmin()` → cek batas biaya → kumpulkan data (angka dari `lib/analytics`) → panggil Claude → validasi output dengan Zod → catat AiRun → kirim draf ke form. Tidak ada tulisan ke data konten sampai pengguna menekan Simpan.
@@ -678,7 +699,7 @@ flowchart LR
   F2["Fase 2: Galeri + Auth<br/>Studio pindah ke /studio, login,<br/>menu Karya + unggah foto,<br/>Beranda, Katalog, Detail, SEO,<br/>deploy ke domain"]
   F3["Fase 3: Asisten AI (persiapan)<br/>Panduan AI, Kembangkan ide,<br/>hook, script, caption,<br/>teks karya dari foto, log biaya"]
   F4["Fase 4: Data ✅<br/>Postingan, Metrik H+1/H+7,<br/>Snapshot followers,<br/>Analitik, Beranda Studio penuh"]
-  F5["Fase 5: Saran + AI analisis<br/>Mesin aturan, Eksperimen,<br/>Review mingguan + draf AI,<br/>PWA offline, Ekspor/backup"]
+  F5["Fase 5: Saran + AI analisis ✅<br/>Mesin aturan, Eksperimen,<br/>Review mingguan + draf AI,<br/>PWA offline, Ekspor/backup"]
   F6["Fase 6: Toko<br/>Keranjang, checkout,<br/>pembayaran, ongkir,<br/>pesanan, stok/edisi"]
   F7["Nanti<br/>Impor API IG/TikTok,<br/>Notifikasi, Tanya data (chat AI)"]
   F1 --> F2
@@ -750,6 +771,17 @@ Rinciannya D1-D11 di `docs/FASE-4.md`; isinya sudah tertulis di menu 1, 6, 7 dan
 - [x] Status metrik dan skor relatif dihitung saat dibaca, tanpa tabel jadwal.
 - [x] Target 3 bulan opsional: pembanding hanya tampil jika sudah diisi.
 - [x] Sebelum Review Mingguan ada (Fase 5), Beranda mengingatkan snapshot followers yang lewat 7 hari.
+
+**Keputusan (8 November 2026, Fase 5)**
+
+Rinciannya E1-E11 dan "Hasil dan keputusan implementasi" di `docs/FASE-5.md`; isinya sudah tertulis di menu 1, 6, 8, 9, 10, Flow 2, "Asisten AI", "Metrik, rumus, dan aturan saran", "Model data", dan "Arsitektur".
+
+- [x] Mesin aturan dihitung saat halaman dibuka; aturan berbasis data memakai skor relatif per platform, "unggul" = median ≥ 1,2, minimal 3 post per grup. Saran bisa disembunyikan 7 hari.
+- [x] Eksperimen satu platform, perbandingan hanya dari H+7, usulan otomatis bukan uji statistik.
+- [x] Review Mingguan: pengingat Minggu 18.00 WIB, ringkasan dibekukan saat disimpan, rencana minggu depan lewat penjadwalan Kalender.
+- [x] AI analisis (Draf ringkasan, Kenapa?) hanya mengisi form atau menampilkan penjelasan; grup < 3 post berlabel "data belum cukup".
+- [x] PWA hanya Studio dengan service worker sendiri (tanpa Serwist), scope `/studio`, tanpa cache HTML Studio. Ide offline tersinkron sekali lewat `Idea.offlineId`.
+- [x] Ekspor CSV (pemisah `;`, BOM, WIB) dan JSON tanpa tabel auth; impor/pulihkan belum ada.
 
 **Pertanyaan terbuka**
 

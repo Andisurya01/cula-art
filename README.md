@@ -10,7 +10,7 @@ _Nama sementara; sebelumnya Content Growth Planner._ Satu web app di satu domain
 | 2. Galeri + Auth | Studio di `/studio` + login 2FA, menu Karya + unggah foto, Galeri publik (Beranda, Katalog, Detail, Tentang), SEO | Selesai 29 Okt 2026, deploy menunggu domain + VPS ([docs/FASE-2.md](docs/FASE-2.md), [docs/DEPLOY.md](docs/DEPLOY.md)) |
 | 3. Asisten AI | Panduan AI, draf ide/hook/script/caption, teks karya dari foto, batas biaya + log, set uji | Selesai 29 Okt 2026 ([docs/FASE-3.md](docs/FASE-3.md)) |
 | 4. Data | Postingan, metrik H+1/H+7, snapshot followers, Analitik, Beranda Studio penuh, target 3 bulan | Selesai 6 Nov 2026 ([docs/FASE-4.md](docs/FASE-4.md)) |
-| 5. Saran + AI analisis | Mesin aturan, Eksperimen, Review Mingguan (+ draf AI), PWA offline, ekspor/backup | Belum |
+| 5. Saran + AI analisis | Mesin aturan + kartu saran, Eksperimen A/B, Review Mingguan (+ draf AI), "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON | Selesai 8 Nov 2026 ([docs/FASE-5.md](docs/FASE-5.md)) |
 | 6. Toko | Keranjang, checkout, pembayaran, ongkir, pesanan | Belum |
 
 ## Kebutuhan
@@ -36,7 +36,8 @@ _Nama sementara; sebelumnya Content Growth Planner._ Satu web app di satu domain
 3. Lalu:
 
    ```powershell
-   cd "C:UsersandisDocumentsepo eksperimencontent planner"
+   cd "C:UsersandisDocuments
+epo eksperimencontent planner"
    npm install                 # juga menjalankan prisma generate
    npx prisma migrate deploy   # semua migrasi ke galeri_dev
    npx prisma db seed          # pilar, format, hook, checklist, pengaturan default (aman diulang)
@@ -64,13 +65,15 @@ Data contoh (opsional, hapus lagi dengan `--hapus`):
 | `npm run admin:create` | Buat akun pemilik (sekali) |
 | `npm run admin:reset-2fa` | Darurat: HP hilang dan kode pemulihan habis; semua sesi dicabut |
 | `npm run admin:reset-password` | Darurat: lupa password; semua sesi dicabut |
+| `npx tsx scripts/demo-metrics.ts [--jumlah 1000] [--hapus]` | Data contoh metrik + kasus saran berlabel `[Demo]` di `galeri_dev` (uji lokal saja; hapus lagi setelah uji) |
+| `npx tsx scripts/pwa-icons.ts` | Buat ulang ikon PWA Studio (`public/studio-icons/`) |
 | `npm run ai:eval -- <fitur atau semua>` | Set uji Asisten AI (`--model`, `--batas`, `--panduan-db`). Tanpa `--konfirmasi` hanya menampilkan rencana + perkiraan biaya; dengan `--konfirmasi` **memanggil API berbayar** (kecuali `AI_MOCK=1`). Laporan di `.ai-evals/` |
 
 Satu fitur dianggap selesai jika `lint`, `typecheck`, `test`, dan `build` lolos. Deploy ke VPS: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Stack
 
-Next.js 16 (App Router, Server Actions, `proxy.ts`) · TypeScript strict · Prisma 6 + PostgreSQL 18 · Tailwind 4 + Shadcn/ui · TanStack Query · React Hook Form + Zod · Zustand · dnd-kit · date-fns + date-fns-tz · sharp · qrcode · Claude API (`@anthropic-ai/sdk`) · Recharts (hanya Studio) · Vitest 4.
+Next.js 16 (App Router, Server Actions, `proxy.ts`) · TypeScript strict · Prisma 6 + PostgreSQL 18 · Tailwind 4 + Shadcn/ui · TanStack Query · React Hook Form + Zod · Zustand · dnd-kit · date-fns + date-fns-tz · sharp · qrcode · Claude API (`@anthropic-ai/sdk`) · Recharts (hanya Studio) · service worker PWA sendiri (hanya Studio) · Vitest 4.
 
 ## Struktur
 
@@ -87,12 +90,18 @@ src/features/gallery/           satu-satunya pintu data Galeri (queries.ts → D
 src/features/ai/                Asisten AI: client.ts (satu-satunya pembaca ANTHROPIC_API_KEY), prompts/ (berversi), run.ts, limits.ts, components/ (panel Bantu AI), evals/ (set uji)
 src/features/metrics/           snapshot metrik dan followers, skor per post, Postingan
 src/features/analytics/         halaman Analitik; src/features/home/ Beranda Studio
+src/features/suggestions/       input mesin aturan dari database, Sembunyikan 7 hari, kartu saran
+src/features/experiments/       Eksperimen A/B; src/features/reviews/ Review Mingguan
+src/features/export/            ekspor CSV/JSON (Route Handler src/app/studio/ekspor/[file]/)
+src/features/pwa/               antrean ide offline (IndexedDB) + pendaftaran service worker
+public/studio-sw.js             service worker Studio (scope /studio); studio-offline.html, studio.webmanifest, studio-icons/
 src/components/charts/          grafik Recharts (hanya Studio)
 src/lib/                        routes.ts (semua path), storage.ts + images.ts (unggah, sharp), slug.ts, date.ts (WIB), db.ts
-src/lib/analytics/              fungsi murni: metrik, status, skor, median per grup, KPI, streak, tugas hari ini, pemakaian AI + unit test
+src/lib/analytics/              fungsi murni: metrik, status, skor, median per grup, KPI, streak, tugas hari ini, pemakaian AI,
+                                mesin aturan saran (rules.ts), eksperimen, review mingguan + unit test
 src/test/                       helper test (database test, mock next/headers)
 prisma/                         schema.prisma, migrations/, seed.ts
-scripts/                        admin-*.ts, demo-gallery.ts, demo-metrics.ts, ai-eval.ts
+scripts/                        admin-*.ts, demo-gallery.ts, demo-metrics.ts, ai-eval.ts, pwa-icons.ts
 deploy/                         Caddyfile, galeri.service, galeri-backup.sh
 docs/                           PRD, rencana fase, DEPLOY
 ```
@@ -103,4 +112,7 @@ docs/                           PRD, rencana fase, DEPLOY
 - Tombol **+ Ide** ada di semua halaman Studio; di desktop tekan `N` (saat tidak sedang mengetik).
 - Metrik TikTok dan Instagram tidak pernah dicampur dalam satu agregat. Analitik selalu per platform; hanya daftar Postingan yang menampilkan keduanya, per baris.
 - Asisten AI hanya membuat draf di form; tidak ada yang tersimpan sampai tombol Simpan (atau "Simpan sebagai ide") ditekan. Setiap panggilan dicek terhadap batas biaya/harian dan dicatat di `AiRun`.
+- Saran dihitung saat Beranda/Review dibuka dari data sendiri (aturan PRD), per platform, dan aturan berbasis data baru aktif jika grupnya punya minimal 3 post. AI analisis (Draf ringkasan, Kenapa?) hanya menjelaskan angka yang dihitung kode.
+- Studio bisa dipasang di layar utama HP (PWA). Service worker hanya meng-cache halaman offline dan ikon, tidak pernah halaman Studio. Ide yang dicatat saat offline masuk Bank Ide sekali saat online.
+- Ekspor di Pengaturan → Ekspor: CSV (pemisah `;`, BOM UTF-8, waktu WIB) dan JSON lengkap tanpa data login. Backup database harian tetap lewat cron server ([docs/DEPLOY.md](docs/DEPLOY.md)).
 - Galeri hanya menampilkan karya Terbit; harga hanya jika "Tampilkan harga" aktif. Foto unggahan diproses ulang tanpa metadata EXIF/GPS.
