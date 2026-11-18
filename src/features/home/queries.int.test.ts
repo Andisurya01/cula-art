@@ -3,8 +3,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ContentStage, Platform } from "@prisma/client";
 import { db, resetDatabase } from "@/test/db";
+import { suggestionKey } from "@/lib/analytics/rules";
 import { addWibDays, wibToUtc } from "@/lib/date";
 import { settingCreateData } from "@/features/settings/queries";
+import { getSuggestionViews } from "@/features/suggestions/queries";
 import { getHomeOverview, PENDING_METRICS_LIMIT } from "./queries";
 
 // Kamis 5 Nov 2026, 12.00 WIB. Minggu berjalan mulai Senin 2 Nov.
@@ -67,6 +69,9 @@ describe("getHomeOverview: data kosong", () => {
     expect(data.stageCounts).toEqual({ PLANNING: 0, PRODUCTION: 0, EDITING: 0, READY: 0, POSTED: 0 });
     expect(data.staleContents).toEqual([]);
     expect(data.newIdeaCount).toBe(0);
+    // Kamis, target 3: hanya ritme dan ide menipis; aturan data butuh ≥ 3 post per grup.
+    expect(data.suggestions.map((s) => s.rule)).toEqual(["rhythm", "low-ideas"]);
+    expect(data.reviewReminder).toBeNull();
   });
 });
 
@@ -256,6 +261,75 @@ describe("getHomeOverview: followers", () => {
       { platform: "TIKTOK", date: wibToUtc("2026-11-04"), followers: 1250 },
       { platform: "INSTAGRAM", date: wibToUtc("2026-10-29"), followers: 500 },
     ]);
+  });
+});
+
+describe("getHomeOverview: saran (E6)", () => {
+  it("semua saran aktif urut prioritas, sama dengan inti saran; yang disembunyikan tersaring", async () => {
+    const stale = await createContent("Macet", "EDITING", [{}]);
+    await db.content.update({ where: { id: stale.id }, data: { stageChangedAt: daysAgo(9) } });
+    const posted = await createContent("Perlu H+1", "POSTED", [{ postedAt: daysAgo(2) }]);
+    await db.content.update({ where: { id: posted.id }, data: { stageChangedAt: daysAgo(2) } });
+
+    const before = await getHomeOverview(NOW);
+
+    expect(before.suggestions.map((s) => [s.rule, s.platform])).toEqual([
+      ["rhythm", null],
+      ["pending-metrics", "TIKTOK"],
+      ["stale-content", null],
+      ["low-ideas", null],
+    ]);
+    // Daftar lengkap (Beranda memotong 3 teratas di komponen, sisanya lewat "Lihat semua").
+    expect(before.suggestions).toEqual(await getSuggestionViews(NOW));
+    expect(before.suggestions[2]).toMatchObject({
+      message: "Macet tertahan di Editing 9 hari.",
+      href: `/studio/pipeline/${stale.id}`,
+    });
+
+    await db.suggestionDismissal.createMany({
+      data: [
+        { key: suggestionKey("rhythm", null, "2026-11-02"), until: addWibDays(NOW, 7) },
+        // Sudah lewat: tidak menyembunyikan apa pun.
+        { key: suggestionKey("low-ideas", null, "ide"), until: addWibDays(NOW, -1) },
+      ],
+    });
+
+    const after = await getHomeOverview(new Date(NOW));
+
+    expect(after.suggestions.map((s) => s.rule)).toEqual(["pending-metrics", "stale-content", "low-ideas"]);
+  });
+});
+
+describe("getHomeOverview: pengingat Review Mingguan (E8)", () => {
+  const saveReview = (monday: string) => db.weeklyReview.create({ data: { weekStart: wibToUtc(monday) } });
+
+  it("Minggu 18.00 WIB: review minggu ini, hilang setelah review minggu itu tersimpan", async () => {
+    const sundayEvening = wibToUtc("2026-11-08", "18:00");
+    expect((await getHomeOverview(wibToUtc("2026-11-08", "17:59"))).reviewReminder).toBeNull();
+
+    // Review minggu lalu tidak menghapus pengingat minggu ini.
+    await saveReview("2026-10-26");
+    expect((await getHomeOverview(sundayEvening)).reviewReminder).toEqual({
+      kind: "THIS_WEEK",
+      weekStart: wibToUtc("2026-11-02"),
+    });
+
+    await saveReview("2026-11-02");
+    expect((await getHomeOverview(new Date(sundayEvening))).reviewReminder).toBeNull();
+  });
+
+  it("Senin-Selasa: review minggu lalu belum diisi; Rabu tidak ada pengingat", async () => {
+    // Review dua minggu lalu tidak dihitung sebagai review minggu lalu.
+    await saveReview("2026-10-26");
+
+    const monday = await getHomeOverview(wibToUtc("2026-11-09", "08:00"));
+    expect(monday.reviewReminder).toEqual({ kind: "LAST_WEEK", weekStart: wibToUtc("2026-11-02") });
+    const tuesdayNight = await getHomeOverview(wibToUtc("2026-11-10", "23:59"));
+    expect(tuesdayNight.reviewReminder).toMatchObject({ kind: "LAST_WEEK" });
+    expect((await getHomeOverview(wibToUtc("2026-11-11", "08:00"))).reviewReminder).toBeNull();
+
+    await saveReview("2026-11-02");
+    expect((await getHomeOverview(wibToUtc("2026-11-09", "08:00"))).reviewReminder).toBeNull();
   });
 });
 

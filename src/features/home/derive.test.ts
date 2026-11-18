@@ -5,13 +5,17 @@ import {
   followerCards,
   followerDomain,
   groupWeekItems,
+  HOME_SUGGESTION_LIMIT,
   orderedPlatforms,
   platformList,
+  reviewReminderView,
+  SUGGESTIONS_EMPTY_NOTE,
   TASK_KIND_LABELS,
   taskStageNote,
   taskTimeLabel,
   weekProgress,
   weekProgressNote,
+  weekRangeLabel,
   type WeekPost,
 } from "./derive";
 
@@ -177,5 +181,44 @@ describe("followerDomain", () => {
       wibToUtc("2026-10-08").getTime(),
       wibToUtc("2026-11-06").getTime(),
     ]);
+  });
+});
+
+describe("kartu saran", () => {
+  it("3 teratas, dan empty state menjelaskan kapan saran muncul", () => {
+    expect(HOME_SUGGESTION_LIMIT).toBe(3);
+    expect(SUGGESTIONS_EMPTY_NOTE).toContain("(mulai Kamis)");
+    expect(SUGGESTIONS_EMPTY_NOTE).toContain("konten macet lebih dari 7 hari");
+    expect(SUGGESTIONS_EMPTY_NOTE).toContain("ide Baru kurang dari 5");
+    expect(SUGGESTIONS_EMPTY_NOTE).toContain("minimal 3 post berskor relatif dalam satu grup di platform yang sama");
+    expect(SUGGESTIONS_EMPTY_NOTE).toContain("muncul lagi setelah 7 hari");
+  });
+});
+
+describe("weekRangeLabel", () => {
+  it("Senin-Minggu WIB: bulan sama, beda bulan, beda tahun", () => {
+    expect(weekRangeLabel(wibToUtc("2026-11-02"))).toBe("2-8 Nov 2026");
+    expect(weekRangeLabel(wibToUtc("2026-10-26"))).toBe("26 Okt-1 Nov 2026");
+    expect(weekRangeLabel(wibToUtc("2025-12-29"))).toBe("29 Des 2025-4 Jan 2026");
+  });
+});
+
+describe("reviewReminderView (E8)", () => {
+  it("minggu ini (Minggu malam): tautan ke Review minggu berjalan", () => {
+    expect(reviewReminderView({ kind: "THIS_WEEK", weekStart: wibToUtc("2026-11-02") })).toEqual({
+      title: "Saatnya review mingguan",
+      description: expect.stringContaining("Minggu 2-8 Nov 2026 hampir selesai."),
+      actionLabel: "Isi review minggu ini",
+      href: "/studio/review?minggu=2026-11-02",
+    });
+  });
+
+  it("minggu lalu (Senin-Selasa): belum diisi, tautan ke minggu lalu", () => {
+    expect(reviewReminderView({ kind: "LAST_WEEK", weekStart: wibToUtc("2026-10-26") })).toEqual({
+      title: "Review minggu lalu belum diisi",
+      description: expect.stringContaining("Minggu 26 Okt-1 Nov 2026 belum di-review."),
+      actionLabel: "Isi review minggu lalu",
+      href: "/studio/review?minggu=2026-10-26",
+    });
   });
 });

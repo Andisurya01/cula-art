@@ -7,8 +7,10 @@ import { IdeaBankBanner } from "@/features/home/components/idea-bank-banner";
 import { PendingMetricsCard } from "@/features/home/components/pending-metrics-card";
 import { PipelineCard } from "@/features/home/components/pipeline-card";
 import { StaleContentsCard } from "@/features/home/components/stale-contents-card";
+import { SuggestionsCard } from "@/features/home/components/suggestions-card";
 import { TodayTasksCard } from "@/features/home/components/today-tasks-card";
 import { WeekProgressCard } from "@/features/home/components/week-progress-card";
+import { WeeklyReviewReminder } from "@/features/home/components/weekly-review-reminder";
 import { getHomeOverview } from "@/features/home/queries";
 import { formatWib } from "@/lib/date";
 
@@ -27,8 +29,12 @@ export default async function BerandaPage() {
         description={`Minggu ${formatWib(data.weekStart, "d MMMM yyyy")} · apa yang perlu dikerjakan`}
       />
 
-      {/* Urutan DOM = urutan di HP: yang perlu dikerjakan dulu, kesehatan pipeline terakhir. */}
+      {/*
+        Urutan DOM = urutan di HP: pengingat, lalu progres dan tugas hari ini, lalu saran (apa yang
+        dikerjakan berikutnya), metrik tertunda, dan kesehatan pipeline terakhir.
+      */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <WeeklyReviewReminder reminder={data.reviewReminder} className="md:col-span-2" />
         <FollowerReminder
           platforms={data.followerReminders}
           latest={data.latestFollowers}
@@ -41,6 +47,7 @@ export default async function BerandaPage() {
           items={data.weekItems}
         />
         <TodayTasksCard tasks={data.tasks} now={now} />
+        <SuggestionsCard suggestions={data.suggestions} className="min-w-0 md:col-span-2" />
         <PendingMetricsCard items={data.pendingMetrics} total={data.pendingTotal} className="md:col-span-2" />
         {data.followerCards.map((card) => (
           <FollowerCard key={card.platform} card={card} domain={data.followerDomain} latest={data.latestFollowers} />
@@ -49,8 +56,6 @@ export default async function BerandaPage() {
         <PipelineCard stageCounts={data.stageCounts} />
         <StaleContentsCard contents={data.staleContents} now={now} />
       </div>
-
-      <p className="mt-6 text-xs text-muted-foreground">Saran otomatis hadir di Fase 5.</p>
     </>
   );
 }

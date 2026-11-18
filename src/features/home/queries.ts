@@ -1,10 +1,11 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { rangeStart } from "@/lib/analytics/kpi";
+import { reviewReminder } from "@/lib/analytics/review";
 import { pendingMetrics } from "@/lib/analytics/snapshots";
 import { weeklyStreak } from "@/lib/analytics/streak";
 import { followerSnapshotReminders, taskWindow, todayTasks } from "@/lib/analytics/tasks";
-import { endOfWibWeek, isStale, startOfWibWeek, STALE_AFTER_DAYS } from "@/lib/date";
+import { addWibDays, endOfWibWeek, isStale, startOfWibWeek, STALE_AFTER_DAYS } from "@/lib/date";
 import { CONTENT_STAGES } from "@/lib/labels";
 import {
   getFollowerSnapshots,
@@ -12,6 +13,7 @@ import {
   getScoredPosts,
 } from "@/features/metrics/queries";
 import { getSettings } from "@/features/settings/queries";
+import { getSuggestionViews } from "@/features/suggestions/queries";
 import {
   followerCards,
   followerDomain,
@@ -42,11 +44,13 @@ async function getTaskPosts(now: Date) {
 
 /**
  * Semua data Beranda untuk satu `now`. Tidak ada query per baris: semua dimuat sekali lalu dihitung
- * oleh fungsi murni, supaya halaman tetap < 1 detik dengan 1.000 post.
+ * oleh fungsi murni, supaya halaman tetap < 1 detik dengan 1.000 post. Saran memakai `now` yang sama,
+ * jadi `getScoredPosts` dan `getSettings` (cache per request) tidak dihitung dua kali.
  */
 export async function getHomeOverview(now: Date = new Date()) {
   const weekStart = startOfWibWeek(now);
   const weekEnd = endOfWibWeek(now);
+  const lastWeekStart = addWibDays(weekStart, -7);
   const staleBefore = new Date(now.getTime() - STALE_AFTER_DAYS * 86_400_000);
 
   const [
@@ -59,6 +63,8 @@ export async function getHomeOverview(now: Date = new Date()) {
     scoredPosts,
     followerRows,
     latestFollowers,
+    suggestions,
+    savedReviews,
   ] = await Promise.all([
     getSettings(),
     db.post.findMany({
@@ -96,6 +102,12 @@ export async function getHomeOverview(now: Date = new Date()) {
     getScoredPosts(now),
     getFollowerSnapshots({ from: rangeStart(now, FOLLOWER_RANGE_DAYS) }),
     getLatestFollowerSnapshots(),
+    getSuggestionViews(now),
+    // Pengingat review (E8) hanya menyangkut minggu ini dan minggu lalu.
+    db.weeklyReview.findMany({
+      where: { weekStart: { in: [weekStart, lastWeekStart] } },
+      select: { weekStart: true },
+    }),
   ]);
 
   const weekItems = groupWeekItems(weekPosts);
@@ -124,6 +136,9 @@ export async function getHomeOverview(now: Date = new Date()) {
     stageCounts,
     staleContents: staleContents.filter((c) => isStale(c.stageChangedAt, now)),
     newIdeaCount,
+    /** Semua saran aktif (urut prioritas, sudah tanpa yang disembunyikan); Beranda menampilkan 3 teratas. */
+    suggestions,
+    reviewReminder: reviewReminder(now, savedReviews.map((r) => r.weekStart)),
   };
 }
 export type HomeOverview = Awaited<ReturnType<typeof getHomeOverview>>;

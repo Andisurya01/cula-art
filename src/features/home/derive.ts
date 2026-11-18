@@ -2,10 +2,22 @@
 // Tanpa Prisma/React/Next, jadi bisa diuji tanpa database.
 
 import type { Platform } from "@prisma/client";
+import { MIN_GROUP_POSTS } from "@/lib/analytics/grouping";
 import { followerSeries, followersGained, rangeStart, type FollowerPoint } from "@/lib/analytics/kpi";
+import type { ReviewReminder } from "@/lib/analytics/review";
+import { LOW_IDEAS_THRESHOLD, RHYTHM_FROM_ISO_DAY, SUGGESTION_HIDE_DAYS } from "@/lib/analytics/rules";
 import type { TaskKind, TodayTask } from "@/lib/analytics/tasks";
-import { formatWib, startOfWibDay, wibDaysBetween } from "@/lib/date";
+import {
+  DAY_LABELS,
+  formatWib,
+  formatWibWeekRange,
+  STALE_AFTER_DAYS,
+  startOfWibDay,
+  toWibDateString,
+  wibDaysBetween,
+} from "@/lib/date";
 import { CONTENT_STAGE_LABELS, PLATFORMS, PLATFORM_LABELS } from "@/lib/labels";
+import { routes } from "@/lib/routes";
 
 export type WeekPost = {
   platform: Platform;
@@ -140,4 +152,48 @@ export function followerCards(points: readonly FollowerPoint[]): FollowerCardDat
 /** Sumbu waktu grafik mini: awal rentang sampai hari ini, sama untuk kedua platform. */
 export function followerDomain(now: Date): [number, number] {
   return [rangeStart(now, FOLLOWER_RANGE_DAYS).getTime(), startOfWibDay(now).getTime()];
+}
+
+/** Kartu saran di Beranda: N teratas, sisanya lewat "Lihat semua" (E6). */
+export const HOME_SUGGESTION_LIMIT = 3;
+
+/** Penjelasan empty state kartu saran: kapan saran muncul. */
+export const SUGGESTIONS_EMPTY_NOTE =
+  `Saran muncul saat ada yang perlu dikerjakan: post minggu ini masih kurang dari target ` +
+  `(mulai ${DAY_LABELS[RHYTHM_FROM_ISO_DAY]}), metrik tertunda, konten macet lebih dari ` +
+  `${STALE_AFTER_DAYS} hari, atau ide Baru kurang dari ${LOW_IDEAS_THRESHOLD}. Saran dari data (pilar, hook, ` +
+  `jam terbaik, seri, crosspost) butuh minimal ${MIN_GROUP_POSTS} post berskor relatif dalam satu grup di ` +
+  `platform yang sama. Saran yang disembunyikan muncul lagi setelah ${SUGGESTION_HIDE_DAYS} hari.`;
+
+/** "2-8 Nov 2026", "26 Okt-1 Nov 2026", "29 Des 2025-4 Jan 2026" (Senin-Minggu WIB). */
+export function weekRangeLabel(weekStart: Date): string {
+  return formatWibWeekRange(weekStart, { short: true });
+}
+
+export type ReviewReminderView = {
+  title: string;
+  description: string;
+  actionLabel: string;
+  /** Halaman Review untuk minggu yang diingatkan (`?minggu=yyyy-MM-dd`). */
+  href: string;
+};
+
+/** Teks dan tautan pengingat Review Mingguan (E8). */
+export function reviewReminderView(reminder: ReviewReminder): ReviewReminderView {
+  const week = weekRangeLabel(reminder.weekStart);
+  const href = routes.studio.reviewWeek(toWibDateString(reminder.weekStart));
+  if (reminder.kind === "THIS_WEEK") {
+    return {
+      title: "Saatnya review mingguan",
+      description: `Minggu ${week} hampir selesai. Lihat ringkasan otomatis, catat apa yang berhasil, lalu pilih konten untuk minggu depan.`,
+      actionLabel: "Isi review minggu ini",
+      href,
+    };
+  }
+  return {
+    title: "Review minggu lalu belum diisi",
+    description: `Minggu ${week} belum di-review. Ringkasannya sudah siap; tinggal isi refleksi dan fokus minggu ini.`,
+    actionLabel: "Isi review minggu lalu",
+    href,
+  };
 }
