@@ -10,6 +10,8 @@
 //
 // Isinya sengaja memuat kasus uji: semua status metrik, post views = 0, post dekat tengah malam WIB,
 // grup < 3 post, post tanpa pembanding, dan tugas hari ini (lewat jadwal, hari ini, belum siap).
+// Fase 5: seri berlanjut (part terakhir di atas biasanya + part berikutnya Siap Posting), post kuat yang
+// baru tayang di TikTok (crosspost), dan konten macet di Editing, supaya setiap jenis saran bisa muncul.
 
 import { PrismaClient, type ContentStage, type Medium, type Platform, type PostType, type SnapshotKind } from "@prisma/client";
 import { addWibDays, startOfWibDay, toWibDateString, wibToUtc } from "../src/lib/date";
@@ -139,6 +141,7 @@ async function createDemo(postCount: number) {
     ideaId: string | null;
     stage: ContentStage;
     stageChangedAt: Date;
+    seriesPart?: number | null;
   }[] = [];
   const posts: {
     id: string;
@@ -268,6 +271,11 @@ async function createDemo(postCount: number) {
     }
   }
 
+  addSuggestionCases({ now, pillarId: pillars[1]?.id ?? pillars[0].id, formatId: formats[0].id, hookTypeId: hookTypes[0].id, contents, posts, snapshots });
+  await prisma.project.create({
+    data: { id: SERIES_PROJECT_ID, title: `${LABEL} Seri burung hantu`, medium: "CLAY", stage: "IN_PROGRESS" },
+  });
+
   await prisma.idea.createMany({ data: ideas });
   await prisma.content.createMany({ data: contents });
   await prisma.post.createMany({ data: posts });
@@ -299,6 +307,60 @@ async function createDemo(postCount: number) {
     snapshots: snapshots.length,
     followers: insertedFollowers.count,
   };
+}
+
+const SERIES_PROJECT_ID = "demo_project_seri";
+
+/** Metrik post yang jauh di atas biasanya (skor ±3x post contoh lain). */
+function strongMetrics(views: number) {
+  return {
+    views,
+    likes: Math.round(views * 0.2),
+    comments: Math.round(views * 0.02),
+    shares: Math.round(views * 0.02),
+    saves: Math.round(views * 0.03),
+    follows: Math.round(views * 0.004),
+    avgWatchSec: 12.5,
+    completionRate: 48,
+  };
+}
+
+/**
+ * Kasus saran Fase 5 (E3, E4, aturan 3): proyek seri dengan Part 2 kuat yang hanya tayang di TikTok dan Part 3
+ * Siap Posting belum terjadwal (Lanjutkan seri + Crosspost), dan konten macet 9 hari di Editing.
+ */
+function addSuggestionCases(input: {
+  now: Date;
+  pillarId: string;
+  formatId: string;
+  hookTypeId: string;
+  contents: { id: string; title: string; pillarId: string; formatId: string; hookTypeId: string; projectId: string | null; ideaId: string | null; stage: ContentStage; stageChangedAt: Date; seriesPart?: number | null }[];
+  posts: { id: string; contentId: string; platform: Platform; postType: PostType; scheduledAt: Date | null; postedAt: Date | null; url: string | null }[];
+  snapshots: { id: string; postId: string; kind: SnapshotKind; recordedAt: Date; views: number; likes: number; comments: number; shares: number; saves: number; follows: number; avgWatchSec: number; completionRate: number }[];
+}) {
+  const { now, pillarId, formatId, hookTypeId } = input;
+  const base = { pillarId, formatId, hookTypeId, ideaId: null };
+  const part2At = wibToUtc(toWibDateString(addWibDays(now, -8)), "19:05");
+  input.contents.push(
+    { ...base, id: "demo_content_seri_1", title: `${LABEL} Burung hantu Part 1: armature`, projectId: SERIES_PROJECT_ID, seriesPart: 1, stage: "POSTED", stageChangedAt: addWibDays(now, -20) },
+    { ...base, id: "demo_content_seri_2", title: `${LABEL} Burung hantu Part 2: bentuk badan`, projectId: SERIES_PROJECT_ID, seriesPart: 2, stage: "POSTED", stageChangedAt: part2At },
+    { ...base, id: "demo_content_seri_3", title: `${LABEL} Burung hantu Part 3: tekstur bulu`, projectId: SERIES_PROJECT_ID, seriesPart: 3, stage: "READY", stageChangedAt: addWibDays(now, -1) },
+    { ...base, id: "demo_content_macet", title: `${LABEL} Reveal macet di Editing`, projectId: null, stage: "EDITING", stageChangedAt: addWibDays(now, -9) },
+  );
+  const part1At = wibToUtc(toWibDateString(addWibDays(now, -20)), "19:00");
+  const seriesPosts: { id: string; contentId: string; platform: Platform; at: Date; strong: boolean }[] = [
+    { id: "demo_post_seri_1_TIKTOK", contentId: "demo_content_seri_1", platform: "TIKTOK", at: part1At, strong: false },
+    { id: "demo_post_seri_1_INSTAGRAM", contentId: "demo_content_seri_1", platform: "INSTAGRAM", at: new Date(part1At.getTime() + 20 * 60_000), strong: false },
+    { id: "demo_post_seri_2_TIKTOK", contentId: "demo_content_seri_2", platform: "TIKTOK", at: part2At, strong: true },
+  ];
+  for (const post of seriesPosts) {
+    input.posts.push({ id: post.id, contentId: post.contentId, platform: post.platform, postType: POST_TYPE[post.platform], scheduledAt: post.at, postedAt: post.at, url: `https://example.com/demo/${post.id}` });
+    const views = BASE_VIEWS[post.platform];
+    const metrics = post.strong ? strongMetrics(views) : { ...strongMetrics(views), likes: Math.round(views * 0.05), saves: Math.round(views * 0.005) };
+    for (const kind of ["H1", "H7"] as const) {
+      input.snapshots.push({ id: `${post.id}_${kind}`, postId: post.id, kind, recordedAt: new Date(post.at.getTime() + (kind === "H1" ? 1 : 7) * 86_400_000), ...metrics });
+    }
+  }
 }
 
 async function main() {
