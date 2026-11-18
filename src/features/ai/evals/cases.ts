@@ -1,5 +1,6 @@
 import type { AiContext } from "../prompts";
 import type { ContentContext } from "../prompts/content-common";
+import { POST_WHY_CASES, REVIEW_DRAFT_CASES } from "./analysis-cases";
 
 // Kasus set uji per fitur (10 per fitur). "Karya dari foto" memakai karya berfoto di database (runner.ts),
 // karena butuh foto asli. Kasus sengaja bervariasi: data lengkap, data minim, dan data yang kurang (AI harus
@@ -7,7 +8,7 @@ import type { ContentContext } from "../prompts/content-common";
 
 export type EvalCase<C> = { id: string; title: string; context: C };
 
-type TextFeature = "idea-expand" | "project-ideas" | "hook" | "script" | "caption";
+type TextFeature = "idea-expand" | "project-ideas" | "hook" | "script" | "caption" | "review-draft" | "post-why";
 
 const content = (overrides: Partial<ContentContext> & { title: string }): ContentContext => ({
   pillar: null,
@@ -288,4 +289,6 @@ export const EVAL_CASES: { [F in TextFeature]: EvalCase<AiContext<F>>[] } = {
       hashtags: null,
     },
   })),
+  "review-draft": REVIEW_DRAFT_CASES,
+  "post-why": POST_WHY_CASES,
 };

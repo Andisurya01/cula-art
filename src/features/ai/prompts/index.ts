@@ -10,6 +10,13 @@ import { BASE_PROMPT_VERSION } from "./base";
 import { captionPrompt, type CaptionContext, type CaptionInput, type CaptionOutput } from "./caption";
 import type { ContentContext, ContentFormInput } from "./content-common";
 import { hookPrompt, type HookOutput } from "./hook";
+import { postWhyPrompt, type PostWhyContext, type PostWhyInput, type PostWhyOutput } from "./post-why";
+import {
+  reviewDraftPrompt,
+  type ReviewDraftContext,
+  type ReviewDraftInput,
+  type ReviewDraftOutput,
+} from "./review-draft";
 import { ideaExpandPrompt, type IdeaExpandContext, type IdeaExpandInput, type IdeaExpandOutput } from "./idea-expand";
 import {
   projectIdeasPrompt,
@@ -38,6 +45,13 @@ export type AiFeatureTypes = {
     output: ArtworkPhotosOutput;
     raw: ArtworkPhotosRaw;
   };
+  "review-draft": {
+    input: ReviewDraftInput;
+    context: ReviewDraftContext;
+    output: ReviewDraftOutput;
+    raw: ReviewDraftOutput;
+  };
+  "post-why": { input: PostWhyInput; context: PostWhyContext; output: PostWhyOutput; raw: PostWhyOutput };
 };
 
 export type AiInput<F extends AiFeature> = AiFeatureTypes[F]["input"];
@@ -54,6 +68,8 @@ export const FEATURE_PROMPTS: {
   script: scriptPrompt,
   caption: captionPrompt,
   "artwork-photos": artworkPhotosPrompt,
+  "review-draft": reviewDraftPrompt,
+  "post-why": postWhyPrompt,
 };
 
 /** Versi yang dicatat di AiRun: versi fitur + versi instruksi dasar. */

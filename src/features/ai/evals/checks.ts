@@ -1,7 +1,8 @@
 import { PLATFORMS, PLATFORM_LABELS } from "@/lib/labels";
 import type { AiFeature } from "../features";
 import type { HashtagSets } from "../guide-schema";
-import type { AiContext, AiOutput } from "../prompts";
+import { FEATURE_PROMPTS, type AiContext, type AiOutput } from "../prompts";
+import { NOT_ENOUGH_DATA } from "../prompts/analysis-common";
 
 // Pemeriksaan otomatis hasil set uji (fungsi murni). "error" = jelas salah; "warn" = perlu dibaca manual.
 // Kualitas gaya bahasa tetap dinilai manual dari laporan.
@@ -53,6 +54,25 @@ function inventedFacts(text: string, ctx: { size: string | null; year: number | 
   if (!ctx.size && /\d+([.,]\d+)?\s?(cm|mm|centimeter|sentimeter)\b/i.test(text)) issues.push(error("Menyebut ukuran padahal data ukuran kosong"));
   if (ctx.year === null && /\b(19|20)\d{2}\b/.test(text)) issues.push(warn("Menyebut tahun padahal tahun kosong"));
   return issues;
+}
+
+const NUMBER_PATTERN = /\d+(?:[.,]\d+)?\s?(?:%|x\b)|\d+,\d+/g;
+
+/** Angka berdesimal, persen, atau "x" di hasil yang tidak ada di blok data → kemungkinan dihitung/dikarang AI. */
+export function inventedNumbers(texts: string[], dataText: string): CheckIssue[] {
+  const normalized = (n: string) => n.replace(/\s/g, "");
+  const known = new Set((dataText.match(NUMBER_PATTERN) ?? []).map(normalized));
+  const found = (texts.join("\n").match(NUMBER_PATTERN) ?? []).map(normalized);
+  const unknown = [...new Set(found)].filter((n) => !known.has(n));
+  return unknown.length ? [warn(`Angka yang tidak ada di data: ${unknown.join(", ")}`)] : [];
+}
+
+/** Data berlabel "data belum cukup" tetapi hasil tidak menyebutnya. */
+function mentionsThinData(texts: string[], hasThin: boolean): CheckIssue[] {
+  if (!hasThin) return [];
+  return /belum cukup|terlalu sedikit|masih sedikit/i.test(texts.join("\n"))
+    ? []
+    : [warn(`Ada grup "${NOT_ENOUGH_DATA}" tetapi hasil tidak menyebutnya`)];
 }
 
 export const EVAL_CHECKS: Checkers = {
@@ -124,6 +144,30 @@ export const EVAL_CHECKS: Checkers = {
     if (out.summary.length > 200 || (out.summary.match(/[.!?](\s|$)/g)?.length ?? 0) > 1) issues.push(warn("Ringkasan lebih dari satu kalimat"));
     if (out.description.split(/\n\s*\n/).filter((p) => p.trim()).length < 2) issues.push(warn("Cerita kurang dari 2 paragraf"));
     issues.push(...inventedFacts(`${out.summary}\n${out.description}`, ctx));
+    return issues;
+  },
+
+  "review-draft": (out, ctx, rules) => {
+    const texts = [out.narrative, out.wins, out.repeat, out.stop, ...out.focusNext, out.notes ?? ""];
+    const issues = [
+      ...avoided(texts, rules.avoidWords),
+      ...duplicates(out.focusNext, "Fokus"),
+      ...inventedNumbers(texts, FEATURE_PROMPTS["review-draft"].render(ctx)),
+      ...mentionsThinData(texts, ctx.platforms.some((p) => p.groups.some((g) => !g.enoughData))),
+    ];
+    if (out.narrative.length > 800) issues.push(warn("Narasi lebih dari 800 karakter"));
+    return issues;
+  },
+
+  "post-why": (out, ctx, rules) => {
+    const texts = [out.verdict, ...out.reasons.flatMap((r) => [r.factor, r.explanation]), out.tryNext, out.notes ?? ""];
+    const issues = [
+      ...avoided(texts, rules.avoidWords),
+      ...inventedNumbers(texts, FEATURE_PROMPTS["post-why"].render(ctx)),
+      ...mentionsThinData(texts, ctx.comparisons.some((g) => !g.enoughData)),
+    ];
+    if (out.reasons.length < 2 || out.reasons.length > 4) issues.push(warn(`${out.reasons.length} faktor (diminta 2-4)`));
+    if (ctx.snapshot === "H+1" && !/H\+1|belum final/i.test(texts.join("\n"))) issues.push(warn("Snapshot H+1 tidak disebut"));
     return issues;
   },
 };

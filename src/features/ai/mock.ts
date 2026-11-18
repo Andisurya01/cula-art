@@ -4,6 +4,8 @@ import { AiStreamError, type StreamOptions, type StreamResult } from "./client";
 import type { AiFeature } from "./features";
 import { MOCK_MODEL } from "./models";
 import { FEATURE_PROMPTS, type AiContext, type AiOutput, type AiRaw } from "./prompts";
+import { NOT_ENOUGH_DATA } from "./prompts/analysis-common";
+import { formatRelative } from "@/features/metrics/format";
 import type { FeaturePrompt, TaxonomyNames } from "./prompts/types";
 
 // Mode uji (AI_MOCK=1): jawaban contoh yang lolos skema, dialirkan bertahap seperti streaming asli, biaya 0.
@@ -85,6 +87,43 @@ const SAMPLES: Samples = {
     ].join("\n\n"),
     notes: ctx.materials ? null : "Bahan belum diisi, jadi tidak disebutkan.",
   }),
+  "review-draft": (_names, ctx) => {
+    const thin = ctx.platforms.some((p) => p.groups.some((g) => !g.enoughData));
+    return {
+      narrative: [
+        `Minggu ${ctx.weekLabel}: ${ctx.postedCount} dari target ${ctx.target} konten tayang (jawaban contoh mode uji).`,
+        ...ctx.platforms.map((p) =>
+          p.best ? `${p.platform}: terbaik ${p.best.title} (${formatRelative(p.best.relativeScore)}).` : `${p.platform}: belum ada post berskor relatif.`,
+        ),
+      ].join(" "),
+      wins: ctx.current.wins ?? ["- Contoh: konten tayang sesuai slot.", "- Contoh: metrik H+7 terisi."].join("\n"),
+      repeat: ctx.current.repeat ?? "- Contoh: ulangi format yang skor relatifnya di atas 1,00x.",
+      stop: ctx.current.stop ?? (thin ? `- Belum bisa menyimpulkan: sebagian grup ${NOT_ENOUGH_DATA}.` : "- Contoh: kurangi posting di luar slot."),
+      focusNext: ["Contoh fokus 1: siapkan 2 konten Siap Posting.", "Contoh fokus 2: isi snapshot followers Minggu malam.", "Contoh fokus 3: coba satu hook baru."],
+      notes: thin ? `Jawaban contoh mode uji. Sebagian grup ${NOT_ENOUGH_DATA}.` : "Jawaban contoh mode uji.",
+    };
+  },
+  "post-why": (_names, ctx) => {
+    const thin = ctx.comparisons.filter((g) => !g.enoughData);
+    const strong = ctx.comparisons.filter((g) => g.enoughData);
+    const reasons = strong.slice(0, 2).map((g) => ({
+      factor: g.dimension,
+      explanation: `${g.dimension} ${g.label} punya median ${formatRelative(g.median)} dari ${g.postCount} post (contoh).`,
+    }));
+    const thinLabels = thin.map((g) => `${g.dimension} ${g.label}`).join(", ");
+    reasons.push({
+      factor: "Data",
+      explanation: thin.length ? `${thinLabels}: ${NOT_ENOUGH_DATA}.` : "Semua grup sebanding punya minimal 3 post.",
+    });
+    return {
+      verdict: `Skor relatif ${formatRelative(ctx.relativeScore)} di ${ctx.platform}: ${
+        ctx.relativeScore >= 1.1 ? "di atas" : ctx.relativeScore <= 0.9 ? "di bawah" : "sekitar"
+      } biasanya (jawaban contoh mode uji).`,
+      reasons,
+      tryNext: "Contoh: ulangi tag dengan median tertinggi di post berikutnya.",
+      notes: ctx.snapshot === "H+1" ? "Angka dari H+1, belum final." : null,
+    };
+  },
 };
 
 const PHOTO_NUMBERS = ["1", "2", "3", "4"] as const;

@@ -35,10 +35,12 @@ const scoredPostSelect = {
   postType: true,
   postedAt: true,
   url: true,
+  durationSec: true,
   snapshots: { select: snapshotSelect, where: { kind: { in: ["H1", "H7"] } } },
   content: {
     select: {
       title: true,
+      targetDurationSec: true,
       pillar: { select: { id: true, name: true, color: true } },
       format: { select: { id: true, name: true } },
       hookType: { select: { id: true, name: true } },
@@ -94,6 +96,8 @@ export const getScoredPosts = cache(async (now: Date = new Date()) => {
       pillar: content.pillar,
       format: content.format,
       hookType: content.hookType,
+      /** Durasi video: durasi versi platform, cadangan target durasi konten; `null` = belum diisi. */
+      durationSec: row.durationSec ?? content.targetDurationSec ?? null,
       /** D6: `Content` tidak punya kolom medium. Pakai proyek, lalu ide; tanpa keduanya `null`. */
       medium: (content.project?.medium ?? content.idea?.medium ?? null) as Medium | null,
       snapshots: row.snapshots,

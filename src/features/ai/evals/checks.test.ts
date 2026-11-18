@@ -35,7 +35,8 @@ describe("kasus set uji", () => {
       expect(new Set(cases.map((c) => c.id)).size).toBe(10);
       const def = FEATURE_PROMPTS[feature as keyof typeof EVAL_CASES];
       for (const c of cases) {
-        expect(def.render(c.context as never)).toContain(c.context.title);
+        const ctx = c.context as { title?: string; weekLabel?: string };
+        expect(def.render(c.context as never)).toContain(ctx.title ?? ctx.weekLabel);
         const schema = def.output(EVAL_NAMES, c.context as never);
         expect(schema.safeParse(mockOutput(feature as never, EVAL_NAMES, c.context as never)).success).toBe(true);
       }

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { POST_WHY_CASES, REVIEW_DRAFT_CASES } from "../evals/analysis-cases";
 import { AI_FEATURES, type AiFeature } from "../features";
 import { mockOutput, mockRawOutput } from "../mock";
 import { toOutputJsonSchema } from "../output-schema";
@@ -17,6 +18,8 @@ const PROMPT_HASHES: Record<string, string> = {
   "script@1": "2d53530e42930aa8",
   "caption@1": "8670e5006ffee23e",
   "artwork-photos@1": "7b4746d32df00799",
+  "review-draft@1": "c7d18569532424ef",
+  "post-why@1": "af535561e001744f",
 };
 
 const NAMES: TaxonomyNames = {
@@ -69,6 +72,8 @@ const SAMPLE_CONTEXTS: { [F in AiFeature]: AiContext<F> } = {
       { id: "img2", label: "Foto 2", storageKey: "b.webp", isProcess: true, currentAlt: "Armature" },
     ],
   },
+  "review-draft": REVIEW_DRAFT_CASES[0]!.context,
+  "post-why": POST_WHY_CASES[2]!.context,
 };
 
 function hashOf(feature: AiFeature): string {
@@ -176,5 +181,59 @@ describe("composeUserText", () => {
     expect(text).toContain("Tipe hook: belum dipilih");
     expect(text).not.toContain("Pilar:");
     expect(text).not.toContain("Proyek:");
+  });
+});
+
+describe("AI analisis: angka dari kode, grup kecil berlabel", () => {
+  it("post-why: grup < 3 post dikirim tanpa median dan berlabel \"data belum cukup\"", () => {
+    const text = composeUserText(FEATURE_PROMPTS["post-why"], SAMPLE_CONTEXTS["post-why"]);
+    expect(text).toContain("- Pilar Tips dan Tutorial: 2 post, data belum cukup");
+    expect(text).toContain("- Jam 20.00: 0 post, data belum cukup");
+    expect(text).toContain("- Tipe hook Hasil di depan: median skor relatif 1,30x dari 5 post");
+    expect(text).toContain("skor relatif 1,30x");
+    expect(text).toContain("Platform: TikTok");
+    const data = text.slice(text.indexOf("<data>\n"));
+    expect(data).not.toMatch(/Instagram|Reach/);
+  });
+
+  it("post-why: format kosong, snapshot H+1, dan reach Instagram tertulis jelas", () => {
+    const h1 = composeUserText(FEATURE_PROMPTS["post-why"], POST_WHY_CASES[3]!.context);
+    expect(h1).toContain("Snapshot yang dipakai: H+1 (cadangan, H+7 belum diisi)");
+    const ig = composeUserText(FEATURE_PROMPTS["post-why"], POST_WHY_CASES[4]!.context);
+    expect(ig).toContain("- Reach: 3.400");
+    expect(ig).toContain("Durasi: belum diisi");
+    const noFormat = composeUserText(FEATURE_PROMPTS["post-why"], POST_WHY_CASES[6]!.context);
+    expect(noFormat).toContain("Format: belum diisi");
+  });
+
+  it("review-draft: tiap platform di bloknya sendiri, grup kecil berlabel, saran aktif dan isi form ikut", () => {
+    const text = composeUserText(FEATURE_PROMPTS["review-draft"], {
+      ...SAMPLE_CONTEXTS["review-draft"],
+      current: { wins: "Naga ramai.", repeat: null, stop: null, focusNext: null },
+    });
+    expect(text).toContain("Konten tayang: 2 dari target 3");
+    expect(text).toContain("## TikTok (angka views TikTok saja)");
+    expect(text).toContain("## Instagram (angka reach Instagram saja)");
+    expect(text).toContain("- Pilar Tips dan Tutorial: 2 post, data belum cukup");
+    expect(text).toContain("Followers bertambah: +85 (followers terakhir 1.420)");
+    expect(text).toContain("- Pilar terbaik di TikTok: Proses Clay");
+    expect(text).toContain("Apa yang berhasil: Naga ramai.");
+    const tiktok = text.slice(text.indexOf("## TikTok"), text.indexOf("## Instagram"));
+    expect(tiktok).not.toContain("Instagram");
+  });
+
+  it("review-draft: followers belum bisa dihitung dan minggu tanpa post", () => {
+    const text = composeUserText(FEATURE_PROMPTS["review-draft"], REVIEW_DRAFT_CASES[2]!.context);
+    expect(text).toContain("Followers bertambah: belum bisa dihitung (snapshot followers kurang)");
+    expect(text).toContain("- tidak ada post minggu ini");
+    expect(text).toContain("- belum ada grup (data belum cukup)");
+    expect(text).toContain(["Isi form review saat ini:", "(kosong)"].join("\n"));
+  });
+
+  it("tugas analisis memuat aturan angka", () => {
+    for (const feature of ["review-draft", "post-why"] as const) {
+      expect(FEATURE_PROMPTS[feature].task).toContain("jangan menghitung ulang");
+      expect(FEATURE_PROMPTS[feature].task).toContain("data belum cukup");
+    }
   });
 });

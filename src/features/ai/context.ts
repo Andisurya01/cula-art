@@ -8,6 +8,8 @@ import {
   POST_TYPE_LABELS,
   PROJECT_STAGE_LABELS,
 } from "@/lib/labels";
+import { loadPostWhyContext, loadReviewDraftContext } from "./analysis-context";
+import { AiContextError } from "./context-error";
 import type { AiFeature } from "./features";
 import type { AiContext, AiInput } from "./prompts";
 import type { ContentContext, ContentFormInput } from "./prompts/content-common";
@@ -18,8 +20,7 @@ import type { TaxonomyNames } from "./prompts/types";
 // harga, kontak, sesi, atau data akun. Nilai form dari client dipakai apa adanya (boleh belum disimpan),
 // sedangkan nama kategori dan data relasi dibaca dari database.
 
-/** Pesan untuk pengguna saat data yang diminta tidak ada. */
-export class AiContextError extends Error {}
+export { AiContextError };
 
 export type Taxonomy = {
   /** Semua kategori (termasuk nonaktif), untuk mencari nama dari id yang dipilih di form. */
@@ -206,4 +207,8 @@ export const CONTEXT_LOADERS: Loaders = {
       },
     };
   },
+
+  // AI analisis (Fase 5): angka dari lib/analytics, lihat analysis-context.ts.
+  "review-draft": (input) => loadReviewDraftContext(input),
+  "post-why": (input) => loadPostWhyContext(input),
 };

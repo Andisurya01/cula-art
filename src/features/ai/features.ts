@@ -7,6 +7,8 @@ export const AI_FEATURES = [
   "script",
   "caption",
   "artwork-photos",
+  "review-draft",
+  "post-why",
 ] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
 
@@ -17,6 +19,8 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   script: "Script & shot list",
   caption: "Caption & hashtag",
   "artwork-photos": "Karya dari foto",
+  "review-draft": "Draf ringkasan",
+  "post-why": "Kenapa?",
 };
 
 export function isAiFeature(value: unknown): value is AiFeature {
@@ -26,6 +30,6 @@ export function isAiFeature(value: unknown): value is AiFeature {
 /** Maks. foto yang dikirim untuk "Karya dari foto" (di sini, bukan di file prompt, supaya client tidak memuat teks prompt). */
 export const MAX_ARTWORK_AI_PHOTOS = 4;
 
-/** Jenis data yang menjadi sasaran panggilan (`AiRun.targetType`). EVAL = set uji. */
-export const AI_TARGET_TYPES = ["IDEA", "PROJECT", "CONTENT", "POST", "ARTWORK", "EVAL"] as const;
+/** Jenis data yang menjadi sasaran panggilan (`AiRun.targetType`). REVIEW = Review Mingguan, EVAL = set uji. */
+export const AI_TARGET_TYPES = ["IDEA", "PROJECT", "CONTENT", "POST", "ARTWORK", "REVIEW", "EVAL"] as const;
 export type AiTargetType = (typeof AI_TARGET_TYPES)[number];
