@@ -54,5 +54,7 @@ export async function scheduleContent(
   revalidatePath(routes.studio.calendar);
   revalidatePath(routes.studio.pipeline, "layout");
   revalidatePath(routes.studio.home);
+  // Rencana minggu depan di Review Mingguan memakai aksi ini; saran ritme membaca jadwal.
+  revalidatePath(routes.studio.review);
   return ok({ scheduled, skipped });
 }

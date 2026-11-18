@@ -48,6 +48,10 @@ function revalidateFor(kind: MasterKind) {
 function revalidateSettingRow() {
   revalidatePath(routes.studio.settings);
   revalidatePath(routes.studio.home);
+  // Target mingguan (ritme, ringkasan review) dan bobot skor (metrik penentu Eksperimen).
+  revalidatePath(routes.studio.review);
+  revalidatePath(routes.studio.experiments);
+  revalidatePath(routePatterns.experiment, "page");
   revalidatePath(routes.studio.calendar);
   revalidatePath(routes.studio.analytics);
   revalidatePath(routes.studio.posts);

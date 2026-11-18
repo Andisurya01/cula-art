@@ -19,6 +19,10 @@ export function revalidateContent(
   revalidatePath(routes.studio.posts);
   revalidatePath(routePatterns.post, "page");
   revalidatePath(routes.studio.analytics);
+  // Saran (ritme, macet, seri, crosspost), Review Mingguan, dan Eksperimen membaca konten dan post.
+  revalidatePath(routes.studio.review);
+  revalidatePath(routes.studio.experiments);
+  revalidatePath(routePatterns.experiment, "page");
   // Tautan post TikTok/IG tampil sebagai video proses di detail karya Galeri.
   revalidateGallery();
 }

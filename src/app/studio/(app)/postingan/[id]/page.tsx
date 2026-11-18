@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink, FileText } from "lucide-react";
 import { PillarBadge } from "@/components/pillar-badge";
 import { Button } from "@/components/ui/button";
+import { PostWhyAssist } from "@/features/ai/components/post-why-assist";
 import { requireAdmin } from "@/features/auth/dal";
+import { PostExperimentsCard } from "@/features/experiments/components/post-experiments-card";
+import { getExperimentsForPost } from "@/features/experiments/queries";
 import { PlatformBadge } from "@/features/contents/components/platform-badge";
 import { MetricStatusBadge } from "@/features/metrics/components/metric-status-badge";
 import { PostComputedCard } from "@/features/metrics/components/post-computed-card";
@@ -26,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   await requireAdmin();
   const { id } = await params;
-  const post = await getScoredPost(id);
+  const [post, experiments] = await Promise.all([getScoredPost(id), getExperimentsForPost(id)]);
   if (!post) notFound();
 
   return (
@@ -52,6 +55,8 @@ export default async function Page({ params }: Props) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          {/* E9: penjelasan AI hanya untuk post yang punya skor relatif (tombol tersembunyi saat AI nonaktif). */}
+          {post.relativeScore !== null && <PostWhyAssist postId={post.id} title={post.title} />}
           {post.url && (
             <Button asChild variant="outline" size="sm">
               <a href={post.url} target="_blank" rel="noopener noreferrer">
@@ -75,6 +80,7 @@ export default async function Page({ params }: Props) {
       </div>
 
       <PostComputedCard post={post} />
+      <PostExperimentsCard experiments={experiments} />
     </div>
   );
 }
