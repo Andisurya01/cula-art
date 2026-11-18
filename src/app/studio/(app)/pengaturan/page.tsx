@@ -20,12 +20,9 @@ export default async function Page() {
     <>
       <PageHeader
         title="Pengaturan"
-        description="Pilar, format, hook, checklist, jadwal, bobot skor, profil publik Galeri, Panduan AI, serta akun dan keamanan."
+        description="Pilar, format, hook, checklist, jadwal, bobot skor, profil publik Galeri, Panduan AI, akun dan keamanan, serta ekspor data."
       />
       <SettingsTabs data={data} ai={ai} account={account} />
-      <p className="mt-6 text-xs text-muted-foreground">
-        Ekspor CSV/JSON dan backup database hadir di Fase 5.
-      </p>
     </>
   );
 }

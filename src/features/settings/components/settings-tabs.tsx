@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountSecurity } from "@/features/auth/components/account-security";
 import type { AccountSecurity as AccountSecurityData } from "@/features/auth/queries";
 import type { AiSettingsPageData } from "@/features/ai/queries";
+import { ExportTab } from "@/features/export/components/export-tab";
 import type { SettingsPageData } from "../queries";
 import { AiGuideTab } from "./ai-guide/ai-guide-tab";
 import { FollowerTargetCard } from "./follower-target-card";
@@ -39,6 +40,7 @@ export function SettingsTabs({
           <TabsTrigger value="profil">Profil publik</TabsTrigger>
           <TabsTrigger value="ai">Panduan AI</TabsTrigger>
           <TabsTrigger value="keamanan">Akun & keamanan</TabsTrigger>
+          <TabsTrigger value="ekspor">Ekspor</TabsTrigger>
         </TabsList>
       </div>
 
@@ -95,6 +97,10 @@ export function SettingsTabs({
 
       <TabsContent value="keamanan">
         <AccountSecurity data={account} />
+      </TabsContent>
+
+      <TabsContent value="ekspor" className="grid max-w-3xl gap-4">
+        <ExportTab />
       </TabsContent>
     </Tabs>
   );
