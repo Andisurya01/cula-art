@@ -169,6 +169,8 @@ model Idea {
   effort    Int? // 1-5
   status    IdeaStatus @default(NEW)
   refUrl    String?
+  /// Kunci idempoten dari perangkat untuk ide yang dicatat offline (E10 Fase 5): kirim ulang tidak menggandakan.
+  offlineId String?    @unique
   pillarId  String?
   pillar    Pillar?    @relation(fields: [pillarId], references: [id], onDelete: Restrict)
   content   Content?
@@ -270,29 +272,38 @@ model MetricSnapshot {
 }
 
 model AccountSnapshot {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   platform  Platform
   date      DateTime // tanggal WIB, disimpan sebagai 00.00 WIB dalam UTC
   followers Int
   source    DataSource @default(MANUAL)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@unique([platform, date])
 }
 
+// Uji A/B (E7 di docs/FASE-5.md): satu platform, hipotesis dibaca "B lebih baik dari A".
+// `variable` dan `decidingMetric` berisi kode yang divalidasi Zod di src/features/experiments/schema.ts.
 model Experiment {
   id             String            @id @default(cuid())
   hypothesis     String
-  variable       String
-  decidingMetric String
-  result         ExperimentResult?
+  platform       Platform
+  variable       String // HOOK, FORMAT, TIME, DURATION, COVER, OTHER
+  variantA       String // deskripsi varian A (pembanding)
+  variantB       String // deskripsi varian B (yang diuji)
+  decidingMetric String // SCORE, ER, SAVE_RATE, SHARE_RATE, FOLLOW_RATE, VIEWS
+  result         ExperimentResult? // null = masih berjalan
   notes          String?
+  concludedAt    DateTime? // saat kesimpulan disimpan
   posts          ExperimentPost[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+
+  @@index([concludedAt])
 }
 
+// PK experimentId + postId: satu post hanya masuk satu varian per eksperimen.
 model ExperimentPost {
   experimentId String
   experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
@@ -302,18 +313,31 @@ model ExperimentPost {
   createdAt    DateTime   @default(now())
 
   @@id([experimentId, postId])
+  @@index([postId])
 }
 
 model WeeklyReview {
-  id          String   @id @default(cuid())
-  weekStart   DateTime @unique // Senin 00.00 WIB dalam UTC
-  wins        String?
-  repeat      String?
-  stop        String?
-  focusNext   String?
-  summaryJson String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  weekStart         DateTime @unique // Senin 00.00 WIB dalam UTC
+  wins              String?
+  repeat            String?
+  stop              String?
+  focusNext         String?
+  summaryJson       String? // ringkasan otomatis yang dibekukan saat disimpan (E8)
+  plannedContentIds String[] @default([]) // konten yang dipilih untuk slot minggu depan
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// "Sembunyikan 7 hari" untuk satu saran (E6). key = aturan:platform:subjek (lihat src/lib/analytics/rules.ts).
+model SuggestionDismissal {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  until     DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([until])
 }
 
 // Satu baris. Kolom *Json berisi JSON string (divalidasi Zod di src/features/settings/schema.ts).
@@ -513,7 +537,7 @@ model AiRun {
   feature          String // lihat AI_FEATURES di src/features/ai/features.ts
   model            String // model yang diminta ("mock" di mode uji)
   promptVersion    String
-  targetType       String? // IDEA, PROJECT, CONTENT, POST, ARTWORK, EVAL
+  targetType       String? // IDEA, PROJECT, CONTENT, POST, ARTWORK, REVIEW, EVAL
   targetId         String?
   inputTokens      Int         @default(0)
   outputTokens     Int         @default(0)
