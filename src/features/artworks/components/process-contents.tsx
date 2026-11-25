@@ -90,7 +90,7 @@ export function ProcessContents({
         {items.length > 0 ? (
           <ol className="grid gap-2" aria-label="Video proses terpilih">
             {items.map((content, index) => (
-              <li key={content.id} className="grid gap-2 rounded-lg border p-2.5">
+              <li key={content.id} className="grid gap-2 rounded-card-nested border py-2.5 pr-2 pl-4">
                 <div className="flex items-start gap-2">
                   <Link
                     href={routes.studio.content(content.id)}
@@ -150,7 +150,7 @@ export function ProcessContents({
             ))}
           </ol>
         ) : (
-          <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+          <p className="rounded-card-nested border border-dashed p-4 text-center text-sm text-muted-foreground">
             Belum ada video proses (opsional).
           </p>
         )}
@@ -252,7 +252,7 @@ function PickContentDialog({
           ) : (
             <ul className="grid gap-2">
               {filtered.map((option) => (
-                <li key={option.id} className="flex items-start gap-2 rounded-lg border p-2.5">
+                <li key={option.id} className="flex items-start gap-2 rounded-card-nested border py-3 pr-3 pl-4">
                   <div className="grid min-w-0 flex-1 gap-1">
                     <p className="text-sm font-medium break-words">{option.title}</p>
                     <p className="text-xs text-muted-foreground">

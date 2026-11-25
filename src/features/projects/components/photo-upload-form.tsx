@@ -172,8 +172,8 @@ export function PhotoUploadForm({
           if (!uploading) addFiles(event.dataTransfer.files);
         }}
         className={cn(
-          "flex cursor-pointer flex-col items-center gap-1 rounded-lg border border-dashed px-4 py-5 text-center transition-colors hover:bg-muted/40 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
-          dragOver && "border-primary bg-muted/40",
+          "flex cursor-pointer flex-col items-center gap-1 rounded-card-nested border border-dashed px-4 py-6 text-center transition-colors hover:bg-muted/50 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring",
+          dragOver && "border-foreground/60 bg-muted/50",
           uploading && "pointer-events-none opacity-60",
         )}
       >
@@ -262,7 +262,7 @@ function QueueRow({
   return (
     <li
       className={cn(
-        "grid grid-cols-[3.5rem_1fr_auto] gap-x-3 gap-y-1.5 rounded-lg border p-2",
+        "grid grid-cols-[3.5rem_1fr_auto] gap-x-3 gap-y-1.5 rounded-card-nested border p-2.5",
         item.status === "error" && "border-destructive/50",
       )}
     >
@@ -319,27 +319,27 @@ function StatusLine({ item, percent }: { item: QueueItem; percent: number }) {
   switch (item.status) {
     case "uploading":
       return (
-        <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+        <p className="flex items-center gap-1 text-caption text-muted-foreground">
           <LoaderCircle className="size-3 animate-spin" aria-hidden />
           {percent >= 100 ? "Memproses…" : `Mengunggah ${percent}%`}
         </p>
       );
     case "done":
       return (
-        <p className="flex items-center gap-1 text-[11px] text-primary">
+        <p className="flex items-center gap-1 text-caption text-success">
           <CircleCheck className="size-3" aria-hidden />
           Selesai
         </p>
       );
     case "error":
       return (
-        <p className="flex items-start gap-1 text-[11px] text-destructive">
+        <p className="flex items-start gap-1 text-caption text-destructive">
           <CircleAlert className="mt-px size-3 shrink-0" aria-hidden />
           <span>{item.error ?? "Gagal diunggah"}</span>
         </p>
       );
     default:
-      return <p className="text-[11px] text-muted-foreground">{size}</p>;
+      return <p className="text-caption text-muted-foreground">{size}</p>;
   }
 }
 
@@ -347,7 +347,7 @@ function StatusLine({ item, percent }: { item: QueueItem; percent: number }) {
 function Thumb({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
   return (
-    <div className="relative size-14 overflow-hidden rounded-md bg-muted">
+    <div className="relative size-14 overflow-hidden rounded-lg bg-muted">
       {failed ? (
         <ImageIcon className="absolute inset-0 m-auto size-5 text-muted-foreground" />
       ) : (

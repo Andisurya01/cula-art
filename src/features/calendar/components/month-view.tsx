@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 import type { DayItem } from "../day-items";
 import type { SlotUrgency } from "../slots";
 import { DayItemsList } from "./day-items-list";
+import { DayNumber } from "./day-number";
 
 const ISO_DAYS: IsoDay[] = [1, 2, 3, 4, 5, 6, 7];
 
+// `none` mengikuti warna teks sel, supaya tetap terlihat di sel terpilih (pil primer).
 const SLOT_DOT_CLASS: Record<SlotUrgency, string> = {
-  none: "border-muted-foreground/50",
-  soon: "border-amber-500",
+  none: "border-current/50",
+  soon: "border-warning",
   overdue: "border-destructive",
 };
 
@@ -52,10 +54,12 @@ export function MonthView({
                 aria-label={`${formatWib(day, "EEEE, d MMMM")}, ${dayItems.length} item`}
                 onClick={() => setPicked(key)}
                 className={cn(
-                  "flex h-12 flex-col items-center justify-start gap-1 rounded-lg border pt-1 text-xs",
+                  "flex h-12 flex-col items-center justify-start gap-1 rounded-button pt-1.5 text-xs tabular-nums transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
                   !key.startsWith(monthKey) && "opacity-40",
-                  key === todayKey && "font-semibold text-primary",
-                  key === selected ? "border-primary bg-primary/10" : "border-transparent",
+                  key === todayKey && "font-semibold",
+                  key === selected
+                    ? "bg-primary text-primary-foreground"
+                    : cn("hover:bg-muted", key === todayKey && "ring-1 ring-foreground/40"),
                 )}
               >
                 {formatWib(day, "d")}
@@ -65,7 +69,7 @@ export function MonthView({
           })}
         </div>
         {selectedDay && (
-          <div className="mt-4 rounded-xl border p-3">
+          <div className="mt-3 rounded-card-nested bg-background p-3">
             <p className="mb-2 text-sm font-medium">{formatWib(selectedDay, "EEEE, d MMMM")}</p>
             <DayItemsList
               items={items.get(selected) ?? []}
@@ -88,18 +92,12 @@ export function MonthView({
                 key={key}
                 aria-label={formatWib(day, "EEEE, d MMMM")}
                 className={cn(
-                  "flex min-h-28 min-w-0 flex-col gap-1 rounded-lg border p-1",
+                  "flex min-h-28 min-w-0 flex-col gap-1 rounded-card-nested bg-background p-1.5",
                   !key.startsWith(monthKey) && "opacity-50",
-                  key === todayKey && "border-primary/60 bg-primary/5",
                 )}
               >
-                <p
-                  className={cn(
-                    "px-0.5 text-right text-xs text-muted-foreground",
-                    key === todayKey && "font-semibold text-primary",
-                  )}
-                >
-                  {formatWib(day, "d")}
+                <p className="flex justify-end text-xs text-muted-foreground">
+                  <DayNumber today={key === todayKey}>{formatWib(day, "d")}</DayNumber>
                 </p>
                 <DayItemsList items={items.get(key) ?? []} layout="month-grid" compact />
               </section>
@@ -113,7 +111,7 @@ export function MonthView({
 
 function WeekdayHeader() {
   return (
-    <div className="mb-1 grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+    <div className="type-label mb-2 grid grid-cols-7 gap-1 text-center text-muted-foreground">
       {ISO_DAYS.map((d) => (
         <span key={d}>{DAY_SHORT_LABELS[d]}</span>
       ))}

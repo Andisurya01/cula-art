@@ -23,7 +23,7 @@ export default async function ArtworksPage({
   const filtered = hasActiveFilter(filters);
 
   const newButton = (
-    <Button size="sm">
+    <Button>
       <Plus />
       Karya baru
     </Button>
@@ -53,7 +53,7 @@ export default async function ArtworksPage({
       ) : (
         <>
           <p className="mb-3 text-sm text-muted-foreground">{artworks.length} karya</p>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {artworks.map((artwork) => (
               <li key={artwork.id}>
                 <ArtworkCard artwork={artwork} />

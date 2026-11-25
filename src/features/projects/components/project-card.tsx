@@ -14,9 +14,9 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
   return (
     <Link
       href={routes.studio.project(project.id)}
-      className="group flex h-full overflow-hidden rounded-xl border bg-card text-card-foreground transition-colors hover:bg-muted/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:flex-col"
+      className="group flex h-full gap-1 rounded-card bg-card p-2 text-card-foreground ring-1 ring-border/70 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-hidden sm:flex-col"
     >
-      <div className="relative w-28 shrink-0 bg-muted sm:aspect-[4/3] sm:w-full">
+      <div className="relative min-h-28 w-28 shrink-0 overflow-hidden rounded-card-nested bg-muted sm:aspect-[4/3] sm:min-h-0 sm:w-full">
         {project.latestPhoto ? (
           <ProgressPhotoImage
             photo={project.latestPhoto}
@@ -30,8 +30,8 @@ export function ProjectCard({ project }: { project: ProjectListItem }) {
         )}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
-        <p className="line-clamp-2 font-medium leading-snug">{project.title}</p>
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-2.5 sm:px-3 sm:pb-3">
+        <p className="line-clamp-2 font-heading text-h6">{project.title}</p>
         <div className="flex flex-wrap items-center gap-1.5">
           <ProjectStageBadge stage={project.stage} />
           <Badge variant="outline">{MEDIUM_LABELS[project.medium]}</Badge>

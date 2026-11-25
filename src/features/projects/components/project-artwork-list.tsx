@@ -16,14 +16,14 @@ const VISIBILITY_VARIANT: Record<ArtworkVisibility, "default" | "secondary" | "o
 /** Karya yang berasal dari proyek; klik membuka form karya di Studio. */
 export function ProjectArtworkList({ artworks }: { artworks: ProjectArtworkItem[] }) {
   return (
-    <ul className="divide-y rounded-xl border bg-card">
+    <ul className="grid gap-1 rounded-card bg-card p-2 text-card-foreground ring-1 ring-border/70">
       {artworks.map((artwork) => (
         <li key={artwork.id}>
           <Link
             href={routes.studio.artwork(artwork.id)}
-            className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
+            className="flex items-center gap-3 rounded-card-nested px-3 py-2.5 transition-colors outline-hidden hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring"
           >
-            <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-muted">
+            <span className="relative size-11 shrink-0 overflow-hidden rounded-lg bg-muted">
               {artwork.cover ? (
                 <Image
                   src={routes.media(artwork.cover.storageKey)}

@@ -38,7 +38,7 @@ export function MobileBoard({
         </TabsList>
       </div>
       {CONTENT_STAGES.map((stage) => (
-        <TabsContent key={stage} value={stage} className="grid gap-2">
+        <TabsContent key={stage} value={stage} className="grid gap-3">
           {columns[stage].map((card) => (
             <ContentCardBody
               key={card.id}
@@ -54,7 +54,7 @@ export function MobileBoard({
             />
           ))}
           {columns[stage].length === 0 && (
-            <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+            <p className="rounded-card border border-dashed p-6 text-center text-sm text-muted-foreground">
               Belum ada konten di {CONTENT_STAGE_LABELS[stage]}.
             </p>
           )}

@@ -7,9 +7,9 @@ import type { CalendarSlot, SlotUrgency } from "../slots";
 export type SlotDropData = { slot: CalendarSlot };
 
 const URGENCY_CLASS: Record<SlotUrgency, string> = {
-  none: "border-muted-foreground/30 text-muted-foreground",
-  soon: "border-amber-500/70 bg-amber-500/5 text-amber-700 dark:text-amber-400",
-  overdue: "border-destructive/60 bg-destructive/5 text-destructive",
+  none: "border-muted-foreground/40 text-muted-foreground",
+  soon: "border-warning/60 bg-warning/10 text-warning",
+  overdue: "border-destructive/50 bg-destructive/5 text-destructive",
 };
 
 const URGENCY_TEXT: Record<SlotUrgency, string> = {
@@ -46,11 +46,11 @@ export function SlotBox({
       ref={setNodeRef}
       title={`${time} WIB · ${URGENCY_TEXT[slot.urgency]}`}
       className={cn(
-        "rounded-md border border-dashed transition-colors",
-        compact ? "px-1.5 py-0.5 text-[11px]" : "px-2 py-1.5 text-xs",
+        "rounded-lg border border-dashed transition-colors",
+        compact ? "px-1.5 py-0.5 text-caption" : "px-2 py-1.5 text-xs",
         URGENCY_CLASS[slot.urgency],
-        !disabled && active && "border-primary/60",
-        isOver && "border-solid border-primary bg-primary/10 text-primary",
+        !disabled && active && "border-foreground/50",
+        isOver && "border-solid border-foreground bg-card text-foreground",
       )}
     >
       <span className="tabular-nums">{time}</span>{" "}

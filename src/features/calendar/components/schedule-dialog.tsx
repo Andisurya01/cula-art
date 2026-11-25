@@ -86,7 +86,7 @@ export function ScheduleDialog({
           <div className="grid gap-2">
             <Label id="schedule-time-mode">Waktu (WIB)</Label>
             <div
-              className="inline-flex w-fit rounded-lg bg-muted p-[3px]"
+              className="inline-flex h-10 w-fit max-w-full items-center rounded-button bg-muted p-1"
               role="radiogroup"
               aria-labelledby="schedule-time-mode"
             >
@@ -103,10 +103,10 @@ export function ScheduleDialog({
                   aria-checked={mode === value}
                   onClick={() => switchMode(value)}
                   className={cn(
-                    "rounded-md px-3 py-1 text-sm font-medium transition-colors",
+                    "inline-flex h-full items-center rounded-button px-3.5 text-sm font-medium whitespace-nowrap transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
                     mode === value
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-foreground/60 hover:text-foreground",
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {label}
@@ -133,9 +133,9 @@ export function ScheduleDialog({
                         aria-checked={scheduledAt === slot.key}
                         onClick={() => form.setValue("scheduledAt", slot.key, { shouldValidate: true })}
                         className={cn(
-                          "flex w-full items-center justify-between rounded-md border border-dashed px-3 py-2 text-left text-sm transition-colors",
+                          "flex min-h-10 w-full items-center justify-between rounded-input border border-dashed px-3.5 py-2 text-left text-sm transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
                           scheduledAt === slot.key
-                            ? "border-solid border-primary bg-primary/10"
+                            ? "border-solid border-foreground bg-muted"
                             : "hover:bg-muted",
                         )}
                       >
@@ -143,7 +143,7 @@ export function ScheduleDialog({
                         <span
                           className={cn(
                             "tabular-nums",
-                            slot.urgency === "soon" && "text-amber-700 dark:text-amber-400",
+                            slot.urgency === "soon" && "text-warning",
                           )}
                         >
                           {slot.time.replace(":", ".")}

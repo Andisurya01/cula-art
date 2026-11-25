@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, FolderOpen, Lightbulb } from "lucide-react";
 import { PillarBadge } from "@/components/pillar-badge";
+import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/features/auth/dal";
 import { toContentAiInput } from "@/features/contents/ai-input";
 import { ChecklistCard } from "@/features/contents/components/checklist-card";
@@ -32,21 +33,18 @@ export default async function Page({ params }: Props) {
 
   return (
     <div className="grid gap-4">
-      <Link
-        href={routes.studio.pipeline}
-        className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ChevronLeft className="size-4" />
-        Pipeline
-      </Link>
+      <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit text-muted-foreground">
+        <Link href={routes.studio.pipeline}>
+          <ChevronLeft />
+          Pipeline
+        </Link>
+      </Button>
 
       <div className="grid gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight break-words md:text-2xl">
-              {content.title}
-            </h1>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            <h1 className="font-heading text-h3 break-words">{content.title}</h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               <PillarBadge name={content.pillar.name} color={content.pillar.color} />
               {content.project && (
                 <Link

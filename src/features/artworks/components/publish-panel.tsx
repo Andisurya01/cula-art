@@ -81,7 +81,7 @@ export function PublishPanel({
                   {message ? (
                     <Circle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
                   ) : (
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
                   )}
                   <span className={message ? "" : "text-muted-foreground"}>
                     {PUBLISH_REQUIREMENT_LABELS[key]}

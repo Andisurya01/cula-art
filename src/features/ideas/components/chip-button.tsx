@@ -1,6 +1,7 @@
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/** Tombol pilihan bulat (toggle). */
+/** Tombol pilihan berbentuk pil (toggle): aktif = pil primer, lainnya = pil abu (gaya Tabs pill). */
 export function ChipButton({
   active,
   onClick,
@@ -19,10 +20,8 @@ export function ChipButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border hover:bg-muted",
+        buttonVariants({ variant: active ? "default" : "secondary", size: "sm" }),
+        "h-9 gap-1.5 px-3.5",
         className,
       )}
       {...props}

@@ -32,7 +32,7 @@ import {
 import type { ScheduleContentInput } from "../schema";
 import { buildSlots, upcomingEmptySlots } from "../slots";
 import { MonthView } from "./month-view";
-import { ReadyCardBody, ReadyPanel, type ReadyDragData } from "./ready-panel";
+import { PillarStripe, ReadyCardBody, ReadyPanel, type ReadyDragData } from "./ready-panel";
 import { ScheduleDialog } from "./schedule-dialog";
 import type { SlotDropData } from "./slot-box";
 import { WeekView } from "./week-view";
@@ -153,7 +153,8 @@ export function CalendarBoard({
       onDragCancel={() => setDraggingId(null)}
     >
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_17rem]">
-        <div className="order-1 min-w-0 md:order-2 xl:order-1">
+        {/* Kartu putih berisi sel hari (abu latar) dan chip post (putih). */}
+        <div className="order-1 min-w-0 rounded-card bg-card p-2 text-card-foreground ring-1 ring-border/70 sm:p-4 md:order-2 xl:order-1">
           {view === "week" ? (
             <WeekView days={days} items={items} todayKey={todayKey} />
           ) : (
@@ -167,10 +168,8 @@ export function CalendarBoard({
 
       <DragOverlay dropAnimation={null}>
         {dragging && (
-          <div
-            className="w-64 rounded-lg border border-l-4 bg-card p-2 shadow-lg"
-            style={{ borderLeftColor: dragging.pillarColor }}
-          >
+          <div className="relative w-64 rounded-card-nested border bg-card py-3 pr-3 pl-5 shadow-lg">
+            <PillarStripe color={dragging.pillarColor} />
             <ReadyCardBody content={dragging} />
           </div>
         )}

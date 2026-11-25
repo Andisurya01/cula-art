@@ -154,14 +154,14 @@ function SortablePhoto({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "flex gap-2 rounded-lg border bg-card p-2 sm:gap-3",
+        "flex gap-2 rounded-card-nested border bg-card p-2 sm:gap-3",
         isDragging && "relative z-10 shadow-lg ring-2 ring-ring/40",
       )}
     >
       <button
         type="button"
         ref={setActivatorNodeRef}
-        className="flex w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:cursor-grabbing"
+        className="flex w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-hidden active:cursor-grabbing"
         aria-label={`Seret foto ${position} untuk mengurutkan`}
         {...attributes}
         {...listeners}
@@ -169,7 +169,7 @@ function SortablePhoto({
         <GripVertical className="size-4" />
       </button>
 
-      <div className="relative aspect-[4/5] w-16 shrink-0 overflow-hidden rounded-md bg-muted sm:w-20">
+      <div className="relative aspect-[4/5] w-16 shrink-0 overflow-hidden rounded-lg bg-muted sm:w-20">
         <Image
           src={routes.media(photo.storageKey)}
           alt={photo.alt}
@@ -178,8 +178,8 @@ function SortablePhoto({
           className="object-cover"
         />
         {photo.isCover && (
-          <Badge className="absolute bottom-1 left-1 h-4 px-1 text-[10px]">
-            <Star aria-hidden />
+          <Badge className="absolute bottom-1 left-1 h-5 gap-0.5 px-1.5 text-caption">
+            <Star aria-hidden className="hidden sm:block" />
             Cover
           </Badge>
         )}
@@ -366,7 +366,7 @@ function AltInput({
         aria-invalid={missing}
         aria-describedby={describedBy}
         disabled={pending}
-        className={cn(hasDraft && "border-primary/60 bg-primary/5 dark:bg-primary/10")}
+        className={cn(hasDraft && "border-accent/60 bg-accent/5")}
         onChange={(e) => (hasDraft ? setDraft(photo.id, e.target.value) : setValue(e.target.value))}
         onBlur={hasDraft ? undefined : save}
         onKeyDown={(e) => {
@@ -379,7 +379,7 @@ function AltInput({
       />
       {hasDraft && (
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+          <Badge variant="accent" className="h-5 px-2 text-caption">
             <Sparkles aria-hidden />
             draf AI
           </Badge>

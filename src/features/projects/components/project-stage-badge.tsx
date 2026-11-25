@@ -2,11 +2,12 @@ import type { ProjectStage } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { PROJECT_STAGE_LABELS } from "@/lib/labels";
 
-const VARIANT: Record<ProjectStage, "default" | "secondary" | "outline"> = {
+/** Warna status dari token: dikerjakan = pil primer, selesai = sukses, jeda = peringatan. */
+const VARIANT: Record<ProjectStage, "default" | "secondary" | "success" | "warning"> = {
   PLANNING: "secondary",
   IN_PROGRESS: "default",
-  DONE: "outline",
-  PAUSED: "outline",
+  DONE: "success",
+  PAUSED: "warning",
 };
 
 export function ProjectStageBadge({ stage }: { stage: ProjectStage }) {

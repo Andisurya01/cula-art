@@ -109,8 +109,8 @@ export function KanbanBoard({
       onDragEnd={onDragEnd}
       onDragCancel={() => setActiveCard(null)}
     >
-      <div className="-mx-1 overflow-x-auto px-1 pb-3">
-        <div className="grid grid-cols-[repeat(5,minmax(15rem,1fr))] gap-3">
+      <div className="-mx-1 -mt-1 overflow-x-auto px-1 pt-1 pb-3">
+        <div className="grid grid-cols-[repeat(5,minmax(15rem,1fr))] gap-4">
           {CONTENT_STAGES.map((stage) => (
             <KanbanColumn
               key={stage}
@@ -128,8 +128,8 @@ export function KanbanBoard({
       </div>
       <DragOverlay dropAnimation={null}>
         {activeCard ? (
-          <div className="w-60 rotate-2 cursor-grabbing shadow-lg">
-            <ContentCardBody card={activeCard} now={now} linked={false} />
+          <div className="w-60 rotate-2 cursor-grabbing rounded-card-nested shadow-lg">
+            <ContentCardBody card={activeCard} now={now} linked={false} tone="muted" />
           </div>
         ) : null}
       </DragOverlay>
@@ -155,13 +155,13 @@ function KanbanColumn({
       ref={setNodeRef}
       aria-label={`Kolom ${CONTENT_STAGE_LABELS[stage]}`}
       className={cn(
-        "flex min-h-64 flex-col rounded-xl border bg-muted/40 p-2 transition-colors",
-        isOver && "border-primary bg-primary/5",
+        "flex min-h-64 flex-col rounded-card bg-card p-2.5 text-card-foreground ring-1 ring-border/70 transition-shadow",
+        isOver && "ring-2 ring-primary",
       )}
     >
-      <header className="flex items-center justify-between px-1 pb-2">
-        <h2 className="text-sm font-semibold">{CONTENT_STAGE_LABELS[stage]}</h2>
-        <span className="rounded-full bg-background px-2 text-xs text-muted-foreground tabular-nums">
+      <header className="flex items-center justify-between gap-2 px-2 pt-1.5 pb-3">
+        <h2 className="text-h6">{CONTENT_STAGE_LABELS[stage]}</h2>
+        <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-muted px-2 text-xs font-medium text-muted-foreground tabular-nums">
           {cards.length}
         </span>
       </header>
@@ -170,7 +170,7 @@ function KanbanColumn({
           <DraggableCard key={card.id} card={card} now={now} />
         ))}
         {cards.length === 0 && (
-          <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+          <p className="rounded-card-nested border border-dashed p-4 text-center text-xs text-muted-foreground">
             Kosong
           </p>
         )}
@@ -197,11 +197,11 @@ function DraggableCard({ card, now }: { card: PipelineCard; now: Date }) {
       aria-roledescription="kartu yang bisa dipindah"
       aria-label={`${card.title} — ${CONTENT_STAGE_LABELS[card.stage]}`}
       className={cn(
-        "cursor-grab touch-manipulation rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "cursor-grab touch-manipulation rounded-card-nested outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
         isDragging && "opacity-40",
       )}
     >
-      <ContentCardBody card={card} now={now} />
+      <ContentCardBody card={card} now={now} tone="muted" />
     </div>
   );
 }

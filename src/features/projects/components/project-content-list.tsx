@@ -11,18 +11,18 @@ type ProjectContent = ProjectDetail["contents"][number];
 /** Konten proyek urut nomor part; klik membuka detail konten. */
 export function ProjectContentList({ contents }: { contents: ProjectContent[] }) {
   return (
-    <ul className="divide-y rounded-xl border bg-card">
+    <ul className="grid gap-1 rounded-card bg-card p-2 text-card-foreground ring-1 ring-border/70">
       {contents.map((content) => (
         <li key={content.id}>
           <Link
             href={routes.studio.content(content.id)}
-            className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
+            className="flex items-center gap-3 rounded-card-nested px-3 py-2.5 transition-colors outline-hidden hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring"
           >
-            <span className="flex size-9 shrink-0 flex-col items-center justify-center rounded-md bg-muted text-[10px] leading-none text-muted-foreground">
+            <span className="flex size-10 shrink-0 flex-col items-center justify-center rounded-lg bg-muted text-muted-foreground">
               {content.seriesPart != null ? (
                 <>
-                  <span>Part</span>
-                  <span className="mt-0.5 text-sm font-semibold text-foreground">
+                  <span className="type-label leading-none">Part</span>
+                  <span className="mt-0.5 text-sm leading-none font-semibold text-foreground tabular-nums">
                     {content.seriesPart}
                   </span>
                 </>
@@ -37,7 +37,7 @@ export function ProjectContentList({ contents }: { contents: ProjectContent[] })
                 {content.format && <span className="text-xs">{content.format.name}</span>}
               </span>
             </span>
-            <Badge variant={content.stage === "POSTED" ? "default" : "secondary"}>
+            <Badge variant={content.stage === "POSTED" ? "default" : "outline"}>
               {CONTENT_STAGE_LABELS[content.stage]}
             </Badge>
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

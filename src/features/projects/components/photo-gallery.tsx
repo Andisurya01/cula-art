@@ -50,15 +50,20 @@ export function PhotoGallery({ photos }: { photos: GalleryPhoto[] }) {
 function PhotoItem({ photo }: { photo: GalleryPhoto }) {
   const uploaded = isUploadedPhoto(photo);
   return (
-    <li className="group relative overflow-hidden rounded-lg border bg-card">
-      <a href={photoSrc(photo)} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="relative aspect-square bg-muted">
+    <li className="group relative rounded-card bg-card p-1.5 text-card-foreground ring-1 ring-border/70">
+      <a
+        href={photoSrc(photo)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block rounded-card-nested outline-hidden focus-visible:ring-3 focus-visible:ring-ring"
+      >
+        <div className="relative aspect-square overflow-hidden rounded-card-nested bg-muted">
           <ProgressPhotoImage photo={photo} alt={photo.caption ?? "Foto progres"} sizes={GRID_SIZES} />
         </div>
       </a>
-      <div className="grid gap-0.5 p-2 pr-9">
+      <div className="grid min-h-10 content-center gap-0.5 py-1.5 pr-9 pl-2">
         {photo.caption && <p className="line-clamp-2 text-xs">{photo.caption}</p>}
-        <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+        <p className="flex items-center gap-1 text-caption text-muted-foreground">
           {!uploaded && (
             <span className="inline-flex items-center gap-0.5" title="Foto dari tautan URL">
               <Link2 className="size-3" aria-hidden />
@@ -98,7 +103,7 @@ function DeletePhotoButton({ photoId, uploaded }: { photoId: string; uploaded: b
           size="icon-sm"
           aria-label="Hapus foto"
           disabled={pending}
-          className="absolute right-1 bottom-1 text-muted-foreground hover:text-destructive"
+          className="absolute right-1.5 bottom-1.5 text-muted-foreground hover:text-destructive"
         >
           <Trash2 />
         </Button>

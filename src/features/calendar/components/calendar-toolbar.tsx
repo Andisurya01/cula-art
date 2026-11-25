@@ -27,20 +27,21 @@ export function CalendarToolbar({ params }: { params: CalendarParams }) {
             <ChevronRight />
           </Link>
         </Button>
-        <h2 className="ml-2 text-sm font-semibold capitalize md:text-base">{rangeLabel(params)}</h2>
+        <h2 className="ml-2 text-h5 capitalize">{rangeLabel(params)}</h2>
       </div>
 
-      <nav aria-label="Tampilan kalender" className="inline-flex rounded-lg bg-muted p-[3px]">
+      {/* Lintasan abu + pil aktif putih (sama dengan TabsList default). */}
+      <nav aria-label="Tampilan kalender" className="inline-flex h-10 items-center rounded-button bg-muted p-1">
         {(["week", "month"] as const).map((v) => (
           <Link
             key={v}
             href={calendarHref(v, date)}
             aria-current={v === view ? "page" : undefined}
             className={cn(
-              "rounded-md px-3 py-1 text-sm font-medium transition-colors",
+              "inline-flex h-full items-center rounded-button px-4 text-sm font-medium transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
               v === view
-                ? "bg-background text-foreground shadow-sm"
-                : "text-foreground/60 hover:text-foreground",
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {VIEW_LABELS[v]}
@@ -56,7 +57,7 @@ export function CalendarLegend() {
   return (
     <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
       <LegendItem className="border-muted-foreground/40">Slot kosong</LegendItem>
-      <LegendItem className="border-amber-500">≤ 2 hari lagi</LegendItem>
+      <LegendItem className="border-warning">≤ 2 hari lagi</LegendItem>
       <LegendItem className="border-destructive">Terlewat</LegendItem>
     </div>
   );

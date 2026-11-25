@@ -7,6 +7,7 @@ import {
   MEDIUMS,
   MEDIUM_LABELS,
 } from "@/lib/labels";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { artworkListHref, type ArtworkListFilters } from "../filters";
 
@@ -15,7 +16,7 @@ type FilterKey = keyof ArtworkListFilters;
 /** Filter publikasi/medium/ketersediaan lewat URL (tanpa state client); tiap baris bisa digeser di HP. */
 export function ArtworkFilters({ filters }: { filters: ArtworkListFilters }) {
   return (
-    <div className="mb-4 grid gap-2">
+    <div className="mb-5 grid gap-2.5">
       <FilterRow
         label="Publikasi"
         filterKey="visibility"
@@ -54,8 +55,8 @@ function FilterRow({
 
   return (
     <nav aria-label={`Filter ${label.toLowerCase()}`} className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-      <ul className="flex w-max items-center gap-1.5">
-        <li className="w-24 shrink-0 text-xs text-muted-foreground">{label}</li>
+      <ul className="flex w-max items-center gap-2">
+        <li className="type-label w-28 shrink-0 text-muted-foreground">{label}</li>
         {all.map((o) => {
           const isActive = o.value === active;
           return (
@@ -64,10 +65,8 @@ function FilterRow({
                 href={artworkListHref({ ...filters, [filterKey]: o.value })}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "inline-flex items-center rounded-full border px-3 py-1 text-xs transition-colors",
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border hover:bg-muted",
+                  buttonVariants({ variant: isActive ? "default" : "secondary", size: "sm" }),
+                  "h-9 px-3.5",
                 )}
               >
                 {o.label}

@@ -132,7 +132,7 @@ export function ArtworkPhotosAssist({
                       <label
                         htmlFor={id}
                         className={cn(
-                          "relative block size-14 overflow-hidden rounded-md bg-muted ring-2 transition",
+                          "relative block size-14 overflow-hidden rounded-lg bg-muted ring-2 transition",
                           checked ? "ring-primary" : "ring-transparent",
                           disabled ? "cursor-not-allowed" : "cursor-pointer",
                           !checked && "opacity-60",
@@ -145,13 +145,15 @@ export function ArtworkPhotosAssist({
                           disabled={disabled}
                           onCheckedChange={() => setSelection(toggleAiPhoto(selected, photo.id))}
                           aria-label={photoLabel(photo, index)}
-                          className="absolute top-1 left-1 bg-background"
+                          className="absolute top-1 left-1 bg-card"
                         />
                         {photo.isCover && (
-                          <Star className="absolute top-1 right-1 size-3.5 fill-primary text-primary" aria-hidden />
+                          <span className="absolute top-1 right-1 rounded-full bg-media/70 p-0.5 text-media-foreground" aria-hidden>
+                            <Star className="size-3 fill-current" />
+                          </span>
                         )}
                         {photo.isProcess && (
-                          <span className="absolute inset-x-0 bottom-0 bg-background/85 text-center text-[10px] leading-4">
+                          <span className="absolute inset-x-0 bottom-0 bg-media/80 text-center text-caption leading-4 text-media-foreground">
                             Proses
                           </span>
                         )}
@@ -205,7 +207,7 @@ export function ArtworkPhotosAssist({
                 const photo = alt.imageId ? photoById.get(alt.imageId) : undefined;
                 return (
                   <li key={i} className="flex items-start gap-2">
-                    <div className="relative size-10 shrink-0 overflow-hidden rounded bg-muted">
+                    <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
                       {photo && (
                         <Image
                           src={routes.media(photo.storageKey)}

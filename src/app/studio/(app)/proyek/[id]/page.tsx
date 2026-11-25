@@ -92,7 +92,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         }
       />
 
-      <section className="mb-8 grid gap-3 rounded-xl border bg-card p-4">
+      <section className="mb-8 grid gap-3 rounded-card bg-card p-5 text-card-foreground ring-1 ring-border/70">
         <div className="flex flex-wrap items-center gap-1.5">
           <ProjectStageBadge stage={project.stage} />
           <Badge variant="outline">{MEDIUM_LABELS[project.medium]}</Badge>
@@ -111,11 +111,11 @@ export default async function ProjectDetailPage({ params }: Props) {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-3 font-semibold">Karya dari proyek ini</h2>
+        <h2 className="mb-3 text-h5">Karya dari proyek ini</h2>
         {artworks.length > 0 ? (
           <ProjectArtworkList artworks={artworks} />
         ) : (
-          <p className="flex items-start gap-2 rounded-xl border border-dashed px-3 py-3 text-sm text-muted-foreground">
+          <p className="flex items-start gap-2 rounded-card border border-dashed px-5 py-4 text-sm text-muted-foreground">
             <Frame className="mt-0.5 size-4 shrink-0" />
             Belum ada karya. Saat proyek selesai, pakai Jadikan Karya untuk membuat karya Draft yang
             bisa diterbitkan ke Galeri.
@@ -125,7 +125,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
       <section className="mb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold">Konten seri</h2>
+          <h2 className="text-h5">Konten seri</h2>
           <div className="flex flex-wrap items-center gap-2">
             <ProjectIdeasAssist
               project={{ id: project.id, title: project.title, medium: project.medium }}
@@ -153,7 +153,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold">Foto progres</h2>
+          <h2 className="text-h5">Foto progres</h2>
           <AddPhotoDialog projectId={project.id} />
         </div>
         {project.photos.length > 0 ? (

@@ -311,7 +311,7 @@ export function ArtworkDetailForm({
             />
           </Field>
 
-          <div className="grid gap-4 rounded-lg border p-3">
+          <div className="grid gap-4 rounded-card-nested border p-4">
             <Field id="artwork-availability" label="Ketersediaan" error={errors.availability?.message}>
               <Controller
                 control={form.control}
@@ -366,7 +366,7 @@ export function ArtworkDetailForm({
             </SwitchRow>
           </div>
 
-          <div className="grid gap-4 rounded-lg border p-3 sm:grid-cols-[1fr_10rem] sm:items-start">
+          <div className="grid gap-4 rounded-card-nested border p-4 sm:grid-cols-[1fr_10rem] sm:items-start">
             <SwitchRow
               id="artwork-featured"
               label="Unggulan"

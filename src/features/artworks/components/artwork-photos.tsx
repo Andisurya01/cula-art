@@ -200,8 +200,8 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
         </div>
 
         {draftCount > 0 && (
-          <p className="flex items-start gap-2 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm" role="status">
-            <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+          <p className="flex items-start gap-2 rounded-card-nested border border-accent/40 bg-accent/5 px-4 py-3 text-sm" role="status">
+            <Sparkles className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
             <span>
               {draftCount} teks alternatif dari AI masih draf. Periksa, lalu tekan Simpan di setiap foto (atau Buang).
             </span>
@@ -217,7 +217,7 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
 
         <section className="grid gap-2">
           <div>
-            <h3 className="text-sm font-medium">Foto karya jadi ({finished.length})</h3>
+            <h3 className="text-h6">Foto karya jadi ({finished.length})</h3>
             <p className="text-xs text-muted-foreground">
               Cover (bintang) tampil pertama di Galeri dan di kartu katalog. Seret atau pakai tombol panah untuk
               mengurutkan.
@@ -226,7 +226,7 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
           {finished.length > 0 ? (
             <PhotoList photos={finished} title="Foto karya jadi" handlers={handlers} />
           ) : (
-            <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+            <p className="rounded-card-nested border border-dashed p-4 text-center text-sm text-muted-foreground">
               Belum ada foto karya jadi. Minimal 1 foto dibutuhkan untuk terbit.
             </p>
           )}
@@ -234,7 +234,7 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
 
         <section className="grid gap-2">
           <div>
-            <h3 className="text-sm font-medium">Foto proses ({process.length})</h3>
+            <h3 className="text-h6">Foto proses ({process.length})</h3>
             <p className="text-xs text-muted-foreground">
               Tampil di bagian Proses pada halaman karya. Tidak bisa menjadi cover.
             </p>
@@ -242,7 +242,7 @@ export function ArtworkPhotos({ artworkId, images }: { artworkId: string; images
           {process.length > 0 ? (
             <PhotoList photos={process} title="Foto proses" handlers={handlers} />
           ) : (
-            <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+            <p className="rounded-card-nested border border-dashed p-4 text-center text-sm text-muted-foreground">
               Belum ada foto proses (opsional).
             </p>
           )}
@@ -256,12 +256,12 @@ function UploadQueue({ uploads, onDismiss }: { uploads: Upload[]; onDismiss: (ke
   return (
     <ul className="grid gap-2" aria-label="Antrean unggahan" aria-live="polite">
       {uploads.map((u) => (
-        <li key={u.key} className="grid gap-1.5 rounded-lg border p-2 text-sm">
+        <li key={u.key} className="grid gap-1.5 rounded-card-nested border px-3 py-2.5 text-sm">
           <div className="flex items-center gap-2">
             {u.status === "error" ? (
               <XCircle className="size-4 shrink-0 text-destructive" aria-hidden />
             ) : u.status === "done" ? (
-              <CheckCircle2 className="size-4 shrink-0 text-primary" aria-hidden />
+              <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
             ) : (
               <Loader2
                 className={u.status === "uploading" ? "size-4 shrink-0 animate-spin" : "size-4 shrink-0 opacity-40"}

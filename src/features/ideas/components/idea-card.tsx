@@ -74,10 +74,10 @@ export function IdeaCard({ idea, options }: { idea: IdeaListItem; options: Conve
   });
 
   return (
-    <Card className={cn("px-4", (archived || pending) && "opacity-70")}>
+    <Card className={cn("gap-4 px-5", (archived || pending) && "opacity-70")}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="leading-snug font-medium break-words">{idea.title}</h3>
+          <h3 className="text-h6 break-words">{idea.title}</h3>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             {idea.pillar ? (
               <PillarBadge name={idea.pillar.name} color={idea.pillar.color} className="text-foreground" />
@@ -151,7 +151,7 @@ export function IdeaCard({ idea, options }: { idea: IdeaListItem; options: Conve
           href={idea.refUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex w-fit max-w-full items-center gap-1 text-xs text-primary underline-offset-4 hover:underline"
+          className="inline-flex w-fit max-w-full items-center gap-1 text-xs text-foreground underline-offset-4 hover:underline"
         >
           <ExternalLink className="size-3 shrink-0" />
           <span className="truncate">{hostnameOf(idea.refUrl)}</span>

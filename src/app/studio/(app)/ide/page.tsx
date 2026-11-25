@@ -47,7 +47,7 @@ export default async function Page({
           <>
             {/* Tanpa proyek berjalan tidak ada yang bisa dipilih, jadi tombolnya tidak ditampilkan. */}
             {projects.length > 0 && (
-              <ProjectIdeasAssist projects={projects} pillars={options.pillars} className="h-8" />
+              <ProjectIdeasAssist projects={projects} pillars={options.pillars} className="h-9" />
             )}
             <NewIdeaButton pillars={options.pillars}>Form lengkap</NewIdeaButton>
           </>
@@ -86,7 +86,7 @@ export default async function Page({
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">{ideas.length} ide</p>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {ideas.map((idea) => (
                     <IdeaCard key={idea.id} idea={idea} options={options} />
                   ))}

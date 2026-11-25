@@ -5,12 +5,10 @@ import { ChevronLeft, Eye } from "lucide-react";
 import { requireAdmin } from "@/features/auth/dal";
 import { getArtworkStatus } from "@/features/artworks/queries";
 import { ArtworkDetailView } from "@/features/gallery/components/artwork-detail";
-import { galleryDisplayFont } from "@/features/gallery/components/layout/fonts";
 import { getArtworkPreview, getGalleryProfile } from "@/features/gallery/queries";
 import { ARTWORK_VISIBILITY_LABELS } from "@/lib/labels";
 import { routes } from "@/lib/routes";
 import { absoluteUrl } from "@/lib/site";
-import { cn } from "@/lib/utils";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -38,10 +36,10 @@ export default async function ArtworkPreviewPage({ params }: Props) {
   if (!status || !artwork) notFound();
 
   return (
-    <div className={cn(galleryDisplayFont.variable, "-mx-4 md:-mx-8")}>
+    <div className="-mx-4 md:-mx-8">
       <div
         role="status"
-        className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed bg-muted/50 px-3 py-2 text-sm md:mx-8"
+        className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-2 rounded-card-nested border border-dashed bg-card px-4 py-3 text-sm md:mx-8"
       >
         <p className="flex items-center gap-2">
           <Eye className="size-4 shrink-0" aria-hidden />

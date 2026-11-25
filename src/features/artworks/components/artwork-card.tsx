@@ -15,9 +15,9 @@ export function ArtworkCard({ artwork }: { artwork: ArtworkListItem }) {
   return (
     <Link
       href={routes.studio.artwork(artwork.id)}
-      className="group block overflow-hidden rounded-xl border bg-card transition-colors hover:border-foreground/30 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+      className="group flex h-full flex-col rounded-card bg-card p-2 text-card-foreground ring-1 ring-border/70 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-hidden"
     >
-      <div className="relative aspect-[4/5] bg-muted">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-card-nested bg-muted">
         {artwork.cover ? (
           <Image
             src={routes.media(artwork.cover.storageKey)}
@@ -32,7 +32,7 @@ export function ArtworkCard({ artwork }: { artwork: ArtworkListItem }) {
             <span className="sr-only">Belum ada foto</span>
           </div>
         )}
-        <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+        <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1">
           <VisibilityBadge visibility={artwork.visibility} />
           {artwork.isFeatured && (
             <Badge variant="secondary" title={`Unggulan, urutan ${artwork.featuredOrder}`}>
@@ -42,8 +42,8 @@ export function ArtworkCard({ artwork }: { artwork: ArtworkListItem }) {
           )}
         </div>
       </div>
-      <div className="grid gap-1 p-3">
-        <p className="line-clamp-2 text-sm font-medium break-words">{artwork.title}</p>
+      <div className="grid gap-1 px-2 pt-2.5 pb-2">
+        <p className="line-clamp-2 font-heading text-h6 break-words">{artwork.title}</p>
         <p className="text-xs text-muted-foreground">{meta || "Medium & tahun belum diisi"}</p>
         <p className="text-xs">
           {AVAILABILITY_LABELS[artwork.availability]}

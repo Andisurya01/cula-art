@@ -44,7 +44,7 @@ export function IdeaQuickAdd() {
         maxLength={200}
         enterKeyHint="done"
         disabled={pending}
-        className="h-10"
+        className="h-11 rounded-button px-5"
       />
       <Button
         type="submit"

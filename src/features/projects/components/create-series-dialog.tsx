@@ -194,7 +194,7 @@ export function CreateSeriesDialog({
           <div className="grid gap-2">
             <p className="text-xs font-medium text-muted-foreground">Pratinjau</p>
             {preview.length > 0 ? (
-              <ol className="grid max-h-40 gap-1 overflow-y-auto rounded-lg border bg-muted/40 p-2 text-xs">
+              <ol className="grid max-h-40 gap-1 overflow-y-auto rounded-card-nested bg-muted px-4 py-3 text-xs">
                 {preview.map((item) => (
                   <li key={item.part} className="truncate">
                     {item.title}

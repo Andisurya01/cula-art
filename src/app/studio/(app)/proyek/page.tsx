@@ -28,7 +28,7 @@ export default async function ProjectsPage({
   const projects = await getProjects({ stage });
 
   const newProjectButton = (
-    <Button size="sm">
+    <Button>
       <Plus />
       Proyek baru
     </Button>

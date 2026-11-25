@@ -97,7 +97,7 @@ export function CreateArtworkDialog({
         </DialogHeader>
 
         {artworkCount > 0 && (
-          <p className="rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          <p className="rounded-card-nested bg-muted px-4 py-3 text-xs text-muted-foreground">
             Proyek ini sudah punya {artworkCount} karya. Karya baru dibuat terpisah.
           </p>
         )}
@@ -175,9 +175,9 @@ function PhotoOption({
         htmlFor={id}
         title={uploaded ? label : "Foto dari tautan URL tidak bisa disalin ke karya"}
         className={cn(
-          "relative block aspect-square overflow-hidden rounded-md border bg-muted",
+          "relative block aspect-square overflow-hidden rounded-lg bg-muted",
           uploaded ? "cursor-pointer" : "cursor-not-allowed opacity-50",
-          checked && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+          checked && "ring-2 ring-primary ring-offset-2 ring-offset-popover",
         )}
       >
         <ProgressPhotoImage
@@ -185,7 +185,7 @@ function PhotoOption({
           alt={label}
           sizes="(min-width: 640px) 120px, 30vw"
         />
-        <span className="absolute top-1 left-1 rounded-[5px] bg-background/90 p-0.5 shadow-sm">
+        <span className="absolute top-1 left-1 rounded-sm bg-card/90 p-0.5 shadow-sm">
           <Checkbox
             id={id}
             checked={checked}
@@ -195,7 +195,7 @@ function PhotoOption({
           />
         </span>
         {!uploaded && (
-          <span className="absolute right-1 bottom-1 inline-flex items-center gap-0.5 rounded bg-background/90 px-1 text-[10px] font-medium">
+          <span className="type-label absolute right-1 bottom-1 inline-flex items-center gap-0.5 rounded-sm bg-media/80 px-1 py-0.5 text-media-foreground">
             <Link2 className="size-3" aria-hidden />
             URL
           </span>

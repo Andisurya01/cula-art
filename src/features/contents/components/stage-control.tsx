@@ -76,7 +76,7 @@ export function StageControl({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select value={state.stage} onValueChange={onChange} disabled={mutation.isPending}>
-        <SelectTrigger aria-label="Stage" className="min-w-36">
+        <SelectTrigger aria-label="Stage" className="min-w-40 rounded-button">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -88,7 +88,7 @@ export function StageControl({
         </SelectContent>
       </Select>
       {stale ? (
-        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400">
+        <Badge variant="warning">
           <AlarmClock />
           Macet {days} hari
         </Badge>

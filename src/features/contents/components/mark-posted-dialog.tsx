@@ -137,7 +137,7 @@ function MarkPostedForm({
         const enabled = entries?.[index]?.enabled ?? false;
         const entryErrors = errors?.[index];
         return (
-          <fieldset key={platform} className="grid gap-3 rounded-lg border p-3">
+          <fieldset key={platform} className="grid gap-3 rounded-card-nested border p-4">
             <Controller
               control={form.control}
               name={`entries.${index}.enabled`}

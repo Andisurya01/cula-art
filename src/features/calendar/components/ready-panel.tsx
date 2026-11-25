@@ -22,12 +22,17 @@ export function ReadyPanel({
   onSchedule: (content: ReadyContent) => void;
 }) {
   return (
-    <section aria-labelledby="ready-panel-title" className="rounded-xl border p-3">
-      <div className="mb-3 flex items-baseline justify-between gap-2">
-        <h2 id="ready-panel-title" className="text-sm font-semibold">
+    <section
+      aria-labelledby="ready-panel-title"
+      className="rounded-card bg-card p-4 text-card-foreground ring-1 ring-border/70"
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 id="ready-panel-title" className="text-h6">
           Siap Posting
         </h2>
-        <span className="text-xs text-muted-foreground">{ready.length} konten</span>
+        <span className="inline-flex h-6 items-center rounded-full bg-muted px-2.5 text-xs font-medium text-muted-foreground tabular-nums">
+          {ready.length} konten
+        </span>
       </div>
       {ready.length === 0 ? (
         <p className="text-xs text-muted-foreground">
@@ -65,11 +70,11 @@ function ReadyCard({ content, onSchedule }: { content: ReadyContent; onSchedule:
     <div
       ref={setNodeRef}
       className={cn(
-        "flex gap-1.5 rounded-lg border border-l-4 bg-card p-2",
+        "relative flex gap-1.5 rounded-card-nested border bg-card py-3 pr-3 pl-5",
         isDragging && "opacity-40",
       )}
-      style={{ borderLeftColor: content.pillarColor }}
     >
+      <PillarStripe color={content.pillarColor} />
       <button
         type="button"
         aria-label={`Seret ${content.title} ke slot`}
@@ -82,6 +87,17 @@ function ReadyCard({ content, onSchedule }: { content: ReadyContent; onSchedule:
       </button>
       <ReadyCardBody content={content} onSchedule={onSchedule} />
     </div>
+  );
+}
+
+/** Garis pendek warna pilar di sisi kiri kartu (kartu harus `relative` dengan `pl-5`). */
+export function PillarStripe({ color }: { color: string }) {
+  return (
+    <span
+      aria-hidden
+      className="absolute inset-y-3.5 left-2 w-1 rounded-full"
+      style={{ backgroundColor: color }}
+    />
   );
 }
 

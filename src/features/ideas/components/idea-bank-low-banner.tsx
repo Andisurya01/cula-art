@@ -6,8 +6,9 @@ import { IDEA_BANK_LOW_THRESHOLD } from "@/lib/labels";
 export function IdeaBankLowBanner({ newCount }: { newCount: number }) {
   if (newCount >= IDEA_BANK_LOW_THRESHOLD) return null;
   return (
-    <Alert className="border-amber-500/40 bg-amber-500/10">
-      <TriangleAlert className="text-amber-600 dark:text-amber-400" />
+    // Ikon Alert mengikuti warna teks (`*:[svg]:text-current`), jadi warnanya ditimpa di Alert.
+    <Alert className="border-warning/30 bg-warning/10 *:[svg]:text-warning">
+      <TriangleAlert className="text-warning" />
       <AlertTitle>Bank ide menipis</AlertTitle>
       <AlertDescription>
         {newCount === 0
