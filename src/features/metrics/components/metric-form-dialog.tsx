@@ -199,7 +199,7 @@ function MetricForm({
         </DialogDescription>
       </DialogHeader>
 
-      <div role="group" aria-label="Jenis snapshot" className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+      <div role="group" aria-label="Jenis snapshot" className="grid grid-cols-2 gap-1 rounded-button bg-muted p-1">
         {METRIC_KINDS.map((option) => (
           <button
             key={option}
@@ -207,8 +207,8 @@ function MetricForm({
             aria-pressed={kind === option}
             onClick={() => setKind(option)}
             className={cn(
-              "rounded-md px-2 py-1 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              kind === option ? "bg-background shadow-sm" : "text-muted-foreground",
+              "h-8 rounded-button px-3 text-sm font-medium transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
+              kind === option ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {METRIC_KIND_LABELS[option]}
@@ -328,7 +328,7 @@ function MetricFields({
       <CountSuffixChips disabled={!COUNT_FIELDS.includes(activeField)} onPick={appendSuffix} />
 
       <details open={showOptional} onToggle={(event) => setOptionalOpen(event.currentTarget.open)}>
-        <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+        <summary className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-foreground">
           Waktu tonton dan completion rate (opsional)
         </summary>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
@@ -358,7 +358,7 @@ function MetricFields({
           ER: <span className="font-medium text-foreground tabular-nums">{er === null ? "—" : formatPercent(er)}</span>
         </p>
         {warnings.map((warning) => (
-          <p key={warning} className="text-amber-700 dark:text-amber-300">
+          <p key={warning} className="text-warning">
             {warning}
           </p>
         ))}

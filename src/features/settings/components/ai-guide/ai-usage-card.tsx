@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AiUsageSummary } from "@/lib/analytics/ai-usage";
 import { formatUsd } from "@/features/ai/format";
@@ -10,7 +10,7 @@ import { AiRecentRuns } from "./ai-recent-runs";
 
 const BAR_COLORS = {
   normal: "bg-primary",
-  warning: "bg-amber-500",
+  warning: "bg-warning",
   over: "bg-destructive",
 } as const;
 
@@ -37,7 +37,7 @@ export function AiUsageCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Stat
             label="Panggilan"
             value={usage.calls.toLocaleString("id-ID")}
@@ -64,7 +64,7 @@ export function AiUsageCard({
             aria-valuenow={Math.round(barWidth)}
             aria-valuetext={`${formatUsd(usage.costUsd)} dari ${formatUsd(monthlyBudgetUsd)}`}
           >
-            <div className={cn("h-full rounded-full transition-all", BAR_COLORS[level])} style={{ width: `${barWidth}%` }} />
+            <div className={cn("h-full rounded-full transition-[width]", BAR_COLORS[level])} style={{ width: `${barWidth}%` }} />
           </div>
           <p
             className={cn(
@@ -72,7 +72,7 @@ export function AiUsageCard({
               level === "over"
                 ? "text-destructive"
                 : level === "warning"
-                  ? "text-amber-700 dark:text-amber-400"
+                  ? "text-warning"
                   : "text-muted-foreground",
             )}
           >
@@ -89,9 +89,9 @@ export function AiUsageCard({
 
 function Stat({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="grid content-start gap-0.5 rounded-lg border p-3">
+    <div className="grid min-w-0 content-start gap-0.5 rounded-card-nested bg-muted px-4 py-3">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-lg font-semibold tabular-nums">{value}</dd>
+      <dd className="mt-0.5 font-heading text-h5 break-words tabular-nums">{value}</dd>
       <dd className="text-xs text-muted-foreground">{detail}</dd>
     </div>
   );

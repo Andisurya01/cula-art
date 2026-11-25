@@ -11,8 +11,8 @@ import { METRIC_KIND_LABELS } from "../schema";
 import { MetricFormButton } from "./metric-form-dialog";
 import { MetricStatusBadge, SnapshotKindMark } from "./metric-status-badge";
 
-const CELL = "min-w-0 lg:px-3 lg:py-2.5 lg:align-top";
-const HEAD = "px-3 py-2 font-medium";
+const CELL = "min-w-0 lg:px-3 lg:py-3 lg:align-top lg:first:pl-5 lg:last:pr-5";
+const HEAD = "px-3 py-3 font-medium first:pl-5 last:pr-5";
 
 /**
  * Daftar post: kartu sampai `lg`, tabel mulai `lg` (sidebar Studio memakan lebar di `md`).
@@ -22,9 +22,9 @@ const HEAD = "px-3 py-2 font-medium";
 export function PostTable({ posts }: { posts: readonly ScoredPost[] }) {
   return (
     <div className="grid gap-3">
-      <div className="lg:overflow-x-auto lg:rounded-xl lg:bg-card lg:ring-1 lg:ring-foreground/10">
+      <div className="lg:overflow-x-auto lg:rounded-card lg:bg-card lg:ring-1 lg:ring-border/70">
         <table className="block w-full text-sm lg:table">
-          <thead className="hidden text-left text-xs text-muted-foreground lg:table-header-group">
+          <thead className="hidden text-left type-label text-muted-foreground lg:table-header-group">
             <tr className="border-b">
               <th scope="col" className={HEAD}>Post</th>
               <th scope="col" className={HEAD}>Status</th>
@@ -59,7 +59,7 @@ function PostRow({ post }: { post: ScoredPost }) {
   const actionLabel = post.status === "COMPLETE" ? "Ubah" : `Isi ${METRIC_KIND_LABELS[kind]}`;
 
   return (
-    <tr className="grid grid-cols-3 gap-x-3 gap-y-2.5 rounded-xl bg-card p-3 ring-1 ring-foreground/10 lg:table-row lg:rounded-none lg:bg-transparent lg:p-0 lg:ring-0">
+    <tr className="grid grid-cols-3 gap-x-3 gap-y-3 rounded-card-nested bg-card p-4 ring-1 ring-border/70 transition-colors lg:table-row lg:rounded-none lg:bg-transparent lg:p-0 lg:ring-0 lg:hover:bg-muted/50">
       <td className={`${CELL} order-1 col-span-3`}>
         <Link
           href={routes.studio.post(post.id)}
@@ -93,7 +93,7 @@ function PostRow({ post }: { post: ScoredPost }) {
           kind={kind}
           snapshots={post.snapshots}
           variant={isMetricDue(post.status) ? "default" : "outline"}
-          className="h-8 whitespace-nowrap lg:h-7"
+          className="h-10 whitespace-nowrap lg:h-8"
           aria-label={`${actionLabel} untuk ${post.title}`}
         >
           {actionLabel}

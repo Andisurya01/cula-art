@@ -6,8 +6,8 @@ import { routes } from "@/lib/routes";
 export function SectionHeading({ title, description }: { title: string; description?: string }) {
   return (
     <div className="mt-2">
-      <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-      {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
+      <h2 className="font-heading text-h5">{title}</h2>
+      {description && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>}
     </div>
   );
 }

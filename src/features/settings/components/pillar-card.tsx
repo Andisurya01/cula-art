@@ -62,9 +62,9 @@ export function PillarCard({ pillars }: { pillars: PillarRow[] }) {
         {pillars.length === 0 ? (
           <p className="text-sm text-muted-foreground">Belum ada pilar.</p>
         ) : (
-          <ul className="divide-y rounded-lg border">
+          <ul className="divide-y rounded-card-nested border">
             {pillars.map((pillar, index) => (
-              <li key={pillar.id} className="flex items-center gap-2.5 px-2.5 py-2">
+              <li key={pillar.id} className="flex min-h-14 items-center gap-3 py-2 pr-2 pl-4">
                 <span
                   className={cn("size-3 shrink-0 rounded-full", !pillar.isActive && "opacity-40")}
                   style={{ backgroundColor: pillar.color }}

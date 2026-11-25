@@ -63,9 +63,9 @@ export function SimpleListCard({
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Belum ada data.</p>
         ) : (
-          <ul className="divide-y rounded-lg border">
+          <ul className="divide-y rounded-card-nested border">
             {items.map((item, index) => (
-              <li key={item.id} className="flex min-h-11 items-center gap-2 px-2.5 py-1.5">
+              <li key={item.id} className="flex min-h-12 items-center gap-2 py-1.5 pr-2 pl-4">
                 {editingId === item.id ? (
                   <RenameForm
                     initialName={item.name}

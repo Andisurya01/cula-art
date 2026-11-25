@@ -3,7 +3,7 @@
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheck, KeyRound, TriangleAlert } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,7 @@ export function AiTechnicalCard({
         <ApiKeyStatus hasApiKey={hasApiKey} mock={mock} />
 
         <form onSubmit={onSubmit} noValidate className="grid gap-4">
-          <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+          <div className="flex items-start justify-between gap-4 rounded-card-nested border px-4 py-3">
             <div className="grid gap-1">
               <Label htmlFor="ai-enabled">AI aktif</Label>
               <p className="text-xs text-muted-foreground">
@@ -203,12 +203,12 @@ export function AiTechnicalCard({
 function ApiKeyStatus({ hasApiKey, mock }: { hasApiKey: boolean; mock: boolean }) {
   const Icon = hasApiKey ? CircleCheck : KeyRound;
   return (
-    <div className="grid gap-2 rounded-lg bg-muted/50 p-3 text-sm">
+    <div className="grid gap-2 rounded-card-nested bg-muted px-4 py-3 text-sm">
       <div className="flex items-start gap-2">
         <Icon
           className={cn(
             "mt-0.5 size-4 shrink-0",
-            hasApiKey ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground",
+            hasApiKey ? "text-success" : "text-muted-foreground",
           )}
           aria-hidden
         />

@@ -25,10 +25,10 @@ export function PostExperimentsCard({ experiments }: { experiments: readonly Pos
       <CardContent>
         <ul className="divide-y">
           {experiments.map((experiment) => (
-            <li key={experiment.id} className="py-2.5 first:pt-0 last:pb-0">
+            <li key={experiment.id} className="py-3 first:pt-0 last:pb-0">
               <Link href={routes.studio.experiment(experiment.id)} className="group flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium [overflow-wrap:anywhere] group-hover:underline">
+                  <p className="text-sm font-medium [overflow-wrap:anywhere] underline-offset-4 group-hover:underline">
                     {experiment.hypothesis}
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">

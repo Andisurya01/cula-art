@@ -161,7 +161,7 @@ function ExperimentForm({
 
       <div className="grid gap-2">
         <Label>Platform</Label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {PLATFORMS.map((p) => (
             <ChipButton
               key={p}
@@ -184,7 +184,7 @@ function ExperimentForm({
 
       <div className="grid gap-2">
         <Label>Variabel yang diuji</Label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {EXPERIMENT_VARIABLES.map((v) => (
             <ChipButton
               key={v}
@@ -226,7 +226,7 @@ function ExperimentForm({
 
       <div className="grid gap-2">
         <Label>Metrik penentu</Label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {DECIDING_METRICS.map((m) => (
             <ChipButton
               key={m}
@@ -241,7 +241,7 @@ function ExperimentForm({
         <FieldError message={errors.decidingMetric?.message} />
       </div>
 
-      <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground [overflow-wrap:anywhere]">
+      <p className="rounded-card-nested bg-muted px-4 py-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">
         Dibaca: <span className="font-medium text-foreground">B</span> ({variantB?.trim() || "…"}) lebih baik dari{" "}
         <span className="font-medium text-foreground">A</span> ({variantA?.trim() || "…"}), diukur dari {metricText}{" "}
         H+7.

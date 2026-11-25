@@ -56,7 +56,7 @@ export function FollowerHistory({
   return (
     <>
       <details className="mt-3 text-sm">
-        <summary className="w-fit cursor-pointer text-muted-foreground hover:text-foreground">
+        <summary className="w-fit cursor-pointer text-muted-foreground transition-colors hover:text-foreground">
           Riwayat snapshot ({formatCount(snapshots.length)})
         </summary>
         <ul className="mt-2 divide-y">

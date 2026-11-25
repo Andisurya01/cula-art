@@ -45,7 +45,7 @@ export default async function Page({ params }: Props) {
     <div className="grid gap-4">
       <Link
         href={routes.studio.experiments}
-        className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex w-fit items-center gap-1 rounded-button text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronLeft className="size-4" />
         Eksperimen
@@ -53,7 +53,7 @@ export default async function Page({ params }: Props) {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight [overflow-wrap:anywhere] md:text-2xl">
+          <h1 className="font-heading text-h3 [overflow-wrap:anywhere]">
             {experiment.hypothesis}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">

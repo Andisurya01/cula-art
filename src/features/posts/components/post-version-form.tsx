@@ -109,7 +109,7 @@ export function PostVersionForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 rounded-lg border p-3">
+    <form onSubmit={onSubmit} className="grid gap-4 rounded-card-nested border p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <PlatformBadge platform={post.platform} full />
@@ -118,7 +118,7 @@ export function PostVersionForm({
               <MetricStatusBadge status={post.metricStatus} />
               <Link
                 href={routes.studio.post(post.id)}
-                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                className="text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
               >
                 Lihat metrik
               </Link>
@@ -129,7 +129,7 @@ export function PostVersionForm({
               href={post.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               Buka post <ExternalLink className="size-3" />
             </a>

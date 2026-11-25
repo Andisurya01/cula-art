@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -45,7 +45,7 @@ export function GuideField({
 export function SectionTitle({ id, title, description }: { id: string; title: string; description?: string }) {
   return (
     <div className="grid gap-1">
-      <h3 id={id} className="text-sm font-medium">
+      <h3 id={id} className="font-heading text-h6">
         {title}
       </h3>
       {description && <p className="text-xs text-muted-foreground">{description}</p>}

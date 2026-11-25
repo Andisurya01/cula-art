@@ -10,10 +10,10 @@ import { AI_RUN_STATUS_LABELS, aiRunFeatureLabel, aiRunModelLabel } from "../../
 
 type RunRow = AiSettingsPageData["recentRuns"][number];
 
-const STATUS_VARIANTS: Record<AiRunStatusValue, "secondary" | "destructive" | "outline"> = {
-  OK: "secondary",
+const STATUS_VARIANTS: Record<AiRunStatusValue, "success" | "destructive" | "warning" | "outline"> = {
+  OK: "success",
   ERROR: "destructive",
-  REFUSED: "outline",
+  REFUSED: "warning",
   RUNNING: "outline",
 };
 
@@ -34,15 +34,15 @@ export function AiRecentRuns({ runs }: { runs: RunRow[] }) {
   }
 
   return (
-    <details className="group rounded-lg border">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium [&::-webkit-details-marker]:hidden">
+    <details className="group overflow-hidden rounded-card-nested border">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 text-sm font-medium transition-colors outline-hidden hover:bg-muted/50 focus-visible:bg-muted [&::-webkit-details-marker]:hidden">
         {runs.length} panggilan terakhir
         <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
       </summary>
 
       <ul className="divide-y border-t md:hidden">
         {runs.map((run) => (
-          <li key={run.id} className="grid gap-1 px-3 py-2.5">
+          <li key={run.id} className="grid gap-1 px-4 py-3">
             <div className="flex items-center justify-between gap-2">
               <FeatureName run={run} />
               <StatusBadge status={run.status} />
@@ -58,32 +58,32 @@ export function AiRecentRuns({ runs }: { runs: RunRow[] }) {
 
       <div className="hidden overflow-x-auto border-t md:block">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs text-muted-foreground">
+          <thead className="text-left type-label text-muted-foreground">
             <tr className="border-b">
-              <th scope="col" className="px-3 py-2 font-medium">Waktu</th>
-              <th scope="col" className="px-3 py-2 font-medium">Fitur</th>
-              <th scope="col" className="px-3 py-2 font-medium">Model</th>
-              <th scope="col" className="px-3 py-2 font-medium">Status</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">Biaya</th>
-              <th scope="col" className="px-3 py-2 font-medium">Dipakai</th>
+              <th scope="col" className="px-4 py-2.5 font-medium">Waktu</th>
+              <th scope="col" className="px-4 py-2.5 font-medium">Fitur</th>
+              <th scope="col" className="px-4 py-2.5 font-medium">Model</th>
+              <th scope="col" className="px-4 py-2.5 font-medium">Status</th>
+              <th scope="col" className="px-4 py-2.5 text-right font-medium">Biaya</th>
+              <th scope="col" className="px-4 py-2.5 font-medium">Dipakai</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {runs.map((run) => (
               <tr key={run.id} className="align-top">
-                <td className="px-3 py-2 whitespace-nowrap text-muted-foreground tabular-nums">
+                <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground tabular-nums">
                   {formatTime(run.createdAt)}
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-4 py-2.5">
                   <FeatureName run={run} />
                   <ErrorMessage message={run.errorMessage} />
                 </td>
-                <td className="px-3 py-2 text-muted-foreground">{aiRunModelLabel(run.model)}</td>
-                <td className="px-3 py-2">
+                <td className="px-4 py-2.5 text-muted-foreground">{aiRunModelLabel(run.model)}</td>
+                <td className="px-4 py-2.5">
                   <StatusBadge status={run.status} />
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums">{formatUsd(run.costUsd)}</td>
-                <td className="px-3 py-2 text-muted-foreground">
+                <td className="px-4 py-2.5 text-right tabular-nums">{formatUsd(run.costUsd)}</td>
+                <td className="px-4 py-2.5 text-muted-foreground">
                   {run.status === "OK" ? (run.accepted ? "Ya" : "Tidak") : "—"}
                 </td>
               </tr>

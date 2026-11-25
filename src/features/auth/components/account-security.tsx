@@ -216,14 +216,16 @@ function SessionsCard({ sessions }: { sessions: AccountSecurityData["sessions"] 
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-card-nested border">
           {sessions.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5 text-sm">
-              <MonitorSmartphone className="size-4 shrink-0 text-muted-foreground" />
+            <li key={s.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted" aria-hidden>
+                <MonitorSmartphone className="size-4 text-muted-foreground" />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2 font-medium">
                   {s.device}
-                  {s.current && <Badge variant="secondary">Perangkat ini</Badge>}
+                  {s.current && <Badge variant="accent">Perangkat ini</Badge>}
                 </span>
                 <span className="block text-xs text-muted-foreground">
                   {s.ip ?? "IP tidak diketahui"} · terakhir dipakai {formatWib(s.lastUsedAt, "d MMM yyyy HH.mm")}{" "}

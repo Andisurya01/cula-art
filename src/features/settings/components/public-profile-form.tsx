@@ -3,7 +3,7 @@
 import { useForm, useWatch, type Control, type UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExternalLink } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -76,7 +76,7 @@ export function PublicProfileForm({ profile }: { profile: PublicProfileValues })
         </CardAction>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} noValidate className="grid gap-6">
+        <form onSubmit={onSubmit} noValidate className="grid gap-6 [&>section+section]:border-t [&>section+section]:pt-6">
           <section className="grid gap-4" aria-labelledby="profil-identitas">
             <SectionTitle id="profil-identitas">Identitas</SectionTitle>
             <Field
@@ -242,7 +242,7 @@ export function PublicProfileForm({ profile }: { profile: PublicProfileValues })
 
 function SectionTitle({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h3 id={id} className="text-sm font-medium">
+    <h3 id={id} className="type-label text-muted-foreground">
       {children}
     </h3>
   );
@@ -299,7 +299,7 @@ function CharCounter({
     <span
       className={cn(
         "text-xs tabular-nums",
-        length > max * 0.9 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground",
+        length > max * 0.9 ? "text-warning" : "text-muted-foreground",
       )}
       aria-live="polite"
     >
@@ -352,7 +352,7 @@ function LinkPreview({ href }: { href: string | null }) {
   return (
     <p className="min-w-0 truncate text-xs text-muted-foreground">
       Tautan:{" "}
-      <a href={href} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+      <a href={href} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 transition-colors hover:text-foreground">
         {label}
       </a>
     </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Controller, type Control } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
 import { PLATFORM_LABELS, PLATFORMS } from "@/lib/labels";
@@ -63,8 +63,8 @@ function HashtagSet({
   color?: string;
 }) {
   return (
-    <fieldset className="grid gap-3 rounded-lg border p-3">
-      <legend className="flex items-center gap-2 px-1 text-sm font-medium">
+    <fieldset className="grid gap-3 rounded-card-nested border px-4 pt-2 pb-4">
+      <legend className="flex items-center gap-2 px-1.5 text-sm font-medium">
         {color && <span className="size-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden />}
         {title}
         {note && <span className="text-xs font-normal text-muted-foreground">{note}</span>}

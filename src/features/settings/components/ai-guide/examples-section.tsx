@@ -60,7 +60,7 @@ export function ExamplesSection({
             const itemErrors = errors.examples?.[index];
             const textError = itemErrors?.text?.message ?? firstErrorMessage(itemErrors);
             return (
-              <li key={item.id} className="grid gap-2 rounded-lg border p-3">
+              <li key={item.id} className="grid gap-3 rounded-card-nested border p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Controller
                     control={control}

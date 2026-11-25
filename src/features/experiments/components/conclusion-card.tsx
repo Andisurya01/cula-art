@@ -101,7 +101,7 @@ function ConclusionForm({
     <form onSubmit={onSubmit} noValidate className="grid gap-4">
       <div className="grid gap-2">
         <Label>Hasil</Label>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {EXPERIMENT_RESULTS.map((r) => (
             <ChipButton
               key={r}

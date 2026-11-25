@@ -21,8 +21,8 @@ export function ChipButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-        active ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted",
+        "inline-flex min-h-9 items-center gap-1.5 rounded-button border border-transparent px-3.5 py-1 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-60",
+        active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:border-border",
         invalid && !active && "border-destructive",
       )}
     >

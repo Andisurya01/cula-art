@@ -14,7 +14,7 @@ const HEADING = "Top dan bottom menurut skor relatif";
 function PostTitle({ post }: { post: ScoredPost }) {
   return (
     <>
-      <Link href={routes.studio.post(post.id)} className="font-medium break-words hover:underline">
+      <Link href={routes.studio.post(post.id)} className="font-medium break-words underline-offset-4 hover:underline">
         {post.title}
       </Link>
       {post.best && <SnapshotKindMark kind={post.best.kind} className="ml-1.5 inline-block align-middle" />}
@@ -30,7 +30,7 @@ function MobileRow({ post, viewsLabel }: { post: ScoredPost; viewsLabel: string 
     { label: "Skor relatif", value: formatRelative(post.relativeScore) },
   ];
   return (
-    <li className="grid gap-2 rounded-lg border p-3">
+    <li className="grid gap-3 rounded-card-nested bg-muted p-4">
       <div className="min-w-0">
         <PostTitle post={post} />
         <p className="mt-0.5 text-xs text-muted-foreground">{formatWib(post.postedAt, "d MMM yyyy")} WIB</p>
@@ -38,8 +38,8 @@ function MobileRow({ post, viewsLabel }: { post: ScoredPost; viewsLabel: string 
       <dl className="grid grid-cols-4 gap-2">
         {metrics.map((metric) => (
           <div key={metric.label} className="min-w-0">
-            <dt className="text-[11px] text-muted-foreground">{metric.label}</dt>
-            <dd className="text-sm break-all tabular-nums">{metric.value}</dd>
+            <dt className="text-caption break-words text-muted-foreground">{metric.label}</dt>
+            <dd className="mt-0.5 text-sm font-medium break-all tabular-nums">{metric.value}</dd>
           </div>
         ))}
       </dl>
@@ -48,17 +48,17 @@ function MobileRow({ post, viewsLabel }: { post: ScoredPost; viewsLabel: string 
 }
 
 function DesktopTable({ posts, caption, viewsLabel }: { posts: readonly ScoredPost[]; caption: string; viewsLabel: string }) {
-  const numeric = "py-2 pl-3 text-right whitespace-nowrap tabular-nums";
-  const numericHead = "py-2 pl-3 text-right font-medium whitespace-nowrap";
+  const numeric = "py-3 pl-3 text-right whitespace-nowrap tabular-nums";
+  const numericHead = "py-2.5 pl-3 text-right font-medium whitespace-nowrap";
   return (
     <table className="w-full text-sm">
       <caption className="sr-only">{caption}</caption>
       <thead>
-        <tr className="border-b text-left text-xs text-muted-foreground">
-          <th scope="col" className="py-2 pr-3 font-medium">
+        <tr className="border-b text-left type-label text-muted-foreground">
+          <th scope="col" className="py-2.5 pr-3 font-medium">
             Judul
           </th>
-          <th scope="col" className="py-2 pl-3 font-medium whitespace-nowrap">
+          <th scope="col" className="py-2.5 pl-3 font-medium whitespace-nowrap">
             Tanggal (WIB)
           </th>
           <th scope="col" className={numericHead}>
@@ -78,10 +78,10 @@ function DesktopTable({ posts, caption, viewsLabel }: { posts: readonly ScoredPo
       <tbody>
         {posts.map((post) => (
           <tr key={post.id} className="border-b last:border-0">
-            <td className="py-2 pr-3 align-top">
+            <td className="py-3 pr-3 align-top">
               <PostTitle post={post} />
             </td>
-            <td className="py-2 pl-3 align-top whitespace-nowrap text-muted-foreground">
+            <td className="py-3 pl-3 align-top whitespace-nowrap text-muted-foreground">
               {formatWib(post.postedAt, "d MMM yyyy")}
             </td>
             <td className={`${numeric} align-top`}>{formatCount(post.best?.views)}</td>

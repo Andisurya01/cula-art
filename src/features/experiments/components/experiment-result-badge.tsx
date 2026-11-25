@@ -4,10 +4,11 @@ import type { ExperimentResultValue } from "@/lib/analytics/experiments";
 import { cn } from "@/lib/utils";
 import { EXPERIMENT_RESULT_LABELS } from "../schema";
 
-const STYLE: Record<ExperimentResultValue, string> = {
-  SUPPORTED: "bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200",
-  REJECTED: "bg-rose-100 text-rose-900 dark:bg-rose-500/20 dark:text-rose-200",
-  INCONCLUSIVE: "bg-muted text-foreground",
+/** Didukung = sukses, ditolak = destruktif, belum bisa disimpulkan = abu (warna dari token tema). */
+const VARIANT: Record<ExperimentResultValue, "success" | "destructive" | "secondary"> = {
+  SUPPORTED: "success",
+  REJECTED: "destructive",
+  INCONCLUSIVE: "secondary",
 };
 
 const ICON: Record<ExperimentResultValue, typeof CircleCheck> = {
@@ -34,7 +35,7 @@ export function ExperimentResultBadge({
   }
   const Icon = ICON[result];
   return (
-    <Badge variant="outline" className={cn("border-transparent", STYLE[result], className)}>
+    <Badge variant={VARIANT[result]} className={className}>
       <Icon />
       {EXPERIMENT_RESULT_LABELS[result]}
     </Badge>

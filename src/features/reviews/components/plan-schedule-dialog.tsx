@@ -89,11 +89,11 @@ export function PlanScheduleDialog({
           {slots.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Tidak ada slot kosong yang belum lewat di minggu ini. Tambah slot posting di{" "}
-              <Link href={routes.studio.settings} className="underline">
+              <Link href={routes.studio.settings} className="underline underline-offset-4">
                 Pengaturan
               </Link>{" "}
               atau pilih tanggal lain di{" "}
-              <Link href={routes.studio.calendar} className="underline">
+              <Link href={routes.studio.calendar} className="underline underline-offset-4">
                 Kalender
               </Link>
               .
@@ -108,7 +108,7 @@ export function PlanScheduleDialog({
                   aria-checked={slotKey === slot.key}
                   onClick={() => setSlotKey(slot.key)}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-md border border-dashed px-3 py-2 text-left text-sm transition-colors",
+                    "flex min-h-10 w-full items-center justify-between rounded-input border border-dashed px-3.5 py-2 text-left text-sm transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
                     slotKey === slot.key ? "border-solid border-primary bg-primary/10" : "hover:bg-muted",
                   )}
                 >

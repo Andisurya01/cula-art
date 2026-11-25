@@ -51,7 +51,7 @@ export function SummaryCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {changed && (
-          <p className="flex items-start gap-2 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
+          <p className="flex items-start gap-2 rounded-card-nested border border-dashed px-4 py-3 text-xs text-muted-foreground">
             <History className="mt-0.5 size-3.5 shrink-0" />
             Angka terbaru sudah berbeda dari ringkasan ini (mis. metrik atau followers baru). Simpan ulang review
             untuk membekukan angka terbaru.
@@ -59,16 +59,19 @@ export function SummaryCard({
         )}
 
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <p className="text-3xl font-semibold">
+          <p className="font-heading text-h2 tabular-nums">
             {data.postedCount}
-            <span className="text-base font-normal text-muted-foreground"> dari {data.target} konten tayang</span>
+            <span className="font-sans text-base font-normal tracking-normal text-muted-foreground">
+              {" "}
+              dari {data.target} konten tayang
+            </span>
           </p>
           {data.target === 0 ? (
-            <Link href={routes.studio.settings} className="text-xs text-muted-foreground underline">
+            <Link href={routes.studio.settings} className="text-xs text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground">
               Target mingguan belum diatur
             </Link>
           ) : data.targetMet ? (
-            <Badge variant="secondary">
+            <Badge variant="success">
               <CheckCircle2 />
               Target tercapai
             </Badge>
@@ -87,7 +90,7 @@ export function SummaryCard({
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">{frozenAt ? "Saran aktif saat disimpan" : "Saran aktif"}</h3>
+          <h3 className="font-heading text-h6">{frozenAt ? "Saran aktif saat disimpan" : "Saran aktif"}</h3>
           {frozenAt ? (
             data.suggestions.length > 0 ? (
               <ul className="list-disc space-y-1 pl-5 text-sm">
@@ -118,7 +121,7 @@ function PlatformSummary({
 }) {
   const label = PLATFORM_LABELS[platform];
   return (
-    <section aria-label={`Ringkasan ${label}`} className="min-w-0 space-y-3 rounded-lg border p-3">
+    <section aria-label={`Ringkasan ${label}`} className="min-w-0 space-y-3 rounded-card-nested bg-muted p-4">
       <h3>
         <PlatformBadge platform={platform} full />
       </h3>
@@ -129,11 +132,11 @@ function PlatformSummary({
           <dl className="grid grid-cols-2 gap-3">
             <div>
               <dt className="text-xs text-muted-foreground">Post tayang</dt>
-              <dd className="text-lg font-semibold">{summary.postCount}</dd>
+              <dd className="font-heading text-h5 tabular-nums">{summary.postCount}</dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">Followers bertambah</dt>
-              <dd className="text-lg font-semibold">{formatSigned(summary.followersGained)}</dd>
+              <dd className="font-heading text-h5 tabular-nums">{formatSigned(summary.followersGained)}</dd>
               {summary.followersGained !== null ? (
                 <dd className="text-xs text-muted-foreground">
                   {formatCount(summary.followersStart)} → {formatCount(summary.followersEnd)}
@@ -168,7 +171,7 @@ function PostRef({ label, post }: { label: string; post: ReviewPlatformData["bes
       <dd className="flex min-w-0 flex-1 items-baseline justify-between gap-2">
         {post ? (
           <>
-            <Link href={routes.studio.post(post.id)} className="min-w-0 truncate font-medium hover:underline">
+            <Link href={routes.studio.post(post.id)} className="min-w-0 truncate font-medium underline-offset-4 hover:underline">
               {post.title}
             </Link>
             <span className="shrink-0 tabular-nums text-muted-foreground" title="Skor relatif">

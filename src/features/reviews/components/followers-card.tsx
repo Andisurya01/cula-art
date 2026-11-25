@@ -22,11 +22,11 @@ export function FollowersCard({ latest }: { latest: readonly LatestFollowers[] }
         </CardAction>
       </CardHeader>
       <CardContent>
-        <dl className="grid grid-cols-2 gap-3">
+        <dl className="grid grid-cols-2 gap-2">
           {latest.map((item) => (
-            <div key={item.platform} className="min-w-0">
+            <div key={item.platform} className="min-w-0 rounded-card-nested bg-muted px-4 py-3">
               <dt className="text-xs text-muted-foreground">{PLATFORM_LABELS[item.platform]}</dt>
-              <dd className="text-lg font-semibold">{formatCount(item.followers)}</dd>
+              <dd className="mt-1 font-heading text-h5 tabular-nums">{formatCount(item.followers)}</dd>
               <dd className="text-xs text-muted-foreground">
                 {item.date ? `Terakhir ${formatWib(item.date, "d MMM yyyy")}` : "Belum pernah dicatat"}
               </dd>

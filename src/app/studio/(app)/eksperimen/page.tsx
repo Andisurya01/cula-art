@@ -98,8 +98,8 @@ function ExperimentSection({
 }) {
   return (
     <section aria-label={title} className="grid gap-3">
-      <h2 className="text-sm font-medium text-muted-foreground">
-        {title} ({items.length})
+      <h2 className="font-heading text-h5">
+        {title} <span className="text-muted-foreground">({items.length})</span>
       </h2>
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{empty}</p>

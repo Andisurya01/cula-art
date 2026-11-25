@@ -4,12 +4,15 @@ import type { MetricKind, MetricStatus } from "@/lib/analytics/snapshots";
 import { METRIC_STATUS_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
-const STYLE: Record<MetricStatus, string> = {
-  WAITING_H1: "border-border bg-transparent text-muted-foreground",
-  WAITING_H7: "border-border bg-transparent text-muted-foreground",
-  NEED_H1: "bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200",
-  NEED_H7: "bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200",
-  COMPLETE: "bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200",
+type BadgeVariant = "outline" | "warning" | "success";
+
+/** Menunggu = garis tipis, perlu diisi = peringatan, lengkap = sukses (warna dari token tema). */
+const VARIANT: Record<MetricStatus, BadgeVariant> = {
+  WAITING_H1: "outline",
+  WAITING_H7: "outline",
+  NEED_H1: "warning",
+  NEED_H7: "warning",
+  COMPLETE: "success",
 };
 
 const ICON: Record<MetricStatus, typeof Clock> = {
@@ -23,8 +26,9 @@ const ICON: Record<MetricStatus, typeof Clock> = {
 /** Badge status metrik: warna selalu ditemani ikon dan label. */
 export function MetricStatusBadge({ status, className }: { status: MetricStatus; className?: string }) {
   const Icon = ICON[status];
+  const variant = VARIANT[status];
   return (
-    <Badge variant="outline" className={cn(STYLE[status], className)}>
+    <Badge variant={variant} className={cn(variant === "outline" && "text-muted-foreground", className)}>
       <Icon />
       {METRIC_STATUS_LABELS[status]}
     </Badge>
@@ -37,7 +41,10 @@ export function SnapshotKindMark({ kind, className }: { kind: MetricKind; classN
   return (
     <span
       title="Angka dari snapshot H+1, karena H+7 belum diisi"
-      className={cn("rounded border px-1 text-[10px] leading-4 font-medium text-muted-foreground", className)}
+      className={cn(
+        "inline-flex items-center rounded-badge border px-1.5 py-0.5 font-sans type-label text-muted-foreground",
+        className,
+      )}
     >
       H+1
     </span>

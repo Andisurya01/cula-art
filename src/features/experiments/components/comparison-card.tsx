@@ -52,19 +52,19 @@ export function ComparisonCard({
 
         {comparison.status === "READY" && (
           <>
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <MedianStat variant="A" stats={comparison.a} metric={metric} />
               <MedianStat variant="B" stats={comparison.b} metric={metric} />
-              <div className="col-span-2 min-w-0 sm:col-span-1">
+              <div className="col-span-2 min-w-0 rounded-card-nested bg-muted px-4 py-3 sm:col-span-1">
                 <dt className="text-xs text-muted-foreground">Selisih B vs A</dt>
-                <dd className="mt-0.5 text-lg font-semibold tabular-nums">{formatDiffPercent(comparison.diffPercent)}</dd>
+                <dd className="mt-1 font-heading text-h5 tabular-nums">{formatDiffPercent(comparison.diffPercent)}</dd>
                 {comparison.diffPercent === null && (
                   <dd className="text-xs text-muted-foreground">Median A 0 atau kosong, jadi persen tidak bisa dihitung.</dd>
                 )}
               </div>
             </dl>
 
-            <section aria-label="Usulan otomatis" className="grid gap-1.5 rounded-lg bg-muted/60 p-3">
+            <section aria-label="Usulan otomatis" className="grid gap-2 rounded-card-nested border p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-sm font-medium">Usulan otomatis</h3>
                 <ExperimentResultBadge result={comparison.proposal} />
@@ -89,12 +89,12 @@ export function ComparisonCard({
 
 function MedianStat({ variant, stats, metric }: { variant: "A" | "B"; stats: VariantStats; metric: DecidingMetric }) {
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 rounded-card-nested bg-muted px-4 py-3">
       <dt className="flex items-center gap-1 text-xs text-muted-foreground">
         <Scale className="size-3" aria-hidden />
         Median {variant} ({stats.count} post)
       </dt>
-      <dd className="mt-0.5 text-lg font-semibold tabular-nums">{formatMetricValue(metric, stats.median)}</dd>
+      <dd className="mt-1 font-heading text-h5 tabular-nums">{formatMetricValue(metric, stats.median)}</dd>
       {stats.values.length > 0 && (
         <dd className="text-xs text-muted-foreground tabular-nums [overflow-wrap:anywhere]">
           {stats.values.map((v) => formatMetricValue(metric, v.value)).join(" · ")}
@@ -128,7 +128,7 @@ function WaitingSection({
           {posts.map((post) => (
             <li key={post.postId} className="[overflow-wrap:anywhere]">
               <span className="text-muted-foreground">{post.variant}:</span>{" "}
-              <Link href={routes.studio.post(post.postId)} className="hover:underline">
+              <Link href={routes.studio.post(post.postId)} className="underline-offset-4 hover:underline">
                 {post.title}
               </Link>
               {post.h1Only && <span className="text-xs text-muted-foreground"> (baru H+1)</span>}

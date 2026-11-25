@@ -70,9 +70,11 @@ export function ExportTab() {
 
 function ExportFileRow({ entry, icon: Icon }: { entry: ExportFileInfo; icon: LucideIcon }) {
   return (
-    <li className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <li className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex min-w-0 gap-3">
-        <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted" aria-hidden>
+          <Icon className="size-4 text-muted-foreground" />
+        </span>
         <div className="grid min-w-0 gap-0.5">
           <p className="text-sm font-medium">
             {entry.title}{" "}
@@ -81,8 +83,8 @@ function ExportFileRow({ entry, icon: Icon }: { entry: ExportFileInfo; icon: Luc
           <p className="text-sm text-muted-foreground">{entry.description}</p>
         </div>
       </div>
-      {/* ml-7 = ikon (16 px) + jarak (12 px): di HP tombol sejajar dengan teks di atasnya. */}
-      <Button asChild variant="outline" size="sm" className="ml-7 self-start sm:ml-0 sm:self-center">
+      {/* ml-12 = lingkaran ikon (36 px) + jarak (12 px): di HP tombol sejajar dengan teks di atasnya. */}
+      <Button asChild variant="outline" size="sm" className="ml-12 self-start sm:ml-0 sm:self-center">
         <a href={routes.studio.exportFile(entry.file)} aria-label={`Unduh ${entry.title} (${entry.file})`}>
           <Download aria-hidden />
           Unduh

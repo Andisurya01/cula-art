@@ -20,7 +20,7 @@ export function ExperimentStatusFilter({ active }: { active: Filter | null }) {
 
   return (
     <nav aria-label="Filter status eksperimen" className="mb-4">
-      <ul className="flex flex-wrap gap-1.5">
+      <ul className="flex flex-wrap gap-2">
         {options.map((o) => {
           const isActive = o.value === active;
           return (
@@ -29,8 +29,10 @@ export function ExperimentStatusFilter({ active }: { active: Filter | null }) {
                 href={href(o.value)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "inline-flex items-center rounded-full border px-3 py-1 text-xs transition-colors",
-                  isActive ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted",
+                  "inline-flex h-9 items-center rounded-button px-3.5 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-hidden",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:text-foreground",
                 )}
               >
                 {o.label}

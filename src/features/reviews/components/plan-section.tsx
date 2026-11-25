@@ -74,7 +74,7 @@ export function PlanSection({ form, plan }: { form: UseFormReturn<ReviewFormValu
           ))}
         </ol>
       ) : (
-        <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">Belum ada konten di rencana.</p>
+        <p className="rounded-card-nested border border-dashed px-4 py-3 text-sm text-muted-foreground">Belum ada konten di rencana.</p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
 
@@ -88,14 +88,14 @@ export function PlanSection({ form, plan }: { form: UseFormReturn<ReviewFormValu
             <p className="text-xs font-medium text-muted-foreground">
               Tambah ke rencana (belum tayang dan belum terjadwal; Siap Posting didahulukan)
             </p>
-            <ul className="divide-y rounded-lg border">
+            <ul className="divide-y overflow-hidden rounded-card-nested border">
               {shown.map((option) => (
                 <li key={option.id}>
                   <button
                     type="button"
                     onClick={() => setIds([...ids, option.id])}
                     aria-label={`Tambah ${option.title} ke rencana`}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted/50"
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors outline-hidden hover:bg-muted/50 focus-visible:bg-muted"
                   >
                     <Plus className="size-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1">
@@ -128,7 +128,7 @@ export function PlanSection({ form, plan }: { form: UseFormReturn<ReviewFormValu
         ) : (
           <p className="text-sm text-muted-foreground">
             Tidak ada konten yang belum tayang dan belum terjadwal.{" "}
-            <Link href={routes.studio.pipeline} className="underline">
+            <Link href={routes.studio.pipeline} className="underline underline-offset-4 transition-colors hover:text-foreground">
               Buka Pipeline
             </Link>
           </p>
@@ -175,13 +175,13 @@ function PlanItem({
   const canSchedule = editable && defaultPlanPlatforms(option.versions).length > 0;
 
   return (
-    <li className="rounded-lg border p-3">
+    <li className="rounded-card-nested bg-muted p-4">
       <div className="flex items-start gap-3">
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground tabular-nums">
           {index + 1}
         </span>
         <div className="min-w-0 flex-1 space-y-1">
-          <Link href={routes.studio.content(option.id)} className="block truncate text-sm font-medium hover:underline">
+          <Link href={routes.studio.content(option.id)} className="block truncate text-sm font-medium underline-offset-4 hover:underline">
             {option.title}
           </Link>
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
@@ -191,13 +191,13 @@ function PlanItem({
           {lines.length > 0 ? (
             <ul className="text-xs">
               {lines.map((line) => (
-                <li key={line.platform} className={cn(line.late && "text-amber-700 dark:text-amber-400")}>
+                <li key={line.platform} className={cn(line.late && "text-warning")}>
                   <span className="font-medium">{PLATFORM_LABELS[line.platform]}</span> · {line.text} WIB
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-amber-700 dark:text-amber-400">Belum dijadwalkan</p>
+            <p className="text-xs text-warning">Belum dijadwalkan</p>
           )}
         </div>
         {editable && (
@@ -205,7 +205,7 @@ function PlanItem({
             type="button"
             variant="ghost"
             size="icon"
-            className="-mt-1 -mr-1 shrink-0"
+            className="-mt-1 -mr-1 shrink-0 hover:bg-card"
             aria-label={`Hapus ${option.title} dari rencana`}
             onClick={onRemove}
           >
@@ -214,7 +214,7 @@ function PlanItem({
         )}
       </div>
       {canSchedule && (
-        <div className="mt-2 flex justify-end">
+        <div className="mt-3 flex justify-end">
           <Button type="button" size="sm" variant="outline" onClick={onSchedule}>
             <CalendarPlus />
             {upcoming ? "Ubah jadwal" : "Jadwalkan"}

@@ -40,7 +40,7 @@ export function AiAssistButton({
       disabled={disabled}
       aria-label={ariaLabel}
     >
-      <Sparkles />
+      <Sparkles className="text-accent" />
       {label}
     </Button>
   );
@@ -109,12 +109,12 @@ export function AiAssistPanel<F extends AiFeature>({
         side={desktop ? "right" : "bottom"}
         className={cn(
           "gap-0 p-0",
-          desktop ? "w-full sm:max-w-md" : "max-h-[88svh] rounded-t-xl",
+          desktop ? "w-full sm:max-w-md" : "max-h-[88svh]",
         )}
       >
         <SheetHeader className="border-b pr-12">
           <SheetTitle className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
+            <Sparkles className="size-4 shrink-0 text-accent" />
             Bantu AI: {title ?? AI_FEATURE_LABELS[assist.feature]}
             {status.mock && <Badge variant="secondary">Mode uji</Badge>}
           </SheetTitle>
@@ -137,7 +137,7 @@ export function AiAssistPanel<F extends AiFeature>({
             </p>
           )}
           {notes && (
-            <p className="rounded-lg border border-dashed bg-muted/40 p-3 text-xs text-muted-foreground">
+            <p className="rounded-card-nested border border-dashed px-4 py-3 text-xs text-muted-foreground">
               <span className="font-medium text-foreground">Catatan AI:</span> {notes}
             </p>
           )}
@@ -200,8 +200,8 @@ export function AiOptionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2 rounded-lg border bg-card p-3">
-      {label && <p className="text-xs font-medium text-muted-foreground">{label}</p>}
+    <div className="space-y-2 rounded-card-nested border bg-card p-4">
+      {label && <p className="type-label text-muted-foreground">{label}</p>}
       <div className="space-y-1.5 text-sm">{children}</div>
       {(onUse || actions) && (
         <div className="flex flex-wrap justify-end gap-2">

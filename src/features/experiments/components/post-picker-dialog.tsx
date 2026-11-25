@@ -68,7 +68,7 @@ export function PostPickerDialog({
         </DialogHeader>
 
         <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <label htmlFor={searchId} className="sr-only">
             Cari judul post
           </label>
@@ -77,7 +77,7 @@ export function PostPickerDialog({
             type="search"
             autoComplete="off"
             placeholder="Cari judul…"
-            className="pl-8"
+            className="pl-9"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />

@@ -40,11 +40,11 @@ export function PostComputedCard({ post }: { post: ScoredPost }) {
         <CardDescription>{sourceNote(post)}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {stats.map((stat) => (
-            <div key={stat.label} className="min-w-0">
+            <div key={stat.label} className="min-w-0 rounded-card-nested bg-muted px-4 py-3">
               <dt className="text-xs text-muted-foreground">{stat.label}</dt>
-              <dd className="mt-0.5 flex items-center gap-1.5 text-lg font-semibold">
+              <dd className="mt-1 flex items-center gap-1.5 font-heading text-h5 tabular-nums">
                 {stat.value}
                 {stat.value !== EMPTY_VALUE && mark}
               </dd>
@@ -60,9 +60,9 @@ export function PostComputedCard({ post }: { post: ScoredPost }) {
 function BaselineSummary({ post, mark }: { post: ScoredPost; mark: React.ReactNode }) {
   const { headline, detail } = describeBaseline(post);
   return (
-    <section aria-label="Perbandingan terhadap median" className="grid gap-0.5 border-t pt-3">
+    <section aria-label="Perbandingan terhadap median" className="grid gap-1 border-t pt-4">
       <h2 className="text-xs text-muted-foreground">Dibanding median post sebelumnya</h2>
-      <p className="flex items-center gap-1.5 text-lg font-semibold">
+      <p className="flex items-center gap-1.5 font-heading text-h5">
         {headline}
         {headline !== EMPTY_VALUE && mark}
       </p>

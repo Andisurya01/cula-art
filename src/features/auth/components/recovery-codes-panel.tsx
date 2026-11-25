@@ -33,12 +33,12 @@ export function RecoveryCodesPanel({ codes }: { codes: string[] }) {
 
   return (
     <div className="grid gap-3">
-      <ul className="grid grid-cols-2 gap-2 rounded-lg border bg-muted/50 p-3 font-mono text-sm select-all">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-card-nested bg-muted p-4 font-mono text-sm tabular-nums select-all">
         {codes.map((code) => (
           <li key={code}>{code}</li>
         ))}
       </ul>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={copy}>
           <Copy />
           Salin

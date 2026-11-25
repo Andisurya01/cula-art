@@ -20,7 +20,7 @@ export function ReviewHistory({ items, currentKey }: { items: readonly ReviewHis
       </CardHeader>
       {items.length > 0 && (
         <CardContent>
-          <ul className="divide-y rounded-lg border">
+          <ul className="divide-y overflow-hidden rounded-card-nested border">
             {items.map((item) => {
               const focus = focusExcerpt(item.focusNext);
               const current = item.key === currentKey;
@@ -29,13 +29,16 @@ export function ReviewHistory({ items, currentKey }: { items: readonly ReviewHis
                   <Link
                     href={routes.studio.reviewWeek(item.key)}
                     aria-current={current ? "page" : undefined}
-                    className={cn("flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/50", current && "bg-muted/60")}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 text-sm transition-colors outline-hidden hover:bg-muted/50 focus-visible:bg-muted",
+                      current && "bg-muted",
+                    )}
                   >
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-baseline justify-between gap-x-3">
                         <span className="font-medium">{weekRangeLabel(item.weekStart, { short: true })}</span>
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                          {item.targetMet && <CheckCircle2 className="size-3.5 text-emerald-600" aria-hidden />}
+                          {item.targetMet && <CheckCircle2 className="size-3.5 text-success" aria-hidden />}
                           {item.postedCount === null
                             ? `${EMPTY_VALUE} post`
                             : `${item.postedCount}/${item.target} post`}

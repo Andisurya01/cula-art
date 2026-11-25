@@ -97,7 +97,7 @@ export function ReviewForm({
 
       <div className="flex flex-wrap items-center justify-end gap-3">
         {isDirty && <span className="text-xs text-muted-foreground">Ada perubahan yang belum tersimpan.</span>}
-        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+        <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto">
           {pending ? "Menyimpan…" : saved ? "Simpan ulang review" : "Simpan review"}
         </Button>
       </div>

@@ -16,7 +16,7 @@ import { PublicProfileForm } from "./public-profile-form";
 import { ScoreWeightsCard } from "./score-weights-card";
 import { SimpleListCard } from "./simple-list-card";
 
-/** Pengaturan dibagi per tab; daftar tab bisa digeser horizontal di HP. */
+/** Pengaturan dibagi per tab (pil); daftar tab bisa digeser horizontal di HP. */
 export function SettingsTabs({
   data,
   ai,
@@ -30,8 +30,9 @@ export function SettingsTabs({
 
   return (
     <Tabs defaultValue="pilar" className="gap-4">
-      <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-        <TabsList className="w-max min-w-full md:min-w-0">
+      {/* HP: satu baris pil yang bisa digeser (tanpa overflow halaman); desktop: pil membungkus ke baris baru. */}
+      <div className="-mx-4 -my-1 overflow-x-auto px-4 py-1 md:mx-0 md:overflow-visible md:px-0">
+        <TabsList variant="pill" aria-label="Bagian pengaturan" className="w-max flex-nowrap md:w-full md:flex-wrap">
           <TabsTrigger value="pilar">Pilar</TabsTrigger>
           <TabsTrigger value="format">Format & Hook</TabsTrigger>
           <TabsTrigger value="checklist">Checklist</TabsTrigger>

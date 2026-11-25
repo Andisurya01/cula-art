@@ -15,7 +15,7 @@ export function ExperimentCard({ experiment }: { experiment: ExperimentListItem 
   return (
     <Link
       href={routes.studio.experiment(experiment.id)}
-      className="flex h-full flex-col gap-2 rounded-xl bg-card p-3 text-sm ring-1 ring-foreground/10 transition-colors hover:bg-muted/50"
+      className="flex h-full flex-col gap-2.5 rounded-card bg-card p-5 text-sm ring-1 ring-border/70 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-hidden"
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <PlatformBadge platform={experiment.platform} />
@@ -25,12 +25,12 @@ export function ExperimentCard({ experiment }: { experiment: ExperimentListItem 
           {decidingMetricLabel(experiment.decidingMetric, experiment.platform)}
         </span>
       </div>
-      <p className="font-medium [overflow-wrap:anywhere]">{experiment.hypothesis}</p>
+      <p className="font-heading text-h6 [overflow-wrap:anywhere]">{experiment.hypothesis}</p>
       <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
         <span className="font-medium text-foreground">B</span> {experiment.variantB} vs{" "}
         <span className="font-medium text-foreground">A</span> {experiment.variantA}
       </p>
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pt-1 text-xs text-muted-foreground">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t pt-3 text-xs text-muted-foreground">
         <span>
           A: {experiment.counts.A} post · B: {experiment.counts.B} post
           {running && ` · ${comparisonStatusText(experiment.comparison)}`}

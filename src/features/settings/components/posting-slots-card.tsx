@@ -65,7 +65,7 @@ export function PostingSlotsCard({ slots }: { slots: PostingSlot[] }) {
             {slots.map((slot) => (
               <li
                 key={slotKey(slot)}
-                className="inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-sm"
+                className="inline-flex h-9 items-center gap-1 rounded-badge bg-secondary pr-1 pl-3.5 text-sm text-secondary-foreground"
               >
                 <span>
                   {DAY_LABELS[slot.day as IsoDay]}{" "}
@@ -75,7 +75,7 @@ export function PostingSlotsCard({ slots }: { slots: PostingSlot[] }) {
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  className="rounded-full"
+                  className="rounded-full hover:bg-card"
                   aria-label={`Hapus slot ${DAY_LABELS[slot.day as IsoDay]} ${slot.time}`}
                   disabled={pending}
                   onClick={() => onRemove(slot)}
