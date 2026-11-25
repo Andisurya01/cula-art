@@ -8,7 +8,7 @@ import { galleryCopy } from "../copy";
 import type { GalleryImage } from "../dto";
 import { Lightbox } from "./lightbox";
 
-/** Lebar foto utama: penuh di HP; ±7/12 kontainer (maks. 1280 px) di desktop. */
+/** Lebar foto utama: selebar layar di HP; ±7/12 kontainer (maks. 1280 px) di desktop. */
 const MAIN_SIZES = "(min-width: 1280px) 700px, (min-width: 1024px) 56vw, 100vw";
 
 /** Rasio bingkai mengikuti cover, dibatasi 3:4 sampai 4:3 supaya foto lain tidak terlalu terpotong ruangnya. */
@@ -22,7 +22,7 @@ function prefersReducedMotion(): boolean {
 }
 
 const arrowButton =
-  "absolute top-1/2 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/85 text-foreground shadow-sm backdrop-blur transition-opacity hover:bg-background md:inline-flex disabled:opacity-0";
+  "absolute top-1/2 z-10 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-card/90 text-card-foreground shadow-sm ring-1 ring-border/60 backdrop-blur transition-opacity outline-hidden hover:bg-card focus-visible:ring-3 focus-visible:ring-ring md:inline-flex disabled:opacity-0";
 
 /**
  * Foto karya: geser (scroll-snap) di HP, panah + thumbnail di desktop. Ketuk foto → layar penuh + zoom.
@@ -36,9 +36,9 @@ export function PhotoGallery({ images, title }: { images: GalleryImage[]; title:
 
   if (total === 0) {
     return (
-      <div className="flex aspect-[4/5] w-full flex-col items-center justify-center gap-3 bg-muted text-muted-foreground lg:rounded-sm">
+      <div className="flex aspect-[4/5] w-full flex-col items-center justify-center gap-3 rounded-image bg-muted text-muted-foreground">
         <ImageOff className="size-8" aria-hidden="true" />
-        <p className="text-sm">{galleryCopy.detail.noPhotos}</p>
+        <p className="text-body-sm">{galleryCopy.detail.noPhotos}</p>
       </div>
     );
   }
@@ -65,14 +65,14 @@ export function PhotoGallery({ images, title }: { images: GalleryImage[]; title:
           onScroll={onScroll}
           role="region"
           aria-label={title}
-          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] lg:rounded-sm [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-image bg-muted [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((image, i) => (
             <button
               key={image.src}
               type="button"
               onClick={() => setLightbox(i)}
-              className="relative max-h-[80svh] w-full shrink-0 cursor-zoom-in snap-center bg-muted/50 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+              className="relative max-h-[80svh] w-full shrink-0 cursor-zoom-in snap-center outline-hidden focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
               style={{ aspectRatio: String(ratio) }}
             >
               <span className="sr-only">{galleryCopy.detail.openPhoto(i + 1, total)}</span>
@@ -97,7 +97,7 @@ export function PhotoGallery({ images, title }: { images: GalleryImage[]; title:
               className={cn(arrowButton, "left-3")}
               aria-label={galleryCopy.detail.prevPhoto}
             >
-              <ChevronLeft className="size-5" />
+              <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -106,11 +106,11 @@ export function PhotoGallery({ images, title }: { images: GalleryImage[]; title:
               className={cn(arrowButton, "right-3")}
               aria-label={galleryCopy.detail.nextPhoto}
             >
-              <ChevronRight className="size-5" />
+              <ChevronRight className="size-5" aria-hidden="true" />
             </button>
             <p
               aria-hidden="true"
-              className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium tabular-nums backdrop-blur md:hidden"
+              className="pointer-events-none absolute right-3 bottom-3 rounded-badge bg-media/70 px-2.5 py-1 text-caption font-medium text-media-foreground tabular-nums backdrop-blur md:hidden"
             >
               {galleryCopy.lightbox.counter(active + 1, total)}
             </p>
@@ -128,7 +128,7 @@ export function PhotoGallery({ images, title }: { images: GalleryImage[]; title:
                 aria-label={galleryCopy.detail.photoLabel(i + 1, total)}
                 aria-current={i === active ? "true" : undefined}
                 className={cn(
-                  "relative block size-16 overflow-hidden rounded-sm bg-muted ring-offset-2 ring-offset-background transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-ring lg:size-20",
+                  "relative block size-16 overflow-hidden rounded-card-nested bg-muted ring-offset-2 ring-offset-background transition-opacity outline-hidden focus-visible:ring-3 focus-visible:ring-ring lg:size-20",
                   i === active ? "ring-2 ring-foreground" : "opacity-60 hover:opacity-100",
                 )}
               >
@@ -167,7 +167,7 @@ export function PhotoGrid({ images, title }: { images: GalleryImage[]; title: st
             <button
               type="button"
               onClick={() => setLightbox(i)}
-              className="relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-sm bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-image bg-muted outline-hidden focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <span className="sr-only">{galleryCopy.detail.openPhoto(i + 1, total)}</span>
               <Image
@@ -175,7 +175,7 @@ export function PhotoGrid({ images, title }: { images: GalleryImage[]; title: st
                 alt={image.alt}
                 fill
                 sizes="(min-width: 1280px) 400px, (min-width: 640px) 31vw, 48vw"
-                className="object-cover transition-transform duration-700 hover:scale-[1.03] motion-reduce:transition-none"
+                className="object-cover transition-transform duration-slow ease-standard group-hover:scale-[1.03]"
               />
             </button>
           </li>

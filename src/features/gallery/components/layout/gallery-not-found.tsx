@@ -1,27 +1,29 @@
-import Link from "next/link";
+import { ArrowLink } from "@/components/design/arrow-link";
+import { SectionLabel } from "@/components/design/section-label";
+import { TwoToneHeading } from "@/components/design/two-tone-heading";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { galleryCopy } from "../../copy";
+import { galleryContainer } from "../section-heading";
+
+const copy = galleryCopy.notFound;
 
 /** Isi halaman 404 Galeri (karya tidak ada / belum terbit / URL salah). */
 export function GalleryNotFound() {
   return (
-    <section className="mx-auto flex max-w-2xl flex-col items-start gap-6 px-4 py-24 sm:px-6 md:py-32">
-      <p className="text-sm tracking-[0.2em] text-muted-foreground uppercase">404</p>
-      <h1 className="font-display text-4xl leading-tight tracking-tight sm:text-5xl">{galleryCopy.notFound.title}</h1>
-      <p className="max-w-prose text-muted-foreground">{galleryCopy.notFound.description}</p>
-      <div className="flex flex-wrap gap-3">
-        <Link
-          href={routes.gallery.catalog}
-          className="inline-flex h-11 items-center rounded-full bg-foreground px-6 text-sm text-background transition-opacity hover:opacity-90"
-        >
-          {galleryCopy.notFound.backToCatalog}
-        </Link>
-        <Link
-          href={routes.gallery.home}
-          className="inline-flex h-11 items-center rounded-full border px-6 text-sm transition-colors hover:bg-muted"
-        >
-          {galleryCopy.notFound.backHome}
-        </Link>
+    <section aria-labelledby="judul-404" className={cn(galleryContainer, "pt-10 sm:pt-16 lg:pt-24")}>
+      <div className="grid max-w-4xl gap-8">
+        <SectionLabel index={copy.label} className="border-t border-border pt-4" />
+        <TwoToneHeading id="judul-404" as="h1" level="h1" first={copy.titleFirst} second={copy.titleSecond} />
+        <p className="max-w-prose text-body-lg text-pretty text-muted-foreground">{copy.description}</p>
+        <div className="flex flex-wrap gap-2">
+          <ArrowLink href={routes.gallery.catalog} size="lg">
+            {copy.backToCatalog}
+          </ArrowLink>
+          <ArrowLink href={routes.gallery.home} variant="secondary" size="lg">
+            {copy.backHome}
+          </ArrowLink>
+        </div>
       </div>
     </section>
   );

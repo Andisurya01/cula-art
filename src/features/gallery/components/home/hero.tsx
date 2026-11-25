@@ -1,82 +1,140 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowLink } from "@/components/design/arrow-link";
+import { MetaLabel } from "@/components/design/section-label";
+import { TwoToneHeading } from "@/components/design/two-tone-heading";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { galleryCopy } from "../../copy";
-import type { GalleryArtworkCard, GalleryProfile } from "../../dto";
+import type { GalleryArtworkCard, GalleryImage, GalleryProfile, GalleryStats } from "../../dto";
 import { artworkMeta } from "../../format";
+import { AvailabilityBadge } from "../availability-badge";
 import { SocialPills } from "../profile-links";
-import { Eyebrow, pillLinkClass } from "../section-heading";
+import { galleryContainer } from "../section-heading";
+import { heroHeading } from "./home-data";
 
-/** Foto hero: penuh di HP, ±7/12 kontainer di desktop. */
-const HERO_SIZES = "(min-width: 1280px) 700px, (min-width: 1024px) 56vw, 100vw";
+/** Foto hero: ±86% kolom kanan (5/12 kontainer) di desktop, hampir selebar layar di HP. */
+const HERO_SIZES = "(min-width: 1280px) 440px, (min-width: 1024px) 36vw, (min-width: 640px) 75vw, 86vw";
 
-function HeroText({ profile, withActions }: { profile: GalleryProfile; withActions: boolean }) {
-  return (
-    <div className="grid content-center gap-6">
-      <Eyebrow>{profile.city ? galleryCopy.home.eyebrowCity(profile.city) : galleryCopy.home.eyebrow}</Eyebrow>
-      <h1 className="font-display text-5xl leading-[0.98] tracking-tight text-balance sm:text-6xl xl:text-7xl">
-        {profile.siteName}
-      </h1>
-      {profile.tagline && <p className="max-w-md text-lg text-pretty text-muted-foreground">{profile.tagline}</p>}
-      {withActions && (
-        <div className="flex flex-wrap gap-3 pt-2">
-          <Link href={routes.gallery.catalog} className={pillLinkClass("primary")}>
-            {galleryCopy.home.viewWorks}
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-          <Link href={routes.gallery.about} className={pillLinkClass("secondary")}>
-            {galleryCopy.home.about}
-          </Link>
-        </div>
-      )}
-    </div>
-  );
+/** Rasio bingkai foto mengikuti cover, dibatasi 3:4 sampai 4:3 supaya hero tidak terlalu tinggi/pendek. */
+function heroRatio(cover: GalleryImage): number {
+  return Math.min(4 / 3, Math.max(3 / 4, cover.width / Math.max(1, cover.height)));
 }
 
-/** Hero Beranda: nama situs, tagline, tombol "Lihat karya", dan satu karya unggulan berfoto besar (LCP, di-preload). */
-export function HomeHero({ profile, artwork }: { profile: GalleryProfile; artwork: GalleryArtworkCard | null }) {
-  const cover = artwork?.cover;
-  if (!artwork || !cover) {
-    return (
-      <section className="mx-auto max-w-7xl px-4 pt-12 pb-4 sm:px-6 sm:pt-20 lg:px-10">
-        <HeroText profile={profile} withActions={false} />
-      </section>
-    );
-  }
+/**
+ * Hero Beranda (gaya referensi Galeri): judul display dua warna (nama situs + tagline), foto karya
+ * unggulan besar yang "keluar" dari bingkai kartu, tombol pil ↗, dan baris label meta
+ * ("KARYA GAMBAR & CLAY · SEJAK 2024", dari karya Terbit). Foto hero = kandidat LCP (di-preload).
+ */
+export function HomeHero({
+  profile,
+  artwork,
+  stats,
+  showActions,
+}: {
+  profile: GalleryProfile;
+  artwork: GalleryArtworkCard | null;
+  stats: GalleryStats;
+  /** Ada karya terbit: tampilkan tombol "Lihat karya" dan "Tentang". */
+  showActions: boolean;
+}) {
+  const { second, lead } = heroHeading(profile.tagline);
+  const cover = artwork?.cover ?? null;
+  const withPhoto = artwork !== null && cover !== null;
 
-  const meta = artworkMeta(artwork);
   return (
-    <section className="mx-auto grid max-w-7xl gap-10 px-4 pt-10 sm:px-6 sm:pt-14 lg:grid-cols-12 lg:items-center lg:gap-12 lg:px-10 lg:pt-16">
-      <div className="lg:col-span-5">
-        <HeroText profile={profile} withActions />
-      </div>
-      <figure className="-mx-4 grid gap-3 sm:mx-0 lg:col-span-7">
-        <Link href={routes.gallery.artwork(artwork.slug)} className="block outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <div className="relative max-h-[78svh] w-full" style={{ aspectRatio: `${cover.width} / ${cover.height}` }}>
-            <Image src={cover.src} alt={cover.alt} fill sizes={HERO_SIZES} preload className="object-contain" />
+    <section aria-labelledby="judul-beranda" className={cn(galleryContainer, "pt-6 sm:pt-10 lg:pt-14")}>
+      <div className={cn("grid gap-10 sm:gap-12", withPhoto && "lg:grid-cols-12 lg:gap-x-10 lg:gap-y-12")}>
+        <TwoToneHeading
+          id="judul-beranda"
+          as="h1"
+          level="display"
+          first={profile.siteName}
+          second={second}
+          className={cn("wrap-break-word", withPhoto && "lg:col-span-7 lg:row-start-1")}
+        />
+
+        {withPhoto && (
+          <HeroFigure artwork={artwork} cover={cover} className="lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1" />
+        )}
+
+        {(lead || showActions) && (
+          <div className={cn("grid content-end gap-6", withPhoto && "lg:col-span-6 lg:row-start-2")}>
+            {lead && <p className="max-w-md text-body-lg text-pretty text-muted-foreground">{lead}</p>}
+            {showActions && (
+              <div className="flex flex-wrap gap-2">
+                <ArrowLink href={routes.gallery.catalog} size="lg">
+                  {galleryCopy.home.viewWorks}
+                </ArrowLink>
+                <ArrowLink href={routes.gallery.about} variant="secondary" size="lg">
+                  {galleryCopy.home.about}
+                </ArrowLink>
+              </div>
+            )}
           </div>
-        </Link>
-        <figcaption className="px-4 text-sm text-muted-foreground sm:px-0 lg:text-right">
-          <span className="sr-only">{galleryCopy.home.heroCaptionLabel}: </span>
-          <Link href={routes.gallery.artwork(artwork.slug)} className="font-medium text-foreground hover:underline">
-            {artwork.title}
-          </Link>
-          {meta && <span> · {meta}</span>}
-        </figcaption>
-      </figure>
+        )}
+      </div>
+
+      <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4 lg:mt-16">
+        <MetaLabel>{galleryCopy.home.metaLine(stats.mediums, stats.firstYear)}</MetaLabel>
+        {profile.city && <MetaLabel className="hidden sm:inline">({profile.city})</MetaLabel>}
+        {showActions && <MetaLabel className="hidden sm:inline">{galleryCopy.home.scrollHint}</MetaLabel>}
+      </div>
     </section>
   );
 }
 
-/** Belum ada karya terbit: pesan ramah + tautan sosial. */
+/**
+ * Foto karya unggulan di atas bingkai kartu putih; bagian atas foto menonjol keluar dari bingkai.
+ * Seluruh kartu bisa diketuk lewat tautan judul yang direntangkan (satu tab stop).
+ */
+function HeroFigure({
+  artwork,
+  cover,
+  className,
+}: {
+  artwork: GalleryArtworkCard;
+  cover: GalleryImage;
+  className?: string;
+}) {
+  const meta = artworkMeta(artwork);
+  return (
+    <figure className={cn("relative isolate pt-6 sm:pt-10", className)}>
+      {/* Bingkai di belakang (z negatif dalam figure yang terisolasi), mulai di bawah tepi atas foto. */}
+      <div aria-hidden="true" className="absolute inset-x-0 top-24 bottom-0 -z-10 rounded-card bg-card ring-1 ring-border/70 sm:top-36" />
+      <div
+        className="relative mx-auto w-[86%] overflow-hidden rounded-image bg-muted shadow-lg"
+        style={{ aspectRatio: String(heroRatio(cover)) }}
+      >
+        <Image src={cover.src} alt={cover.alt} fill sizes={HERO_SIZES} preload className="object-cover" />
+      </div>
+      <figcaption className="flex items-end justify-between gap-4 p-5 sm:p-6">
+        <span className="grid min-w-0 gap-1">
+          <span className="type-label text-muted-foreground">{galleryCopy.home.heroCaptionLabel}</span>
+          <Link
+            href={routes.gallery.artwork(artwork.slug)}
+            className="font-heading text-h5 wrap-break-word outline-hidden after:absolute after:inset-0 after:rounded-card hover:underline focus-visible:after:ring-3 focus-visible:after:ring-ring"
+          >
+            {artwork.title}
+          </Link>
+          {meta && <span className="text-body-sm text-muted-foreground">{meta}</span>}
+        </span>
+        <AvailabilityBadge availability={artwork.availability} className="shrink-0" />
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Belum ada karya terbit: kartu pesan ramah + tautan sosial. */
 export function HomeEmpty({ profile }: { profile: GalleryProfile }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-10">
-      <div className="grid max-w-2xl gap-4 rounded-sm border border-dashed border-border p-6 sm:p-10">
-        <h2 className="font-display text-2xl tracking-tight sm:text-3xl">{galleryCopy.home.emptyTitle}</h2>
+    <section aria-labelledby="karya-disiapkan" className={cn(galleryContainer, "pt-16 sm:pt-20")}>
+      <div className="grid max-w-2xl gap-4 rounded-card bg-card p-6 ring-1 ring-border/70 sm:p-10">
+        <h2 id="karya-disiapkan" className="font-heading text-h3">
+          {galleryCopy.home.emptyTitle}
+        </h2>
         <p className="text-pretty text-muted-foreground">{galleryCopy.home.emptyDescription}</p>
-        <SocialPills profile={profile} />
+        <SocialPills profile={profile} className="pt-2" />
       </div>
     </section>
   );

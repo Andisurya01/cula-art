@@ -35,6 +35,17 @@ export type GalleryArtworkDetail = GalleryArtworkCard & {
   updatedAt: Date;
 };
 
+/** Ringkasan publik untuk pil statistik Beranda; hanya dihitung dari karya Terbit. */
+export type GalleryStats = {
+  /** Jumlah karya Terbit. */
+  artworkCount: number;
+  /** Medium yang punya karya Terbit, urut Gambar, Clay, Campuran. */
+  mediums: Medium[];
+  /** Tahun (kolom `year`) karya Terbit paling awal dan paling akhir; null jika belum ada. */
+  firstYear: number | null;
+  lastYear: number | null;
+};
+
 export type GalleryProfile = {
   siteName: string;
   tagline: string | null;

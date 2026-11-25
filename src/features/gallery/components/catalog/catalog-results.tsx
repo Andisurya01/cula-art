@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { SearchX } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CATALOG_MAX_PAGE, catalogHref, hasActiveFilters, type CatalogFilters } from "../../catalog";
 import { galleryCopy } from "../../copy";
 import type { GalleryArtworkCard } from "../../dto";
 import { ArtworkCard, CARD_SIZES } from "../artwork-card";
-import { pillLinkClass } from "../section-heading";
 import { LoadMoreLink } from "./load-more";
 
 const copy = galleryCopy.catalog;
@@ -21,15 +23,20 @@ export function CatalogResults({
   if (items.length === 0) {
     const filtered = hasActiveFilters(filters);
     return (
-      <div className="grid justify-items-start gap-4 rounded-sm border border-dashed border-border px-6 py-14 sm:px-10">
-        <p className="font-display text-2xl tracking-tight sm:text-3xl">
-          {filtered ? copy.emptyFilteredTitle : copy.emptyTitle}
-        </p>
+      <div className="grid justify-items-start gap-4 rounded-card bg-card px-6 py-12 ring-1 ring-border/70 sm:px-10 sm:py-16">
+        <span className="inline-flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <SearchX className="size-5" aria-hidden="true" />
+        </span>
+        <p className="font-heading text-h3">{filtered ? copy.emptyFilteredTitle : copy.emptyTitle}</p>
         <p className="max-w-prose text-pretty text-muted-foreground">
           {filtered ? copy.emptyFilteredDescription : copy.emptyDescription}
         </p>
         {filtered && (
-          <Link href={catalogHref({ sort: filters.sort })} scroll={false} className={pillLinkClass("secondary")}>
+          <Link
+            href={catalogHref({ sort: filters.sort })}
+            scroll={false}
+            className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "mt-2")}
+          >
             {copy.clearFilters}
           </Link>
         )}
@@ -54,8 +61,8 @@ export function CatalogResults({
         ))}
       </ul>
       {hasMore && (
-        <div className="mt-14 grid justify-items-center gap-3 text-center">
-          <p className="text-sm text-muted-foreground">{copy.showing(items.length, total)}</p>
+        <div className="mt-16 grid justify-items-center gap-3 text-center">
+          <p className="text-body-sm text-muted-foreground">{copy.showing(items.length, total)}</p>
           <LoadMoreLink href={catalogHref({ ...filters, page: filters.page + 1 })} />
         </div>
       )}

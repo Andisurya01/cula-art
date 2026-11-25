@@ -30,8 +30,9 @@ type Gesture =
 const TAP_SLOP = 8;
 const TAP_MAX_MS = 350;
 
+// Warna di atas foto selalu palet media (gelap di kedua mode), dari token tema.
 const iconButton =
-  "inline-flex size-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 outline-none focus-visible:ring-2 focus-visible:ring-white";
+  "inline-flex size-11 items-center justify-center rounded-full bg-media-foreground/10 text-media-foreground backdrop-blur transition-colors hover:bg-media-foreground/20 outline-hidden focus-visible:ring-2 focus-visible:ring-media-foreground";
 
 /**
  * Foto layar penuh: geser kiri/kanan (atau panah keyboard) untuk ganti foto, ketuk/klik untuk zoom,
@@ -174,14 +175,14 @@ export function Lightbox({
           if (event.key === "ArrowRight") go(1);
           else if (event.key === "ArrowLeft") go(-1);
         }}
-        className="top-0 left-0 flex h-svh max-h-none w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-neutral-950 p-0 text-white ring-0 sm:max-w-none"
+        className="top-0 left-0 flex h-svh max-h-none w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-media p-0 text-media-foreground ring-0 sm:max-w-none"
       >
         <DialogTitle className="sr-only">
           {current && index !== null ? `${title}, ${galleryCopy.detail.photoLabel(index + 1, total)}` : title}
         </DialogTitle>
 
         <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <p className="rounded-full bg-white/10 px-3 py-1.5 text-sm tabular-nums backdrop-blur" aria-hidden="true">
+          <p className="rounded-badge bg-media-foreground/10 px-3 py-1.5 text-body-sm tabular-nums backdrop-blur" aria-hidden="true">
             {index !== null && galleryCopy.lightbox.counter(index + 1, total)}
           </p>
           <div className="flex gap-2">
@@ -216,7 +217,8 @@ export function Lightbox({
               className="absolute inset-0 will-change-transform"
               style={{
                 transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
-                transition: gesturing ? "none" : "transform 200ms ease-out",
+                // Durasi dan easing dari token tema (0 saat prefers-reduced-motion).
+                transition: gesturing ? "none" : "transform var(--motion-fast) var(--motion-ease)",
               }}
             >
               <Image
@@ -260,8 +262,8 @@ export function Lightbox({
         </p>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 grid gap-1 px-4 pt-10 pb-[max(1rem,env(safe-area-inset-bottom))] text-center">
-          {current?.alt && <p className="mx-auto max-w-prose text-sm text-white/85">{current.alt}</p>}
-          <p className="text-xs text-white/60">{galleryCopy.lightbox.hint}</p>
+          {current?.alt && <p className="mx-auto max-w-prose text-body-sm text-media-foreground/85">{current.alt}</p>}
+          <p className="text-caption text-media-foreground/70">{galleryCopy.lightbox.hint}</p>
         </div>
       </DialogContent>
     </Dialog>

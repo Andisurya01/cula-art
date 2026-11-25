@@ -1,28 +1,72 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { ArrowLink } from "@/components/design/arrow-link";
+import { SectionLabel } from "@/components/design/section-label";
+import { StatPill } from "@/components/design/stat-pill";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { catalogHref } from "../../catalog";
 import { galleryCopy } from "../../copy";
-import type { GalleryArtworkCard, GalleryProfile } from "../../dto";
+import type { GalleryArtworkCard, GalleryProfile, GalleryStats } from "../../dto";
 import type { GalleryMediumShortcut } from "../../queries";
 import { ArtworkCard, CARD_SIZES } from "../artwork-card";
 import { SocialPills } from "../profile-links";
-import { ArrowLink, Eyebrow, SectionHeading } from "../section-heading";
+import { SectionHeading, gallerySection } from "../section-heading";
+import { hasProfileSummary, yearsActive } from "./home-data";
 
-const section = "mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-10 lg:pt-28";
+const copy = galleryCopy.home;
+const numberFormatter = new Intl.NumberFormat("id-ID");
+
+/** Sekilas: pil statistik (jumlah karya Terbit, medium, tahun berkarya) dengan gradien halus. */
+export function StatsSection({ stats, index }: { stats: GalleryStats; index?: number }) {
+  if (stats.artworkCount === 0) return null;
+  const years = yearsActive(stats);
+  const mediumNames = stats.mediums.map((m) => galleryCopy.medium[m]).join(" · ");
+  return (
+    <section aria-labelledby="sekilas" className={gallerySection}>
+      <SectionHeading id="sekilas" index={index} eyebrow={copy.statsLabel} title={copy.statsTitle} second={copy.statsSecond} />
+      <ul className="grid grid-cols-2 items-center gap-4 md:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-6">
+        <li className="col-span-2 md:col-span-1">
+          <StatPill
+            value={numberFormatter.format(stats.artworkCount)}
+            label={copy.statsCountLabel(stats.artworkCount)}
+            hint={mediumNames || undefined}
+          />
+        </li>
+        {stats.mediums.length > 0 && (
+          <li>
+            <StatPill shape="circle" value={stats.mediums.length} label={copy.statsMediumLabel(stats.mediums.length)} className="mx-auto" />
+          </li>
+        )}
+        {years !== null && stats.firstYear !== null && stats.lastYear !== null && (
+          <li>
+            <StatPill
+              shape="circle"
+              value={years}
+              label={copy.statsYearsLabel}
+              hint={copy.yearsRange(stats.firstYear, stats.lastYear)}
+              className="mx-auto"
+            />
+          </li>
+        )}
+      </ul>
+    </section>
+  );
+}
 
 /** Karya unggulan: baris geser (scroll-snap) di HP, grid 3-4 kolom di layar lebar. */
-export function FeaturedSection({ artworks }: { artworks: GalleryArtworkCard[] }) {
+export function FeaturedSection({ artworks, index }: { artworks: GalleryArtworkCard[]; index?: number }) {
   if (artworks.length === 0) return null;
   return (
-    <section aria-labelledby="karya-unggulan" className={section}>
+    <section aria-labelledby="karya-unggulan" className={gallerySection}>
       <SectionHeading
         id="karya-unggulan"
-        eyebrow={galleryCopy.home.featuredEyebrow}
-        title={galleryCopy.home.featuredTitle}
-        action={{ href: catalogHref({ sort: "unggulan" }), label: galleryCopy.home.seeAll }}
+        index={index}
+        eyebrow={copy.featuredEyebrow}
+        title={copy.featuredTitle}
+        second={copy.featuredSecond}
+        action={{ href: catalogHref({ sort: "unggulan" }), label: copy.seeAll }}
       />
       <ul className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 md:mx-0 md:grid md:grid-cols-3 md:gap-x-6 md:gap-y-12 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
         {artworks.map((artwork) => (
@@ -36,15 +80,17 @@ export function FeaturedSection({ artworks }: { artworks: GalleryArtworkCard[] }
 }
 
 /** 6 karya terakhir yang terbit. */
-export function LatestSection({ artworks }: { artworks: GalleryArtworkCard[] }) {
+export function LatestSection({ artworks, index }: { artworks: GalleryArtworkCard[]; index?: number }) {
   if (artworks.length === 0) return null;
   return (
-    <section aria-labelledby="karya-terbaru" className={section}>
+    <section aria-labelledby="karya-terbaru" className={gallerySection}>
       <SectionHeading
         id="karya-terbaru"
-        eyebrow={galleryCopy.home.latestEyebrow}
-        title={galleryCopy.home.latestTitle}
-        action={{ href: routes.gallery.catalog, label: galleryCopy.home.seeAll }}
+        index={index}
+        eyebrow={copy.latestEyebrow}
+        title={copy.latestTitle}
+        second={copy.latestSecond}
+        action={{ href: routes.gallery.catalog, label: copy.seeAll }}
       />
       <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-6 md:gap-y-14">
         {artworks.map((artwork) => (
@@ -57,20 +103,29 @@ export function LatestSection({ artworks }: { artworks: GalleryArtworkCard[] }) 
   );
 }
 
-/** Pintasan per medium ke katalog terfilter, dengan cover karya sebagai latar. */
-export function MediumSection({ shortcuts }: { shortcuts: GalleryMediumShortcut[] }) {
+/** Pintasan per medium ke katalog terfilter: kartu radius besar dengan cover karya sebagai latar. */
+export function MediumSection({ shortcuts, index }: { shortcuts: GalleryMediumShortcut[]; index?: number }) {
   if (shortcuts.length === 0) return null;
   const three = shortcuts.length >= 3;
   const sizes = three ? "(min-width: 1280px) 400px, (min-width: 640px) 31vw, 48vw" : "(min-width: 1280px) 600px, 48vw";
   return (
-    <section aria-labelledby="pilih-medium" className={section}>
-      <SectionHeading id="pilih-medium" eyebrow={galleryCopy.home.mediumEyebrow} title={galleryCopy.home.mediumTitle} />
+    <section aria-labelledby="pilih-medium" className={gallerySection}>
+      <SectionHeading
+        id="pilih-medium"
+        index={index}
+        eyebrow={copy.mediumEyebrow}
+        title={copy.mediumTitle}
+        second={copy.mediumSecond}
+      />
       <ul className={cn("grid grid-cols-2 gap-4 lg:gap-6", three && "sm:grid-cols-3")}>
         {shortcuts.map(({ medium, count, cover }) => (
           <li key={medium}>
             <Link
               href={catalogHref({ medium })}
-              className="group relative flex aspect-[3/4] items-end overflow-hidden rounded-sm bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:aspect-[4/3]"
+              className={cn(
+                "group relative flex aspect-[3/4] items-end overflow-hidden rounded-card outline-hidden focus-visible:ring-3 focus-visible:ring-ring sm:aspect-[4/3]",
+                cover ? "bg-media text-media-foreground" : "bg-card text-card-foreground ring-1 ring-border/70",
+              )}
             >
               {cover && (
                 <Image
@@ -78,21 +133,29 @@ export function MediumSection({ shortcuts }: { shortcuts: GalleryMediumShortcut[
                   alt=""
                   fill
                   sizes={sizes}
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none"
+                  className="object-cover transition-transform duration-slow ease-standard group-hover:scale-[1.04]"
                 />
               )}
               <span
                 className={cn(
-                  "relative grid w-full gap-1 p-4 sm:p-6",
-                  cover ? "bg-linear-to-t from-black/80 via-black/45 to-transparent pt-20 text-white" : "text-foreground",
+                  "relative flex w-full items-end justify-between gap-3 p-4 sm:p-6",
+                  cover && "bg-linear-to-t from-media/85 via-media/45 to-transparent pt-20",
                 )}
               >
-                <span className="font-display text-2xl leading-tight tracking-tight sm:text-3xl">
-                  {galleryCopy.medium[medium]}
+                <span className="grid min-w-0 gap-1">
+                  <span className="font-heading text-h4 wrap-break-word sm:text-h3">{galleryCopy.medium[medium]}</span>
+                  <span className={cn("text-body-sm", cover ? "text-media-foreground/80" : "text-muted-foreground")}>
+                    {copy.mediumCount(count)}
+                  </span>
                 </span>
-                <span className={cn("inline-flex items-center gap-1.5 text-sm", cover ? "text-white/90" : "text-muted-foreground")}>
-                  {galleryCopy.home.mediumCount(count)}
-                  <ArrowRight className="size-3.5" aria-hidden="true" />
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "hidden size-10 shrink-0 items-center justify-center rounded-full transition-transform duration-fast ease-standard group-hover:-translate-y-0.5 sm:inline-flex",
+                    cover ? "bg-media-foreground text-media" : "bg-primary text-primary-foreground",
+                  )}
+                >
+                  <ArrowUpRight className="size-4" />
                 </span>
               </span>
             </Link>
@@ -103,28 +166,32 @@ export function MediumSection({ shortcuts }: { shortcuts: GalleryMediumShortcut[
   );
 }
 
-/** Ringkasan profil: foto, bio, tautan sosial, tautan ke Tentang. */
-export function ProfileSection({ profile }: { profile: GalleryProfile }) {
-  if (!profile.avatarSrc && !profile.bio && !profile.instagramUrl && !profile.tiktokUrl) return null;
+/** Profil singkat: kartu putih berisi foto, nama, bio, tautan sosial, dan tautan ke Tentang. */
+export function ProfileSection({ profile, index }: { profile: GalleryProfile; index?: number }) {
+  if (!hasProfileSummary(profile)) return null;
   return (
-    <section aria-labelledby="profil-singkat" className={section}>
-      <div className="grid gap-8 border-t border-border pt-12 md:grid-cols-[auto_1fr] md:items-start md:gap-12">
+    <section aria-labelledby="profil-singkat" className={gallerySection}>
+      <SectionLabel index={index} className="mb-10 border-t border-border pt-4 sm:mb-12">
+        {copy.profileEyebrow}
+      </SectionLabel>
+      <div className="grid gap-8 rounded-card bg-card p-6 ring-1 ring-border/70 sm:p-10 md:grid-cols-[auto_1fr] md:items-start md:gap-12 lg:p-14">
         {profile.avatarSrc && (
-          <div className="relative size-28 overflow-hidden rounded-full bg-muted sm:size-36">
-            <Image src={profile.avatarSrc} alt={profile.siteName} fill sizes="144px" className="object-cover" />
+          <div className="relative size-28 overflow-hidden rounded-full bg-muted sm:size-40">
+            <Image src={profile.avatarSrc} alt={profile.siteName} fill sizes="160px" className="object-cover" />
           </div>
         )}
-        <div className="grid gap-4">
-          <Eyebrow>{galleryCopy.home.profileEyebrow}</Eyebrow>
-          <h2 id="profil-singkat" className="font-display text-3xl leading-tight tracking-tight sm:text-4xl">
+        <div className="grid gap-5">
+          <h2 id="profil-singkat" className="font-heading text-h2 wrap-break-word">
             {profile.siteName}
           </h2>
           {profile.bio && (
-            <p className="max-w-prose text-lg whitespace-pre-line text-pretty text-muted-foreground">{profile.bio}</p>
+            <p className="max-w-prose text-body-lg whitespace-pre-line text-pretty text-muted-foreground">{profile.bio}</p>
           )}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <ArrowLink href={routes.gallery.about} size="lg">
+              {copy.profileMore}
+            </ArrowLink>
             <SocialPills profile={profile} />
-            <ArrowLink href={routes.gallery.about}>{galleryCopy.home.profileMore}</ArrowLink>
           </div>
         </div>
       </div>

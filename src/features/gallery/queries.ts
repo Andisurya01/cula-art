@@ -15,6 +15,7 @@ import type {
   GalleryImage,
   GalleryProcessLink,
   GalleryProfile,
+  GalleryStats,
 } from "./dto";
 import { instagramUrl, tiktokUrl } from "./format";
 
@@ -185,6 +186,28 @@ export async function getMediumCounts(): Promise<Partial<Record<Medium, number>>
   for (const g of groups) if (g.medium) counts[g.medium] = g._count._all;
   return counts;
 }
+
+/**
+ * Statistik publik Beranda (pil statistik dan label "Sejak {tahun}"): jumlah karya Terbit, medium
+ * yang punya karya Terbit, dan rentang tahun karya Terbit. Draft/Arsip tidak pernah dihitung.
+ */
+export const getGalleryStats = cache(async (): Promise<GalleryStats> => {
+  const [groups, years] = await Promise.all([
+    db.artwork.groupBy({ by: ["medium"], where: PUBLISHED, _count: { _all: true } }),
+    db.artwork.aggregate({
+      where: { ...PUBLISHED, year: { not: null } },
+      _min: { year: true },
+      _max: { year: true },
+    }),
+  ]);
+  const present = new Set(groups.filter((g) => g._count._all > 0).map((g) => g.medium));
+  return {
+    artworkCount: groups.reduce((sum, g) => sum + g._count._all, 0),
+    mediums: MEDIUMS.filter((m) => present.has(m)),
+    firstYear: years._min.year ?? null,
+    lastYear: years._max.year ?? null,
+  };
+});
 
 export type GalleryMediumShortcut = { medium: Medium; count: number; cover: GalleryImage | null };
 

@@ -19,8 +19,42 @@ import { galleryCopy } from "../../copy";
 
 const copy = galleryCopy.catalog;
 
+/** Kontrol berbentuk pil: permukaan putih bergaris tipis; pilihan aktif = pil primer. */
+const pillClass =
+  "inline-flex h-11 shrink-0 cursor-pointer items-center rounded-button bg-card px-4 text-body-sm font-medium text-card-foreground ring-1 ring-border/70 transition-colors select-none hover:bg-muted has-checked:bg-primary has-checked:text-primary-foreground has-checked:ring-primary has-focus-visible:ring-3 has-focus-visible:ring-ring";
+
 const selectClass =
-  "h-11 w-full appearance-none rounded-full border border-border bg-background pr-10 pl-4 text-sm outline-none transition-colors hover:bg-muted/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-11 w-full appearance-none rounded-button bg-card pr-10 pl-4 text-body-sm font-medium text-card-foreground ring-1 ring-border/70 outline-hidden transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring";
+
+/** Baris pil yang bisa digeser di HP (tanpa scrollbar), membungkus di layar lebar. */
+const pillRowClass =
+  "-mx-4 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden";
+
+function PillRadioGroup({
+  name,
+  legend,
+  options,
+  value,
+}: {
+  name: string;
+  legend: string;
+  options: { value: string; label: string }[];
+  value: string;
+}) {
+  return (
+    <fieldset className="min-w-0">
+      <legend className="sr-only">{legend}</legend>
+      <div className={pillRowClass}>
+        {options.map((option) => (
+          <label key={option.value || "semua"} className={pillClass}>
+            <input type="radio" name={name} value={option.value} defaultChecked={value === option.value} className="sr-only" />
+            {option.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
 
 function NativeSelect({
   name,
@@ -116,10 +150,10 @@ export function CatalogFilterForm({
           if (event.target instanceof HTMLInputElement && event.target.type === "search") return;
           submit(event.currentTarget);
         }}
-        className="grid gap-4"
+        className="grid gap-3"
       >
         <div className="flex gap-2">
-          <label className="relative min-w-0 flex-1">
+          <label className="relative min-w-0 flex-1 sm:max-w-md">
             <span className="sr-only">{copy.searchLabel}</span>
             <Search
               aria-hidden="true"
@@ -132,81 +166,54 @@ export function CatalogFilterForm({
               placeholder={copy.searchPlaceholder}
               maxLength={100}
               enterKeyHint="search"
-              className="h-11 w-full rounded-full border border-border bg-background pr-4 pl-10 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:text-sm"
+              className="h-11 w-full rounded-button bg-card pr-4 pl-10 text-base text-card-foreground ring-1 ring-border/70 outline-hidden placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring sm:text-body-sm"
             />
           </label>
           <button
             type="submit"
-            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-button bg-primary px-5 text-body-sm font-medium text-primary-foreground transition-colors outline-hidden hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring"
           >
             {pending ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
             {copy.searchSubmit}
           </button>
         </div>
 
-        <fieldset className="min-w-0">
-          <legend className="sr-only">{copy.mediumLegend}</legend>
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden">
-            {[{ value: "", label: copy.allMediums }, ...MEDIUMS.map((m) => ({ value: m, label: galleryCopy.medium[m] }))].map(
-              (option) => (
-                <label
-                  key={option.value || "semua"}
-                  className="inline-flex h-11 shrink-0 cursor-pointer items-center rounded-full border border-border px-4 text-sm transition-colors select-none hover:bg-muted has-checked:border-foreground has-checked:bg-foreground has-checked:text-background has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
-                >
-                  <input
-                    type="radio"
-                    name="medium"
-                    value={option.value}
-                    defaultChecked={(filters.medium ?? "") === option.value}
-                    className="sr-only"
-                  />
-                  {option.label}
-                </label>
-              ),
-            )}
-          </div>
-        </fieldset>
+        <PillRadioGroup
+          name="medium"
+          legend={copy.mediumLegend}
+          value={filters.medium ?? ""}
+          options={[{ value: "", label: copy.allMediums }, ...MEDIUMS.map((m) => ({ value: m, label: galleryCopy.medium[m] }))]}
+        />
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <NativeSelect name="status" label={copy.statusLabel} defaultValue={filters.status ?? ""} className="sm:w-52">
-            <option value="">{copy.statusAll}</option>
-            {CATALOG_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {copy.status[s]}
-              </option>
-            ))}
-          </NativeSelect>
-          <NativeSelect name="tahun" label={copy.yearLabel} defaultValue={filters.year ? String(filters.year) : ""} className="sm:w-40">
-            <option value="">{copy.yearAll}</option>
-            {yearOptions.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </NativeSelect>
-          <div className="col-span-2 flex items-center justify-end gap-3 sm:ml-auto">
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">{copy.sortLabel}</span>
-              <span className="relative block">
-                <select name="urut" defaultValue={filters.sort} className={cn(selectClass, "w-36")}>
-                  {CATALOG_SORTS.map((s) => (
-                    <option key={s} value={s}>
-                      {copy.sort[s]}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-              </span>
-            </label>
+        <div className="grid gap-3 lg:flex lg:items-center lg:justify-between">
+          <PillRadioGroup
+            name="status"
+            legend={copy.statusLabel}
+            value={filters.status ?? ""}
+            options={[{ value: "", label: copy.statusAll }, ...CATALOG_STATUSES.map((s) => ({ value: s, label: copy.status[s] }))]}
+          />
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <NativeSelect name="tahun" label={copy.yearLabel} defaultValue={filters.year ? String(filters.year) : ""} className="sm:w-40">
+              <option value="">{copy.yearAll}</option>
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </NativeSelect>
+            <NativeSelect name="urut" label={copy.sortLabel} defaultValue={filters.sort} className="sm:w-44">
+              {CATALOG_SORTS.map((s) => (
+                <option key={s} value={s}>
+                  {`${copy.sortLabel}: ${copy.sort[s]}`}
+                </option>
+              ))}
+            </NativeSelect>
           </div>
         </div>
       </form>
 
       <div className="mt-6 flex min-h-11 flex-wrap items-center gap-x-4 border-t border-border pt-3">
-        <p className="text-sm text-muted-foreground" aria-live="polite">
+        <p className="text-body-sm text-muted-foreground" aria-live="polite">
           {copy.resultCount(total)}
           {filters.q && <span> {copy.searchingFor(filters.q)}</span>}
         </p>
@@ -214,7 +221,7 @@ export function CatalogFilterForm({
           <Link
             href={catalogHref({ sort: filters.sort })}
             scroll={false}
-            className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4 hover:no-underline"
+            className="inline-flex min-h-11 items-center rounded-button text-body-sm font-medium underline underline-offset-4 outline-hidden hover:no-underline focus-visible:ring-3 focus-visible:ring-ring"
           >
             {copy.clearFilters}
           </Link>
@@ -223,7 +230,7 @@ export function CatalogFilterForm({
 
       <div
         aria-busy={pending}
-        className={cn("mt-6 transition-opacity duration-200", pending && "pointer-events-none opacity-50")}
+        className={cn("mt-8 transition-opacity duration-base", pending && "pointer-events-none opacity-50")}
       >
         {children}
       </div>

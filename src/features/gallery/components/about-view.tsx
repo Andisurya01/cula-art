@@ -1,13 +1,46 @@
 import Image from "next/image";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
+import { ArrowLink } from "@/components/design/arrow-link";
+import { SectionLabel } from "@/components/design/section-label";
+import { TwoToneHeading } from "@/components/design/two-tone-heading";
+import { buttonVariants } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { galleryCopy } from "../copy";
 import type { GalleryProfile } from "../dto";
 import { normalizeWhatsapp, paragraphs, whatsappLink } from "../format";
+import { numberSections } from "./home/home-data";
 import { SocialPills } from "./profile-links";
-import { ArrowLink, Eyebrow, pillLinkClass } from "./section-heading";
+import { galleryContainer } from "./section-heading";
 
 const copy = galleryCopy.about;
+
+/** Kepala bagian halaman Tentang: label bernomor + judul h2. */
+function AboutSection({
+  id,
+  index,
+  eyebrow,
+  title,
+  children,
+}: {
+  id: string;
+  index?: number;
+  eyebrow: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id} className="grid gap-6">
+      <SectionLabel index={index} className="border-t border-border pt-4">
+        {eyebrow}
+      </SectionLabel>
+      <h2 id={id} className="font-heading text-h3">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
 
 /** Halaman Tentang: foto, bio, perjalanan (aboutText), kota, kontak, sosial. Field kosong tidak ditampilkan. */
 export function AboutView({ profile }: { profile: GalleryProfile }) {
@@ -16,96 +49,112 @@ export function AboutView({ profile }: { profile: GalleryProfile }) {
   const hasContact = Boolean(wa || profile.contactEmail);
   const hasSocial = Boolean(profile.instagramUrl || profile.tiktokUrl);
   const isEmpty = !profile.bio && journey.length === 0 && !hasContact && !hasSocial;
+  const index = numberSections({ journey: journey.length > 0, contact: hasContact, social: hasSocial });
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-12 px-4 pt-10 sm:px-6 sm:pt-14 lg:grid-cols-12 lg:gap-16 lg:px-10 lg:pt-16">
-      {profile.avatarSrc && (
-        <div className="lg:col-span-5">
-          <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-sm bg-muted lg:sticky lg:top-24 lg:max-w-none">
-            <Image
-              src={profile.avatarSrc}
-              alt={profile.siteName}
-              fill
-              sizes="(min-width: 1280px) 480px, (min-width: 1024px) 38vw, 384px"
-              preload
-              className="object-cover"
-            />
+    <div className={cn(galleryContainer, "pt-8 sm:pt-12 lg:pt-16")}>
+      <header className="grid gap-6 lg:gap-8">
+        <MetaRow city={profile.city} />
+        <TwoToneHeading
+          as="h1"
+          level="display"
+          first={profile.siteName}
+          second={profile.city ? copy.titleSecondCity(profile.city) : copy.titleSecond}
+          className="max-w-5xl wrap-break-word"
+        />
+      </header>
+
+      <div className="mt-12 grid gap-12 lg:mt-16 lg:grid-cols-12 lg:gap-16">
+        {profile.avatarSrc && (
+          <div className="lg:col-span-5">
+            <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-image bg-muted lg:sticky lg:top-28 lg:max-w-none">
+              <Image
+                src={profile.avatarSrc}
+                alt={profile.siteName}
+                fill
+                sizes="(min-width: 1280px) 480px, (min-width: 1024px) 38vw, 384px"
+                preload
+                className="object-cover"
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className={profile.avatarSrc ? "grid content-start gap-12 lg:col-span-7" : "grid max-w-3xl content-start gap-12 lg:col-span-12"}>
-        <header className="grid gap-5">
-          <Eyebrow>{copy.eyebrow}</Eyebrow>
-          <h1 className="font-display text-5xl leading-[1.02] tracking-tight text-balance sm:text-6xl">
-            {profile.siteName}
-          </h1>
-          {profile.city && (
-            <p className="inline-flex items-center gap-2 text-muted-foreground">
-              <MapPin className="size-4" aria-hidden="true" />
-              {profile.city}
-            </p>
+        <div className={cn("grid content-start gap-14", profile.avatarSrc ? "lg:col-span-7" : "max-w-3xl lg:col-span-12")}>
+          {(profile.bio || isEmpty) && (
+            <div className="grid gap-5">
+              {profile.bio && <p className="max-w-prose font-heading text-h4 whitespace-pre-line text-pretty">{profile.bio}</p>}
+              {isEmpty && <p className="max-w-prose text-body-lg text-muted-foreground">{copy.empty}</p>}
+            </div>
           )}
-          {profile.bio && <p className="max-w-prose text-xl leading-relaxed whitespace-pre-line text-pretty">{profile.bio}</p>}
-          {isEmpty && <p className="max-w-prose text-muted-foreground">{copy.empty}</p>}
-        </header>
 
-        {journey.length > 0 && (
-          <section aria-labelledby="perjalanan" className="grid gap-5">
-            <h2 id="perjalanan" className="font-display text-3xl tracking-tight sm:text-4xl">
-              {copy.journeyTitle}
-            </h2>
-            <div className="grid max-w-prose gap-5 text-lg leading-relaxed text-pretty">
-              {journey.map((paragraph, i) => (
-                <p key={i} className="whitespace-pre-line">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </section>
-        )}
+          {journey.length > 0 && (
+            <AboutSection id="perjalanan" index={index.journey} eyebrow={copy.journeyEyebrow} title={copy.journeyTitle}>
+              <div className="grid max-w-prose gap-5 text-body-lg text-pretty">
+                {journey.map((paragraph, i) => (
+                  <p key={i} className="whitespace-pre-line">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </AboutSection>
+          )}
 
-        {hasContact && (
-          <section aria-labelledby="kontak" className="grid gap-4">
-            <h2 id="kontak" className="font-display text-3xl tracking-tight sm:text-4xl">
-              {copy.contactTitle}
-            </h2>
-            <p className="text-muted-foreground">{copy.contactIntro}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              {wa && (
-                <a
-                  href={whatsappLink(wa, copy.whatsappMessage)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={pillLinkClass("primary")}
-                >
-                  <MessageCircle className="size-4" aria-hidden="true" />
-                  {copy.whatsappButton}
-                </a>
-              )}
-              {profile.contactEmail && (
-                <a href={`mailto:${profile.contactEmail}`} className={pillLinkClass("secondary", "h-auto min-h-12 py-3 break-all")}>
-                  <Mail className="size-4 shrink-0" aria-hidden="true" />
-                  {profile.contactEmail}
-                </a>
-              )}
-            </div>
-          </section>
-        )}
+          {hasContact && (
+            <AboutSection id="kontak" index={index.contact} eyebrow={copy.contactEyebrow} title={copy.contactTitle}>
+              <p className="text-muted-foreground">{copy.contactIntro}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {wa && (
+                  <ArrowLink href={whatsappLink(wa, copy.whatsappMessage)} external size="lg">
+                    <MessageCircle className="size-4" aria-hidden="true" />
+                    {copy.whatsappButton}
+                  </ArrowLink>
+                )}
+                {profile.contactEmail && (
+                  <a
+                    href={`mailto:${profile.contactEmail}`}
+                    className={cn(
+                      buttonVariants({ variant: "secondary", size: "lg" }),
+                      "h-auto min-h-11 max-w-full py-2.5 break-all whitespace-normal",
+                    )}
+                  >
+                    <Mail className="size-4" aria-hidden="true" />
+                    {profile.contactEmail}
+                  </a>
+                )}
+              </div>
+            </AboutSection>
+          )}
 
-        {hasSocial && (
-          <section aria-labelledby="ikuti" className="grid gap-4">
-            <h2 id="ikuti" className="font-display text-3xl tracking-tight sm:text-4xl">
-              {copy.socialTitle}
-            </h2>
-            <SocialPills profile={profile} />
-          </section>
-        )}
+          {hasSocial && (
+            <AboutSection id="ikuti" index={index.social} eyebrow={copy.socialEyebrow} title={copy.socialTitle}>
+              <SocialPills profile={profile} />
+            </AboutSection>
+          )}
 
-        <ArrowLink href={routes.gallery.catalog} className="w-fit">
-          {copy.viewWorks}
-        </ArrowLink>
+          <ArrowLink href={routes.gallery.catalog} size="lg" className="w-fit">
+            {copy.viewWorks}
+          </ArrowLink>
+        </div>
       </div>
+    </div>
+  );
+}
+
+/** Baris label meta atas: "TENTANG" dan kota (jika ada). */
+function MetaRow({ city }: { city: string | null }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4">
+      <span className="type-label inline-flex items-center gap-2 text-muted-foreground">
+        <span aria-hidden="true" className="size-1.5 rounded-full bg-foreground" />
+        {copy.eyebrow}
+      </span>
+      {city && (
+        <span className="type-label inline-flex items-center gap-1.5 text-muted-foreground">
+          <MapPin className="size-3.5" aria-hidden="true" />
+          {city}
+        </span>
+      )}
     </div>
   );
 }

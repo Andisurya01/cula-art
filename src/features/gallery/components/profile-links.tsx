@@ -1,10 +1,10 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowLink } from "@/components/design/arrow-link";
 import { cn } from "@/lib/utils";
 import { galleryCopy } from "../copy";
 import type { GalleryProfile } from "../dto";
 import { InstagramIcon, TikTokIcon } from "./layout/social-icons";
 
-/** Tautan Instagram/TikTok berlabel (bukan hanya ikon). Yang kosong tidak ditampilkan. */
+/** Tautan Instagram/TikTok berlabel (pil abu + ↗, buka tab baru). Yang kosong tidak ditampilkan. */
 export function SocialPills({
   profile,
   className,
@@ -22,16 +22,10 @@ export function SocialPills({
     <ul className={cn("flex flex-wrap gap-2", className)}>
       {links.map(({ href, label, Icon }) => (
         <li key={label}>
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium transition-colors hover:bg-muted"
-          >
+          <ArrowLink href={href} external variant="secondary" size="lg">
             <Icon className="size-4" />
             {label}
-            <ArrowUpRight className="size-3.5 text-muted-foreground" aria-hidden="true" />
-          </a>
+          </ArrowLink>
         </li>
       ))}
     </ul>

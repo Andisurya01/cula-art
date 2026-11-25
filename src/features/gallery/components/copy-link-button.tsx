@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { Check, Link2 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { galleryCopy } from "../copy";
 
-/** Salin URL karya ke clipboard + toast. Nonaktif di pratinjau Studio. */
+/**
+ * Pil "Bagikan": menyalin URL karya ke clipboard + toast. Pembaca layar mendengar "Bagikan (salin
+ * tautan)". Nonaktif di pratinjau Studio.
+ */
 export function CopyLinkButton({ url, disabled = false, className }: { url: string; disabled?: boolean; className?: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -22,17 +25,10 @@ export function CopyLinkButton({ url, disabled = false, className }: { url: stri
   }
 
   return (
-    <button
-      type="button"
-      onClick={copy}
-      disabled={disabled}
-      className={cn(
-        "inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border bg-background px-5 text-sm font-medium transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
-        className,
-      )}
-    >
-      {copied ? <Check className="size-4" aria-hidden="true" /> : <Link2 className="size-4" aria-hidden="true" />}
-      {galleryCopy.share.copyLink}
-    </button>
+    <Button type="button" variant="secondary" size="lg" onClick={copy} disabled={disabled} className={className}>
+      {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />}
+      {galleryCopy.share.button}
+      <span className="sr-only">{` ${galleryCopy.share.buttonHint}`}</span>
+    </Button>
   );
 }

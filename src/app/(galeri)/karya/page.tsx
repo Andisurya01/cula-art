@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { catalogHref, parseCatalogParams } from "@/features/gallery/catalog";
 import { CatalogFilterForm } from "@/features/gallery/components/catalog/catalog-filters";
+import { TwoToneHeading } from "@/components/design/two-tone-heading";
 import { CatalogResults } from "@/features/gallery/components/catalog/catalog-results";
+import { galleryContainer } from "@/features/gallery/components/section-heading";
 import { galleryCopy } from "@/features/gallery/copy";
+import { cn } from "@/lib/utils";
 import { getCatalog, getCatalogYears, getGalleryProfile } from "@/features/gallery/queries";
 import { absoluteUrl } from "@/lib/site";
 
@@ -41,10 +44,18 @@ export default async function CatalogPage({ searchParams }: Props) {
   const heading = filters.medium ? galleryCopy.medium[filters.medium] : galleryCopy.catalog.title;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pt-10 pb-8 sm:px-6 sm:pt-14 lg:px-10">
-      <header className="mb-8 grid max-w-2xl gap-3 sm:mb-10">
-        <h1 className="font-display text-4xl leading-tight tracking-tight sm:text-5xl lg:text-6xl">{heading}</h1>
-        <p className="text-pretty text-muted-foreground">{galleryCopy.catalog.intro}</p>
+    <div className={cn(galleryContainer, "pt-8 sm:pt-12 lg:pt-16")}>
+      <header className="mb-10 grid gap-6 sm:mb-12 lg:grid-cols-12 lg:items-end lg:gap-10">
+        <TwoToneHeading
+          as="h1"
+          level="h1"
+          first={heading}
+          second={galleryCopy.catalog.titleSecond}
+          className="wrap-break-word lg:col-span-8"
+        />
+        <p className="max-w-md text-body-lg text-pretty text-muted-foreground lg:col-span-4 lg:justify-self-end">
+          {galleryCopy.catalog.intro}
+        </p>
       </header>
       <CatalogFilterForm filters={filters} years={years} total={total}>
         <CatalogResults filters={filters} items={items} total={total} />

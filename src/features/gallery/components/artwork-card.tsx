@@ -30,7 +30,10 @@ export type ArtworkCardProps = {
   className?: string;
 };
 
-/** Kartu produk: cover 4:5, judul, medium · tahun, badge ketersediaan, harga. Seluruh kartu bisa diketuk. */
+/**
+ * Kartu produk: cover 4:5 dengan radius gambar token, badge ketersediaan di foto, judul, medium ·
+ * tahun, dan harga. Seluruh kartu bisa diketuk (tautan judul direntangkan ke seluruh kartu).
+ */
 export function ArtworkCard({ artwork, sizes, headingLevel = "h3", loading = "lazy", className }: ArtworkCardProps) {
   const Heading = headingLevel;
   const price = priceLabel(artwork);
@@ -39,7 +42,7 @@ export function ArtworkCard({ artwork, sizes, headingLevel = "h3", loading = "la
 
   return (
     <article className={cn("group relative", className)}>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-muted">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-image bg-muted">
         {artwork.cover ? (
           <Image
             src={artwork.cover.src}
@@ -48,27 +51,27 @@ export function ArtworkCard({ artwork, sizes, headingLevel = "h3", loading = "la
             sizes={sizes}
             loading={loading === "lazy" ? "lazy" : "eager"}
             fetchPriority={loading === "high" ? "high" : undefined}
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] motion-reduce:transition-none"
+            className="object-cover transition-transform duration-slow ease-standard group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-2 text-muted-foreground">
             <ImageOff className="size-6" aria-hidden="true" />
-            <span className="text-xs">{galleryCopy.card.noPhoto}</span>
+            <span className="text-caption">{galleryCopy.card.noPhoto}</span>
           </div>
         )}
-        <AvailabilityBadge availability={artwork.availability} overlay className="absolute top-2.5 left-2.5" />
+        <AvailabilityBadge availability={artwork.availability} overlay className="absolute top-3 left-3" />
       </div>
-      <div className="mt-3 grid gap-1">
-        <Heading className="font-display text-lg leading-snug tracking-tight text-pretty">
+      <div className="mt-4 grid gap-1 px-1">
+        <Heading className="font-heading text-h5 text-pretty wrap-break-word">
           <Link
             href={href}
-            className="rounded-sm outline-none after:absolute after:inset-0 after:rounded-sm focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-offset-2 focus-visible:after:ring-offset-background"
+            className="rounded-image outline-hidden after:absolute after:inset-0 after:rounded-image focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-offset-2 focus-visible:after:ring-offset-background"
           >
             {artwork.title}
           </Link>
         </Heading>
-        {meta && <p className="text-sm text-muted-foreground">{meta}</p>}
-        {price && <p className="text-sm font-medium">{price}</p>}
+        {meta && <p className="text-body-sm text-muted-foreground">{meta}</p>}
+        {price && <p className="text-body-sm font-medium">{price}</p>}
       </div>
     </article>
   );
