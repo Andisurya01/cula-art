@@ -362,6 +362,16 @@ model Setting {
   updatedAt          DateTime @updatedAt
 }
 
+// Tema tampilan (Fase 6, T8). Satu baris; tidak ada baris = tampilan awal (default di kode).
+// tokensJson divalidasi Zod di src/lib/theme/schema.ts sebelum dipakai atau disimpan.
+model ThemeSetting {
+  id         String   @id @default("default")
+  version    Int      @default(1)
+  tokensJson String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 // ---------------------------------------------------------------------------
 // Auth Studio (satu pemilik). Lihat docs/PRD.md bagian "Autentikasi dan keamanan".
 // ---------------------------------------------------------------------------

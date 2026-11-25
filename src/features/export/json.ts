@@ -42,6 +42,7 @@ export const EXPORT_TABLES = [
   "ArtworkSlugRedirect",
   "AiGuide",
   "AiRun",
+  "ThemeSetting",
 ] as const satisfies readonly Prisma.ModelName[];
 
 export type ExportTable = (typeof EXPORT_TABLES)[number];

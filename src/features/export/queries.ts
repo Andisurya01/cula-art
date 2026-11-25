@@ -172,6 +172,8 @@ const TABLE_QUERIES: Record<ExportTable, TableQuery> = {
   ArtworkSlugRedirect: () => db.artworkSlugRedirect.findMany({ orderBy: [{ createdAt: "asc" }, { oldSlug: "asc" }] }),
   AiGuide: () => db.aiGuide.findMany({ orderBy: { id: "asc" } }),
   AiRun: () => db.aiRun.findMany({ orderBy: [{ createdAt: "asc" }, { id: "asc" }] }),
+  // Tema tampilan (T15). Kosong = tampilan awal.
+  ThemeSetting: () => db.themeSetting.findMany({ orderBy: { id: "asc" } }),
 };
 
 /** Semua tabel data dalam satu transaksi REPEATABLE READ, supaya isinya konsisten satu sama lain. */

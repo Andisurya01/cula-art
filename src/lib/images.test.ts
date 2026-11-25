@@ -127,4 +127,20 @@ describe("renderOgImage", () => {
     const blank = await sharp(await renderOgImage(null)).metadata();
     expect([blank.format, blank.width, blank.height]).toEqual(["jpeg", 1200, 630]);
   });
+
+  it("gaya Fase 6: tepi dan sudut bingkai berwarna latar tema default, tengah berisi foto", async () => {
+    const red = await sharp({ create: { width: 900, height: 600, channels: 3, background: { r: 200, g: 20, b: 20 } } })
+      .jpeg()
+      .toBuffer();
+    const { data, info } = await sharp(await renderOgImage(red)).raw().toBuffer({ resolveWithObject: true });
+    const pixel = (x: number, y: number) => {
+      const i = (y * info.width + x) * info.channels;
+      return [data[i]!, data[i + 1]!, data[i + 2]!];
+    };
+    const near = (a: number[], b: number[]) => a.every((v, i) => Math.abs(v - b[i]!) <= 12);
+    const background = [0xf5, 0xf5, 0xf3]; // latar terang default (#F5F5F3)
+    expect(near(pixel(10, 10), background)).toBe(true); // di luar bingkai
+    expect(near(pixel(44, 44), background)).toBe(true); // sudut membulat
+    expect(near(pixel(600, 315), [200, 20, 20])).toBe(true); // foto
+  });
 });

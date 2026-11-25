@@ -32,6 +32,8 @@ export const routes = {
     settings: `${STUDIO}/pengaturan`,
     /** Route Handler unggah foto profil (POST). */
     settingsProfilePhoto: `${STUDIO}/pengaturan/foto-profil`,
+    /** Menu Tampilan: token tema, pratinjau, reset ke tampilan awal (Fase 6). */
+    appearance: `${STUDIO}/tampilan`,
     /** Route Handler Asisten AI (POST, respons NDJSON). */
     ai: `${STUDIO}/ai`,
   },

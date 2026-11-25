@@ -3,6 +3,7 @@ import "server-only";
 // WebP kualitas 82, dan buang SEMUA metadata (EXIF, GPS, ICC, XMP). Lihat PRD "Unggah file".
 
 import sharp from "sharp";
+import { defaultThemeTokens } from "./theme/defaults";
 import { deleteFile, generateStorageKey, saveFile } from "./storage";
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
@@ -96,13 +97,40 @@ export async function discardStoredImage(image: StoredImage): Promise<void> {
 
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
+/** Jarak bingkai foto dari tepi gambar Open Graph (px). */
+const OG_PADDING = 40;
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const n = Number.parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+}
+
 /**
- * Gambar Open Graph JPEG 1200×630 (dipotong tengah) dari foto tersimpan. JPEG, bukan WebP, karena
- * tidak semua aplikasi (mis. pratinjau tautan WhatsApp) menampilkan WebP. Tanpa foto → bidang polos.
+ * Gambar Open Graph JPEG 1200×630 dari foto tersimpan. JPEG, bukan WebP, karena tidak semua aplikasi
+ * (mis. pratinjau tautan WhatsApp) menampilkan WebP. Gaya Fase 6: bidang latar tema dengan foto di
+ * bingkai radius besar (ala kartu Galeri). Memakai nilai default tema, bukan database (T14).
+ * Tanpa foto → bidang polos.
  */
 export async function renderOgImage(source: Uint8Array | null): Promise<Buffer> {
-  const base = source
-    ? sharp(source, { limitInputPixels: MAX_INPUT_PIXELS }).resize({ ...OG_IMAGE_SIZE, fit: "cover", position: "attention" })
-    : sharp({ create: { ...OG_IMAGE_SIZE, channels: 3, background: { r: 245, g: 243, b: 239 } } });
-  return base.jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+  const theme = defaultThemeTokens();
+  const background = hexToRgb(theme.colors.light.background);
+  const canvas = sharp({ create: { ...OG_IMAGE_SIZE, channels: 3, background } });
+  if (!source) return canvas.jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+
+  const width = OG_IMAGE_SIZE.width - OG_PADDING * 2;
+  const height = OG_IMAGE_SIZE.height - OG_PADDING * 2;
+  // Radius gambar tema diperbesar mengikuti skala gambar OG (kartu 24 px di layar → ±40 px di sini).
+  const radius = Math.round(theme.shape.image * 1.6);
+  const mask = Buffer.from(
+    `<svg width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="${radius}" ry="${radius}"/></svg>`,
+  );
+  const photo = await sharp(source, { limitInputPixels: MAX_INPUT_PIXELS })
+    .resize({ width, height, fit: "cover", position: "attention" })
+    .composite([{ input: mask, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+  return canvas
+    .composite([{ input: photo, left: OG_PADDING, top: OG_PADDING }])
+    .jpeg({ quality: 80, mozjpeg: true })
+    .toBuffer();
 }

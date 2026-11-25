@@ -10,7 +10,7 @@
 //
 // Mengubah file ini atau halaman offline → naikkan VERSION supaya cache lama dibuang.
 
-const VERSION = "studio-v2";
+const VERSION = "studio-v3";
 const CACHE = `${VERSION}-offline`;
 const OFFLINE_URL = "/studio-offline.html";
 const PRECACHE = [

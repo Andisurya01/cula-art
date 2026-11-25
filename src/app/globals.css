@@ -2,139 +2,250 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * Token tema (Fase 6). Nilai variabel (--background, --type-h1-size, --shape-card, --motion-fast, …)
+ * TIDAK ditulis di sini: root layout merender `<style id="theme-tokens">` dari tema di database
+ * (src/lib/theme/css.ts). File ini hanya memetakan variabel itu ke utility Tailwind.
+ * Jangan menulis hex, oklch(), atau warna Tailwind bawaan di komponen; pakai utility di bawah.
+ */
+
+/*
+ * Mode gelap: kelas .dark di <html> (next-themes) atau di kontainer pratinjau menu Tampilan.
+ * Kontainer pratinjau terang (`data-theme-preview="light"`) membatalkan .dark dari luar.
+ */
+@custom-variant dark (&:where(.dark, .dark *):not(:where([data-theme-preview="light"], [data-theme-preview="light"] *)));
 
 @theme inline {
+  /* ---- Warna (per mode) ---- */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  /* Judul Galeri (serif editorial); variabel --font-display hanya dipasang di layout (galeri). */
-  --font-display: var(--font-display), ui-serif, Georgia, serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-heading-muted: var(--heading-muted);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-bento-blue: var(--bento-blue);
+  --color-bento-blue-foreground: var(--bento-blue-foreground);
+  --color-bento-lime: var(--bento-lime);
+  --color-bento-lime-foreground: var(--bento-lime-foreground);
+  --color-bento-purple: var(--bento-purple);
+  --color-bento-purple-foreground: var(--bento-purple-foreground);
+  --color-bento-dark: var(--bento-dark);
+  --color-bento-dark-foreground: var(--bento-dark-foreground);
+  /* Latar dan teks di atas foto (lightbox, keterangan di foto): palet gelap di kedua mode. */
+  --color-media: var(--media);
+  --color-media-foreground: var(--media-foreground);
+  /* Palet grafik (T13), tetap: lihat :root di bawah. */
+  --color-series-tiktok: var(--series-tiktok);
+  --color-series-instagram: var(--series-instagram);
+
+  /* ---- Font ---- */
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* ---- Tipografi: level tema (text-display, text-h1 … text-h6) ---- */
+  --text-display: var(--type-display-size);
+  --text-display--line-height: var(--type-display-leading);
+  --text-display--letter-spacing: var(--type-display-tracking);
+  --text-display--font-weight: var(--type-display-weight);
+  --text-h1: var(--type-h1-size);
+  --text-h1--line-height: var(--type-h1-leading);
+  --text-h1--letter-spacing: var(--type-h1-tracking);
+  --text-h1--font-weight: var(--type-h1-weight);
+  --text-h2: var(--type-h2-size);
+  --text-h2--line-height: var(--type-h2-leading);
+  --text-h2--letter-spacing: var(--type-h2-tracking);
+  --text-h2--font-weight: var(--type-h2-weight);
+  --text-h3: var(--type-h3-size);
+  --text-h3--line-height: var(--type-h3-leading);
+  --text-h3--letter-spacing: var(--type-h3-tracking);
+  --text-h3--font-weight: var(--type-h3-weight);
+  --text-h4: var(--type-h4-size);
+  --text-h4--line-height: var(--type-h4-leading);
+  --text-h4--letter-spacing: var(--type-h4-tracking);
+  --text-h4--font-weight: var(--type-h4-weight);
+  --text-h5: var(--type-h5-size);
+  --text-h5--line-height: var(--type-h5-leading);
+  --text-h5--letter-spacing: var(--type-h5-tracking);
+  --text-h5--font-weight: var(--type-h5-weight);
+  --text-h6: var(--type-h6-size);
+  --text-h6--line-height: var(--type-h6-leading);
+  --text-h6--letter-spacing: var(--type-h6-tracking);
+  --text-h6--font-weight: var(--type-h6-weight);
+  /* Teks isi dan label (text-body-lg, text-body, text-body-sm, text-caption, text-label) */
+  --text-body-lg: var(--type-body-lg-size);
+  --text-body-lg--line-height: var(--type-body-leading);
+  --text-body: var(--type-body-size);
+  --text-body--line-height: var(--type-body-leading);
+  --text-body-sm: var(--type-body-sm-size);
+  --text-body-sm--line-height: var(--type-body-leading);
+  --text-caption: var(--type-caption-size);
+  --text-caption--line-height: var(--type-body-leading);
+  --text-label: var(--type-label-size);
+  --text-label--line-height: var(--type-label-leading);
+  --text-label--letter-spacing: var(--type-label-tracking);
+  --text-label--font-weight: var(--type-label-weight);
+  /*
+   * Skala bawaan Tailwind ikut token, supaya kode lama tetap mengikuti tema:
+   * xs/sm/base/lg = teks isi (tanpa ketebalan, supaya tetap mewarisi), xl+ = level judul terdekat.
+   * Kode baru sebaiknya memakai nama semantik di atas.
+   */
+  --text-xs: var(--type-caption-size);
+  --text-xs--line-height: var(--type-body-leading);
+  --text-sm: var(--type-body-sm-size);
+  --text-sm--line-height: var(--type-body-leading);
+  --text-base: var(--type-body-size);
+  --text-base--line-height: var(--type-body-leading);
+  --text-lg: var(--type-body-lg-size);
+  --text-lg--line-height: var(--type-body-leading);
+  --text-xl: var(--type-h5-size);
+  --text-xl--line-height: var(--type-h5-leading);
+  --text-xl--letter-spacing: var(--type-h5-tracking);
+  --text-2xl: var(--type-h4-size);
+  --text-2xl--line-height: var(--type-h4-leading);
+  --text-2xl--letter-spacing: var(--type-h4-tracking);
+  --text-3xl: var(--type-h3-size);
+  --text-3xl--line-height: var(--type-h3-leading);
+  --text-3xl--letter-spacing: var(--type-h3-tracking);
+  --text-4xl: var(--type-h3-size);
+  --text-4xl--line-height: var(--type-h3-leading);
+  --text-4xl--letter-spacing: var(--type-h3-tracking);
+  --text-5xl: var(--type-h2-size);
+  --text-5xl--line-height: var(--type-h2-leading);
+  --text-5xl--letter-spacing: var(--type-h2-tracking);
+  --text-6xl: var(--type-h1-size);
+  --text-6xl--line-height: var(--type-h1-leading);
+  --text-6xl--letter-spacing: var(--type-h1-tracking);
+  --text-7xl: var(--type-h1-size);
+  --text-7xl--line-height: var(--type-h1-leading);
+  --text-7xl--letter-spacing: var(--type-h1-tracking);
+  --text-8xl: var(--type-display-size);
+  --text-8xl--line-height: var(--type-display-leading);
+  --text-8xl--letter-spacing: var(--type-display-tracking);
+  --text-9xl: var(--type-display-size);
+  --text-9xl--line-height: var(--type-display-leading);
+  --text-9xl--letter-spacing: var(--type-display-tracking);
+
+  /* ---- Radius per komponen (rounded-card, rounded-button, …) ---- */
+  --radius-card: var(--shape-card);
+  --radius-card-nested: var(--shape-card-nested);
+  --radius-button: var(--shape-button);
+  --radius-input: var(--shape-input);
+  --radius-badge: var(--shape-badge);
+  --radius-image: var(--shape-image);
+  --radius-dialog: var(--shape-dialog);
+  /* Skala bawaan ikut token: kecil-sedang dari radius input, besar dari kartu. */
+  --radius-xs: calc(var(--shape-input) * 0.3);
+  --radius-sm: calc(var(--shape-input) * 0.45);
+  --radius-md: calc(var(--shape-input) * 0.65);
+  --radius-lg: var(--shape-input);
+  --radius-xl: var(--shape-card-nested);
+  --radius-2xl: var(--shape-card-nested);
+  --radius-3xl: var(--shape-card);
+  --radius-4xl: var(--shape-card);
+
+  /* ---- Animasi (T7): ease-standard, duration-fast/base/slow (utility di bawah) ---- */
+  --ease-standard: var(--motion-ease);
+  --default-transition-duration: var(--motion-fast);
+  --default-transition-timing-function: var(--motion-ease);
 }
 
+@utility duration-fast {
+  --tw-duration: var(--motion-fast);
+  transition-duration: var(--motion-fast);
+}
+
+@utility duration-base {
+  --tw-duration: var(--motion-base);
+  transition-duration: var(--motion-base);
+}
+
+@utility duration-slow {
+  --tw-duration: var(--motion-slow);
+  transition-duration: var(--motion-slow);
+}
+
+/* Wordmark raksasa di footer Galeri: turunan ukuran display (selalu ikut token). */
+@utility text-wordmark {
+  font-size: calc(var(--type-display-size) * 1.7);
+  line-height: 0.85;
+  letter-spacing: var(--type-display-tracking);
+  font-weight: var(--type-display-weight);
+}
+
+/* Label kecil (SectionLabel): ukuran, ketebalan, tracking, dan huruf kapital dari token. */
+@utility type-label {
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  line-height: var(--type-label-leading);
+  letter-spacing: var(--type-label-tracking);
+  text-transform: var(--type-label-transform);
+}
+
+/*
+ * Palet grafik Fase 4 (T13): tetap, tidak ikut kustomisasi. Lolos validator skill dataviz di
+ * permukaan kartu terang (#FFFFFF) dan gelap (#161618). Satu-satunya hex di luar token tema.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  /* Warna grafik per platform; lolos validator dataviz di permukaan kartu terang dan gelap. */
   --series-tiktok: #2a78d6;
   --series-instagram: #eb6834;
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
   --series-tiktok: #3987e5;
   --series-instagram: #d95926;
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  button:not(:disabled), [role="button"]:not(:disabled) {
-    cursor: pointer;
+    @apply border-border outline-ring;
   }
   html {
     @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-weight: var(--type-body-weight);
+    line-height: var(--type-body-leading);
+    letter-spacing: var(--type-body-tracking);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* T7: gerak selalu menghormati preferensi pengguna (token durasi juga 0 lewat <style> tema). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
