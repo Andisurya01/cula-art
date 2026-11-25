@@ -7,10 +7,22 @@ import { Menu, Plus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { BOTTOM_NAV_HREFS, isActivePath, NAV_ITEMS, type NavItem } from "./nav-items";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeModeToggle } from "@/components/design/theme-mode-toggle";
+import { QUICK_IDEA_BUTTON_CLASS } from "./studio-mark";
 import { useLayoutUi } from "./ui-store";
 
-/** Bottom navigation HP (< 768 px): Beranda, Pipeline, + Ide, Kalender, Lainnya. */
+/** Satu sel bottom nav: tinggi penuh bilah (52 px), jadi target sentuh selalu ≥ 40 px. */
+const CELL =
+  "flex h-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-button text-caption transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring";
+
+function cellState(active: boolean) {
+  return active ? "bg-primary font-medium text-primary-foreground" : "text-muted-foreground hover:text-foreground";
+}
+
+/**
+ * Bottom navigation HP (< 768 px): Beranda, Pipeline, + Ide, Kalender, Lainnya. Bilah putih mengambang
+ * di atas latar abu; menu aktif = pil primer, + Ide = pil lime.
+ */
 export function BottomNav() {
   const pathname = usePathname();
   const setQuickIdeaOpen = useLayoutUi((s) => s.setQuickIdeaOpen);
@@ -22,59 +34,65 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        <div className="grid h-16 grid-cols-5">
+      <nav
+        aria-label="Menu Studio"
+        className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden"
+      >
+        <div className="mx-auto grid h-16 max-w-md grid-cols-5 gap-1 rounded-card bg-card/95 p-1.5 text-card-foreground shadow-lg ring-1 ring-border/70 backdrop-blur">
           <NavLink item={primary[0]} active={isActivePath(pathname, primary[0].href)} />
           <NavLink item={primary[1]} active={isActivePath(pathname, primary[1].href)} />
           <button
             type="button"
             onClick={() => setQuickIdeaOpen(true)}
-            className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium"
+            className={cn(CELL, QUICK_IDEA_BUTTON_CLASS, "font-medium")}
             aria-label="Tambah ide"
           >
-            <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Plus className="size-5" />
-            </span>
+            <Plus className="size-5" aria-hidden />
             Ide
           </button>
           <NavLink item={primary[2]} active={isActivePath(pathname, primary[2].href)} />
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 text-[11px]",
-              moreActive ? "font-medium text-foreground" : "text-muted-foreground",
-            )}
+            aria-haspopup="dialog"
+            className={cn(CELL, cellState(moreActive))}
           >
-            <Menu className="size-5" />
+            <Menu className="size-5" aria-hidden />
             Lainnya
           </button>
         </div>
       </nav>
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+        <SheetContent side="bottom" className="pb-[calc(env(safe-area-inset-bottom)+1rem)]">
           <SheetHeader>
-            <SheetTitle>Menu lainnya</SheetTitle>
+            <SheetTitle className="font-heading text-h5">Menu lainnya</SheetTitle>
           </SheetHeader>
-          <div className="grid grid-cols-3 gap-2 px-4">
-            {more.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMoreOpen(false)}
-                className={cn(
-                  "flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center text-xs",
-                  isActivePath(pathname, item.href) ? "border-primary bg-muted font-medium" : "",
-                )}
-              >
-                <item.icon className="size-5" />
-                {item.label}
-              </Link>
-            ))}
-          </div>
+          <ul className="grid grid-cols-3 gap-2 px-4">
+            {more.map((item) => {
+              const active = isActivePath(pathname, item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex h-full min-h-20 flex-col items-center justify-center gap-1.5 rounded-card-nested p-3 text-center text-caption transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
+                      active
+                        ? "bg-primary font-medium text-primary-foreground"
+                        : "bg-muted text-foreground hover:bg-[color-mix(in_srgb,var(--muted),var(--foreground)_6%)]",
+                    )}
+                  >
+                    <item.icon className="size-5" aria-hidden />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
           <div className="px-4">
-            <ThemeToggle withLabel />
+            <ThemeModeToggle withLabel variant="outline" className="h-10 w-full" />
           </div>
         </SheetContent>
       </Sheet>
@@ -84,16 +102,9 @@ export function BottomNav() {
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   return (
-    <Link
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "flex flex-col items-center justify-center gap-1 text-[11px]",
-        active ? "font-medium text-foreground" : "text-muted-foreground",
-      )}
-    >
-      <item.icon className="size-5" />
-      {item.label}
+    <Link href={item.href} aria-current={active ? "page" : undefined} className={cn(CELL, cellState(active))}>
+      <item.icon className="size-5" aria-hidden />
+      <span className="max-w-full truncate">{item.label}</span>
     </Link>
   );
 }

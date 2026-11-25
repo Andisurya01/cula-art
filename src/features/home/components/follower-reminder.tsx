@@ -4,6 +4,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FOLLOWER_REMINDER_DAYS } from "@/lib/analytics/tasks";
 import { AccountSnapshotButton, type LatestFollowers } from "@/features/metrics/components/account-snapshot-dialog";
 import { platformList } from "../derive";
+import { cn } from "@/lib/utils";
+import { HOME_ALERT } from "./row-styles";
 
 /** D8: platform yang belum punya snapshot followers dalam 7 hari terakhir. */
 export function FollowerReminder({
@@ -17,7 +19,7 @@ export function FollowerReminder({
 }) {
   if (platforms.length === 0) return null;
   return (
-    <Alert className={className}>
+    <Alert className={cn(HOME_ALERT, className)}>
       <CalendarClock />
       <AlertTitle>Saatnya mencatat followers</AlertTitle>
       <AlertDescription>

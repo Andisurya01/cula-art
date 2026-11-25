@@ -22,6 +22,7 @@ import { createQuickIdea } from "@/features/ideas/actions";
 import { quickIdeaSchema, type QuickIdeaInput } from "@/features/ideas/schema";
 import { MEDIUMS, MEDIUM_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { QUICK_IDEA_BUTTON_CLASS } from "./studio-mark";
 import { useLayoutUi } from "./ui-store";
 import { callAction, NETWORK_ERROR_MESSAGE } from "@/lib/action-client";
 import { addToQueue, isQueueSupported, newOfflineId } from "@/features/pwa/idb";
@@ -99,7 +100,7 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
       <DialogContent>
         <form onSubmit={onSubmit} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>Ide baru</DialogTitle>
+            <DialogTitle className="text-h5">Ide baru</DialogTitle>
             <DialogDescription>Cukup judul. Pilar dan medium boleh diisi nanti.</DialogDescription>
           </DialogHeader>
 
@@ -114,7 +115,7 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
               {...form.register("title")}
             />
             {form.formState.errors.title && (
-              <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
+              <p className="text-caption text-destructive">{form.formState.errors.title.message}</p>
             )}
           </div>
 
@@ -130,7 +131,7 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
                       form.setValue("pillarId", pillarId === p.id ? undefined : p.id)
                     }
                   >
-                    <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} />
+                    <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ backgroundColor: p.color }} />
                     {p.name}
                   </ChipButton>
                 ))}
@@ -164,7 +165,7 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
   );
 }
 
-/** Tombol bulat + Ide yang mengambang di HP (di atas bottom nav). */
+/** Tombol bulat + Ide yang mengambang di HP (di atas bilah bottom nav, lime seperti tombol + Ide lain). */
 export function QuickIdeaFab() {
   const setOpen = useLayoutUi((s) => s.setQuickIdeaOpen);
   return (
@@ -173,7 +174,10 @@ export function QuickIdeaFab() {
       size="icon-lg"
       aria-label="Tambah ide"
       onClick={() => setOpen(true)}
-      className="fixed right-4 bottom-20 z-40 size-12 rounded-full shadow-lg md:hidden"
+      className={cn(
+        "fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-40 size-12 rounded-full shadow-lg md:hidden",
+        QUICK_IDEA_BUTTON_CLASS,
+      )}
     >
       <Plus className="size-6" />
     </Button>
@@ -195,10 +199,10 @@ function ChipButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+        "inline-flex h-9 items-center gap-1.5 rounded-button border px-3.5 text-body-sm transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
         active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border hover:bg-muted",
+          ? "border-primary bg-primary font-medium text-primary-foreground"
+          : "border-border bg-card text-foreground hover:bg-muted",
       )}
     >
       {children}

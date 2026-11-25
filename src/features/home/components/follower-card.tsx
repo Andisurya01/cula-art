@@ -11,14 +11,17 @@ export function FollowerCard({
   card,
   domain,
   latest,
+  className,
 }: {
   card: FollowerCardData;
   domain: readonly [number, number];
   latest: readonly LatestFollowers[];
+  className?: string;
 }) {
   const label = PLATFORM_LABELS[card.platform];
+  // Grafik selalu di atas permukaan kartu (`bg-card`): palet T13 hanya tervalidasi di permukaan itu.
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>Followers {label}</CardTitle>
       </CardHeader>
@@ -34,7 +37,7 @@ export function FollowerCard({
         ) : (
           <>
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <p className="text-3xl font-semibold">{formatCount(card.latest)}</p>
+              <p className="font-heading text-h3">{formatCount(card.latest)}</p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{formatSigned(card.gained)}</span>{" "}
                 {FOLLOWER_RANGE_DAYS} hari

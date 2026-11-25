@@ -91,9 +91,9 @@ export function OfflineIdeaSync() {
       onClick={() => void sync()}
       title="Kirim sekarang"
       aria-live="polite"
-      className="fixed top-2 left-1/2 z-50 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border bg-background/95 px-3 py-1 text-xs font-medium text-amber-700 shadow-sm backdrop-blur dark:text-amber-400"
+      className="fixed top-2 left-1/2 z-50 inline-flex h-9 max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-1.5 rounded-badge bg-card/95 px-3.5 text-caption font-medium text-warning shadow-sm ring-1 ring-border/70 backdrop-blur outline-hidden focus-visible:ring-3 focus-visible:ring-ring"
     >
-      <CloudUpload className="size-3.5" />
+      <CloudUpload className="size-3.5 shrink-0" aria-hidden />
       {text}
     </button>
   );

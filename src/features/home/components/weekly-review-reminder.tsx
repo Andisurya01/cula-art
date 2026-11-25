@@ -4,6 +4,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import type { ReviewReminder } from "@/lib/analytics/review";
 import { reviewReminderView } from "../derive";
+import { cn } from "@/lib/utils";
+import { HOME_ALERT } from "./row-styles";
 
 /** E8: Minggu 18.00 WIB sampai review minggu itu tersimpan; Senin-Selasa untuk review minggu lalu. */
 export function WeeklyReviewReminder({
@@ -16,7 +18,7 @@ export function WeeklyReviewReminder({
   if (!reminder) return null;
   const view = reviewReminderView(reminder);
   return (
-    <Alert className={className} data-kind={reminder.kind}>
+    <Alert className={cn(HOME_ALERT, className)} data-kind={reminder.kind}>
       <NotebookPen />
       <AlertTitle>{view.title}</AlertTitle>
       <AlertDescription>

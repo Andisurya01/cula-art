@@ -38,7 +38,8 @@ export default async function StudioLayout({ children }: { children: React.React
       <AiStatusProvider status={aiStatus}>
         <div className="flex min-h-svh">
           <AppSidebar />
-          <main className="min-w-0 flex-1 px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-10">
+          {/* HP: ruang bawah untuk bilah bottom nav mengambang + tombol + Ide. Desktop: sidebar sudah berjarak 12 px. */}
+          <main className="min-w-0 flex-1 px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] md:pt-8 md:pr-8 md:pb-10 md:pl-6 lg:pl-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
           <BottomNav />

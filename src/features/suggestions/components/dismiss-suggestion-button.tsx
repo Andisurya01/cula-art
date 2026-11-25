@@ -35,11 +35,13 @@ export function DismissSuggestionButton({
     });
   }
 
+  // Kartu saran berlatar abu (`bg-muted`), jadi hover ghost bawaan (juga abu) diganti putih.
   return (
     <Button
       type="button"
       size="sm"
       variant="ghost"
+      className="text-muted-foreground hover:bg-card hover:text-foreground"
       onClick={onClick}
       disabled={pending}
       aria-label={`Sembunyikan 7 hari: ${title}`}

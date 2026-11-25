@@ -9,6 +9,7 @@ import {
   Lightbulb,
   ListChecks,
   NotebookPen,
+  Palette,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -28,6 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: routes.studio.experiments, label: "Eksperimen", icon: FlaskConical },
   { href: routes.studio.review, label: "Review Mingguan", icon: NotebookPen },
   { href: routes.studio.settings, label: "Pengaturan", icon: Settings },
+  { href: routes.studio.appearance, label: "Tampilan", icon: Palette },
 ];
 
 /** Bottom nav HP: Beranda, Pipeline, [+ Ide], Kalender, Lainnya. */

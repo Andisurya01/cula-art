@@ -7,6 +7,7 @@ import { IdeaBankBanner } from "@/features/home/components/idea-bank-banner";
 import { PendingMetricsCard } from "@/features/home/components/pending-metrics-card";
 import { PipelineCard } from "@/features/home/components/pipeline-card";
 import { StaleContentsCard } from "@/features/home/components/stale-contents-card";
+import { StreakCard } from "@/features/home/components/streak-card";
 import { SuggestionsCard } from "@/features/home/components/suggestions-card";
 import { TodayTasksCard } from "@/features/home/components/today-tasks-card";
 import { WeekProgressCard } from "@/features/home/components/week-progress-card";
@@ -30,31 +31,42 @@ export default async function BerandaPage() {
       />
 
       {/*
-        Urutan DOM = urutan di HP: pengingat, lalu progres dan tugas hari ini, lalu saran (apa yang
-        dikerjakan berikutnya), metrik tertunda, dan kesehatan pipeline terakhir.
+        Bento: kolom mengikuti lebar area isi (container query), bukan lebar layar, karena sidebar
+        memakan ruang mulai 768 px. 1 kolom < 576 px, 2 kolom, lalu 3 kolom ≥ 896 px.
+        Urutan DOM = urutan di HP: pengingat, lalu progres, streak, dan tugas hari ini, lalu saran (apa
+        yang dikerjakan berikutnya), metrik tertunda, grafik mini followers, dan kesehatan pipeline terakhir.
       */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <WeeklyReviewReminder reminder={data.reviewReminder} className="md:col-span-2" />
-        <FollowerReminder
-          platforms={data.followerReminders}
-          latest={data.latestFollowers}
-          className="md:col-span-2"
-        />
-        <WeekProgressCard
-          target={data.target}
-          progress={data.progress}
-          streak={data.streak.current}
-          items={data.weekItems}
-        />
-        <TodayTasksCard tasks={data.tasks} now={now} />
-        <SuggestionsCard suggestions={data.suggestions} className="min-w-0 md:col-span-2" />
-        <PendingMetricsCard items={data.pendingMetrics} total={data.pendingTotal} className="md:col-span-2" />
-        {data.followerCards.map((card) => (
-          <FollowerCard key={card.platform} card={card} domain={data.followerDomain} latest={data.latestFollowers} />
-        ))}
-        <IdeaBankBanner newCount={data.newIdeaCount} className="md:col-span-2" />
-        <PipelineCard stageCounts={data.stageCounts} />
-        <StaleContentsCard contents={data.staleContents} now={now} />
+      <div className="@container">
+        <div className="grid grid-cols-1 gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
+          <WeeklyReviewReminder reminder={data.reviewReminder} className="col-span-full" />
+          <FollowerReminder
+            platforms={data.followerReminders}
+            latest={data.latestFollowers}
+            className="col-span-full"
+          />
+          <WeekProgressCard
+            target={data.target}
+            progress={data.progress}
+            items={data.weekItems}
+            className="@xl:col-span-2"
+          />
+          <StreakCard streak={data.streak.current} />
+          <TodayTasksCard tasks={data.tasks} now={now} />
+          <SuggestionsCard suggestions={data.suggestions} className="min-w-0 @xl:col-span-2" />
+          <PendingMetricsCard items={data.pendingMetrics} total={data.pendingTotal} className="col-span-full" />
+          {data.followerCards.map((card) => (
+            <FollowerCard
+              key={card.platform}
+              card={card}
+              domain={data.followerDomain}
+              latest={data.latestFollowers}
+              className="min-w-0"
+            />
+          ))}
+          <PipelineCard stageCounts={data.stageCounts} />
+          <StaleContentsCard contents={data.staleContents} now={now} className="min-w-0 @4xl:col-span-full" />
+          <IdeaBankBanner newCount={data.newIdeaCount} className="col-span-full" />
+        </div>
       </div>
     </>
   );
