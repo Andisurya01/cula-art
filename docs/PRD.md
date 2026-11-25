@@ -121,7 +121,7 @@ Header berisi nama/logo, menu Beranda · Karya · Tentang, dan ikon Instagram/Ti
 
 ### Studio (privat)
 
-Studio punya 11 menu. Di desktop tampil sebagai sidebar; di HP tampil sebagai bottom navigation berisi Beranda, Pipeline, tombol + Ide di tengah, Kalender, dan Lainnya. Menu Karya ditaruh di sidebar setelah Proyek dan Seri.
+Studio punya 12 menu. Di desktop tampil sebagai sidebar; di HP tampil sebagai bottom navigation berisi Beranda, Pipeline, tombol + Ide di tengah, Kalender, dan Lainnya. Menu Karya ditaruh di sidebar setelah Proyek dan Seri, dan menu Tampilan setelah Pengaturan.
 
 | No | Menu | Route | Fungsi | Isi utama |
 | --- | --- | --- | --- | --- |
@@ -136,6 +136,7 @@ Studio punya 11 menu. Di desktop tampil sebagai sidebar; di HP tampil sebagai bo
 | 9 | Review Mingguan | `/studio/review` | Evaluasi dan fokus minggu depan | Ringkasan otomatis, form refleksi, rencana minggu depan |
 | 10 | Pengaturan | `/studio/pengaturan` | Konfigurasi | Pilar, format, hook, slot jadwal, target, profil publik, akun dan keamanan, ekspor dan backup |
 | 11 | Karya | `/studio/karya` | Mengelola karya untuk Galeri | Daftar karya, foto, spesifikasi, publikasi, ketersediaan dan harga |
+| 12 | Tampilan | `/studio/tampilan` | Mengatur tema seluruh situs | Warna terang/gelap, font, ukuran teks h1-h6, radius, animasi, preset, pratinjau, reset ke tampilan awal (Fase 6) |
 
 Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP, shortcut `N` di desktop).
 
@@ -311,9 +312,50 @@ Prinsip desain:
   - Gambar lewat `next/image`: ukuran responsif, WebP/AVIF, lazy load.
   - Target LCP < 2,5 detik di HP dengan 4G.
 - **Batas data:** Galeri tidak pernah menampilkan data Studio, yaitu ide, pipeline, metrik, karya Draft, harga yang disembunyikan, atau catatan internal. Query Galeri terpisah dan hanya memilih field publik.
-- **Tampilan:** bahasa Indonesia (lihat Pertanyaan terbuka soal Inggris); mode terang/gelap mengikuti sistem.
+- **Tampilan:** bahasa Indonesia (lihat Pertanyaan terbuka soal Inggris); mode terang/gelap mengikuti sistem dan bisa diganti lewat tombol di header (mulai Fase 6). Gaya mengikuti bagian "Tampilan dan tema".
 - **Halaman 404** yang ramah untuk karya yang tidak ada atau belum terbit.
 - Tanpa pelacak atau analytics pihak ketiga.
+
+## Tampilan dan tema (Fase 6)
+
+Mulai Fase 6 fokus proyek adalah penyempurnaan tampilan. Rincian keputusan T1-T15 dan nilai default ada di `docs/FASE-6.md`.
+
+**Bahasa visual** (dari referensi pengguna, 25 Nov 2026):
+
+- **Galeri** mengikuti referensi "Euronium":
+  - latar off-white;
+  - judul sangat besar dengan tracking rapat dan dua warna (baris pertama teks utama, baris kedua abu);
+  - label kecil huruf kapital dan nomor bagian "(01)";
+  - tombol pil hitam dengan ikon ↗;
+  - kartu putih radius besar;
+  - pil statistik;
+  - wordmark nama situs raksasa di footer.
+- **Studio** mengikuti referensi "AKA":
+  - kartu bento radius besar;
+  - kartu aksen biru, lime, ungu, dan gelap untuk angka penting;
+  - navigasi dengan status aktif berbentuk pil.
+- **Font:** sans grotesk, default Inter Tight untuk judul dan Inter untuk isi.
+
+**Mode terang dan gelap** di Galeri dan Studio. Pengunjung mengikuti sistem dan bisa mengganti lewat tombol. Pilihan disimpan di browser (localStorage), bukan cookie.
+
+**Token tema:** semua warna, font, ukuran/ketebalan/line-height/tracking teks (display, h1-h6, isi, label), radius per komponen, serta durasi dan easing animasi berasal dari token.
+- Warna diatur per mode; selebihnya berlaku untuk kedua mode.
+- Satu tema untuk Galeri dan Studio.
+- Palet grafik (Fase 4) tetap dan tidak ikut kustomisasi.
+
+**Menu Tampilan** (`/studio/tampilan`):
+- Mode default pengunjung; preset (Monokrom, Bento); warna tab Terang | Gelap dengan lencana kontras WCAG; tipografi; bentuk; animasi.
+- Pratinjau langsung, lalu Simpan, Batalkan perubahan, dan **Reset ke tampilan awal**.
+- Tema yang disimpan berlaku di seluruh situs tanpa kedip saat halaman dimuat.
+
+**Aturan tema:**
+
+- Token divalidasi ketat (hex `#RRGGBB`, angka dalam rentang, font dan easing dari daftar). CSS hanya dibangun dari variabel yang dikenal, sehingga tidak ada teks bebas yang masuk ke CSS.
+- Font hanya dari daftar terkurasi yang di-host sendiri (`next/font`), tanpa request ke Google saat dipakai.
+- Kontras di bawah WCAG (4,5:1 teks biasa, 3:1 judul besar) memunculkan peringatan, tetapi tidak memblokir. Nilai default lolos semua.
+- Animasi (Fase 7) selalu menghormati `prefers-reduced-motion`.
+
+**Hasil implementasi (25 Nov 2026):** selain token T3, ada token status **sukses** dan **peringatan** per mode (menggantikan warna hardcode di Studio dan badge ketersediaan Galeri). Pratinjau menu Tampilan adalah miniatur kanvas selebar desktop atau HP. Tombol + Ide Studio memakai warna bento lime supaya beda dari menu aktif. Rincian di `docs/FASE-6.md` bagian "Hasil dan keputusan implementasi".
 
 ## Autentikasi dan keamanan
 
@@ -542,6 +584,7 @@ Rantai inti Studio: **Idea → Content → Post → MetricSnapshot**. Rantai Gal
 | WeeklyReview | id, weekStart (Senin 00.00 WIB), wins, repeat, stop, focusNext, summaryJson (ringkasan beku), plannedContentIds | satu per minggu (Fase 5) |
 | SuggestionDismissal | id, key (aturan:platform:subjek, unik), until | "Sembunyikan 7 hari" (Fase 5) |
 | Setting | id, weeklyPostTarget, postingSlotsJson, scoreWeightsJson, tiktokHandle, igHandle, followerTargetJson, siteName, tagline, bio (singkat, Beranda), aboutText (panjang, Tentang), avatarKey, city, whatsapp, contactEmail | satu baris |
+| ThemeSetting | id, version, tokensJson (warna per mode, font, tipografi display/h1-h6/isi/label, radius per komponen, animasi, mode default), updatedAt | satu baris (Fase 6); tidak ada = nilai default |
 | Artwork | id, slug (unik), title, summary, description, medium, year, widthCm, heightCm, depthCm, materials, weightGram, projectId, visibility (DRAFT, PUBLISHED, ARCHIVED), availability (NOT_FOR_SALE, AVAILABLE, RESERVED, SOLD), priceIdr, showPrice, isFeatured, featuredOrder, publishedAt | N:1 Project; 1:N ArtworkImage; N:M Content |
 | ArtworkImage | id, artworkId, storageKey, width, height, alt, order, isCover, isProcess (foto progres untuk bagian Proses, bukan foto karya jadi) | N:1 Artwork |
 | ArtworkContent | artworkId, contentId, order | penghubung karya ↔ konten proses |
@@ -584,7 +627,7 @@ Monolit Next.js (App Router, TypeScript) + Prisma. Logika analitik = fungsi murn
 | --- | --- |
 | Framework | Next.js App Router + TypeScript, Server Actions |
 | Database | Prisma + PostgreSQL (dev dan produksi, mulai Fase 2; Fase 1 memakai SQLite) |
-| UI | Shadcn/ui + Tailwind |
+| UI | Shadcn/ui + Tailwind 4; warna, font, ukuran teks, radius, dan animasi dari token tema (`ThemeSetting`) yang dirender sebagai variabel CSS (Fase 6) |
 | Data fetching | TanStack Query (optimistic update) |
 | Form | React Hook Form + Zod |
 | State UI | Zustand |
@@ -684,7 +727,7 @@ prisma/
 - Ekspor CSV/JSON kapan saja; backup harian saat di-hosting.
 - WIB, minggu mulai Senin.
 - UI bahasa Indonesia; istilah platform tetap asli.
-- Mode terang dan gelap.
+- Mode terang dan gelap di Galeri dan Studio, tanpa kedip tema saat halaman dimuat (Fase 6).
 - Unit test untuk semua fungsi `lib/analytics`, termasuk views = 0 dan data kosong.
 - Galeri: LCP < 2,5 detik di HP 4G; Lighthouse ≥ 90 untuk Performance, Accessibility, dan SEO.
 - Keamanan: test otomatis memastikan halaman `/studio` dan Server Action Studio menolak request tanpa sesi valid, dan query Galeri tidak mengembalikan karya Draft atau harga yang disembunyikan.
@@ -700,19 +743,23 @@ flowchart LR
   F3["Fase 3: Asisten AI (persiapan)<br/>Panduan AI, Kembangkan ide,<br/>hook, script, caption,<br/>teks karya dari foto, log biaya"]
   F4["Fase 4: Data ✅<br/>Postingan, Metrik H+1/H+7,<br/>Snapshot followers,<br/>Analitik, Beranda Studio penuh"]
   F5["Fase 5: Saran + AI analisis ✅<br/>Mesin aturan, Eksperimen,<br/>Review mingguan + draf AI,<br/>PWA offline, Ekspor/backup"]
-  F6["Fase 6: Toko<br/>Keranjang, checkout,<br/>pembayaran, ongkir,<br/>pesanan, stok/edisi"]
-  F7["Nanti<br/>Impor API IG/TikTok,<br/>Notifikasi, Tanya data (chat AI)"]
+  F6["Fase 6: Tampilan<br/>Token tema, mode gelap/terang,<br/>menu Tampilan + reset,<br/>redesain Galeri & Studio"]
+  F7["Fase 7: Animasi & interaksi<br/>Transisi halaman, gerak halus,<br/>detail interaksi,<br/>reduced motion"]
+  F8["Fase 8: Toko<br/>Keranjang, checkout,<br/>pembayaran, ongkir,<br/>pesanan, stok/edisi"]
+  F9["Nanti<br/>Impor API IG/TikTok,<br/>Notifikasi, Tanya data (chat AI)"]
   F1 --> F2
   F2 --> F3
   F3 --> F4
   F4 -->|"metrik 10 post pertama tercatat"| F5
-  F5 -->|"ada permintaan beli karya"| F6
+  F5 --> F6
   F6 --> F7
+  F7 -->|"ada permintaan beli karya"| F8
+  F8 --> F9
 ```
 
 Fase 4 (Data) menyiapkan struktur untuk impor API: ID post dari platform di Post, dan sumber data (manual/API) di MetricSnapshot dan AccountSnapshot. Panggilan API-nya sendiri belum ada.
 
-**Fase 6: Toko (garis besar)**
+**Fase 8: Toko (garis besar)**
 
 Dirancang sekarang supaya model data Galeri tidak perlu dibongkar; detailnya diputuskan saat fase ini dimulai.
 
@@ -782,6 +829,12 @@ Rinciannya E1-E11 dan "Hasil dan keputusan implementasi" di `docs/FASE-5.md`; is
 - [x] AI analisis (Draf ringkasan, Kenapa?) hanya mengisi form atau menampilkan penjelasan; grup < 3 post berlabel "data belum cukup".
 - [x] PWA hanya Studio dengan service worker sendiri (tanpa Serwist), scope `/studio`, tanpa cache HTML Studio. Ide offline tersinkron sekali lewat `Idea.offlineId`.
 - [x] Ekspor CSV (pemisah `;`, BOM, WIB) dan JSON tanpa tabel auth; impor/pulihkan belum ada.
+
+**Keputusan (25 November 2026)**
+
+- [x] Mulai sekarang fokus pada penyempurnaan tampilan. Fase 6 = Tampilan (sistem desain, mode gelap/terang, menu Tampilan dengan kustomisasi tersimpan dan reset), Fase 7 = animasi dan detail interaksi, Toko menjadi Fase 8.
+- [x] Bahasa visual diambil dari dua referensi pengguna: "Euronium" untuk Galeri, "AKA" untuk Studio. Fraunces diganti sans grotesk (Inter Tight + Inter).
+- [x] Satu tema untuk Galeri dan Studio; warna per mode, selebihnya bersama. Rincian T1-T15 di `docs/FASE-6.md`.
 
 **Pertanyaan terbuka**
 

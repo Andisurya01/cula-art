@@ -11,7 +11,9 @@ _Nama sementara; sebelumnya Content Growth Planner._ Satu web app di satu domain
 | 3. Asisten AI | Panduan AI, draf ide/hook/script/caption, teks karya dari foto, batas biaya + log, set uji | Selesai 29 Okt 2026 ([docs/FASE-3.md](docs/FASE-3.md)) |
 | 4. Data | Postingan, metrik H+1/H+7, snapshot followers, Analitik, Beranda Studio penuh, target 3 bulan | Selesai 6 Nov 2026 ([docs/FASE-4.md](docs/FASE-4.md)) |
 | 5. Saran + AI analisis | Mesin aturan + kartu saran, Eksperimen A/B, Review Mingguan (+ draf AI), "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON | Selesai 8 Nov 2026 ([docs/FASE-5.md](docs/FASE-5.md)) |
-| 6. Toko | Keranjang, checkout, pembayaran, ongkir, pesanan | Belum |
+| 6. Tampilan | Token tema, mode gelap/terang, menu Tampilan (kustomisasi + reset), redesain Galeri dan Studio | Selesai 25 Nov 2026 ([docs/FASE-6.md](docs/FASE-6.md)) |
+| 7. Animasi & interaksi | Animasi dan detail interaksi dari token tema | Belum |
+| 8. Toko | Keranjang, checkout, pembayaran, ongkir, pesanan | Belum |
 
 ## Kebutuhan
 
@@ -81,7 +83,7 @@ Next.js 16 (App Router, Server Actions, `proxy.ts`) · TypeScript strict · Pris
 src/proxy.ts                    cek cepat cookie sesi untuk /studio/*
 src/app/(galeri)/               Galeri publik: Beranda, karya/, karya/[slug]/, tentang/ (+ opengraph-image)
 src/app/masuk/                  login Studio (password → kode 2FA)
-src/app/studio/(app)/<menu>/    Studio: beranda (/studio), ide, pipeline, kalender, proyek, karya, postingan, analitik, eksperimen, review, pengaturan
+src/app/studio/(app)/<menu>/    Studio: beranda (/studio), ide, pipeline, kalender, proyek, karya, postingan, analitik, eksperimen, review, pengaturan, tampilan
 src/app/studio/ai/               Route Handler Asisten AI (POST → NDJSON bertahap)
 src/app/media/[...key]/         penyaji foto unggahan; src/app/api/health/ cek hidup
 src/features/<domain>/          components/, actions.ts (Server Actions, diawali requireAdmin), schema.ts (Zod), queries.ts
@@ -94,6 +96,9 @@ src/features/suggestions/       input mesin aturan dari database, Sembunyikan 7 
 src/features/experiments/       Eksperimen A/B; src/features/reviews/ Review Mingguan
 src/features/export/            ekspor CSV/JSON (Route Handler src/app/studio/ekspor/[file]/)
 src/features/pwa/               antrean ide offline (IndexedDB) + pendaftaran service worker
+src/features/theme/             tema tampilan: getTheme (sekali per request), simpan/reset, font next/font, menu Tampilan
+src/lib/theme/                  token tema murni: schema Zod, preset Monokrom/Bento, token → CSS, kontras WCAG, daftar font
+src/components/design/          komponen gaya baru: judul dua warna, label bagian, tautan panah, pil statistik, kartu bento, tombol mode
 public/studio-sw.js             service worker Studio (scope /studio); studio-offline.html, studio.webmanifest, studio-icons/
 src/components/charts/          grafik Recharts (hanya Studio)
 src/lib/                        routes.ts (semua path), storage.ts + images.ts (unggah, sharp), slug.ts, date.ts (WIB), db.ts
@@ -115,4 +120,6 @@ docs/                           PRD, rencana fase, DEPLOY
 - Saran dihitung saat Beranda/Review dibuka dari data sendiri (aturan PRD), per platform, dan aturan berbasis data baru aktif jika grupnya punya minimal 3 post. AI analisis (Draf ringkasan, Kenapa?) hanya menjelaskan angka yang dihitung kode.
 - Studio bisa dipasang di layar utama HP (PWA). Service worker hanya meng-cache halaman offline dan ikon, tidak pernah halaman Studio. Ide yang dicatat saat offline masuk Bank Ide sekali saat online.
 - Ekspor di Pengaturan → Ekspor: CSV (pemisah `;`, BOM UTF-8, waktu WIB) dan JSON lengkap tanpa data login. Backup database harian tetap lewat cron server ([docs/DEPLOY.md](docs/DEPLOY.md)).
+- Tampilan diatur di Studio → **Tampilan** (`/studio/tampilan`): warna per mode (dengan cek kontras WCAG), font, ukuran dan ketebalan teks display/h1-h6, radius, durasi animasi, mode default pengunjung, dan preset Monokrom/Bento. Pratinjau langsung sebelum disimpan; **Batalkan perubahan** kembali ke versi tersimpan, **Reset ke tampilan awal** menghapus tema kustom. Tema berlaku untuk Galeri dan Studio tanpa kedip; pengunjung bisa ganti mode terang/gelap lewat tombol di header (disimpan di browser, bukan cookie). Halaman offline PWA dan gambar Open Graph selalu memakai tampilan awal.
+- Komponen hanya memakai token tema (utility `bg-card`, `text-h3`, `rounded-card`, `duration-fast`, …), bukan hex atau warna Tailwind bawaan; dicek `src/lib/theme/token-usage.static.test.ts`.
 - Galeri hanya menampilkan karya Terbit; harga hanya jika "Tampilkan harga" aktif. Foto unggahan diproses ulang tanpa metadata EXIF/GPS.

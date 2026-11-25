@@ -5,9 +5,9 @@ Satu web app, satu domain, dua sisi:
 - **Galeri** (publik, `/`): etalase karya gambar dan patung clay ala katalog marketplace. Nanti menjadi toko.
 - **Studio** (privat, `/studio`, wajib login): content planner untuk konten TikTok/Instagram (target 2-3 post per minggu, keputusan berbasis data) plus pengelolaan karya yang tampil di Galeri.
 
-Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`, Fase 5 di `docs/FASE-5.md`.
+Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`, Fase 5 di `docs/FASE-5.md`, rencana Fase 6 di `docs/FASE-6.md`.
 
-> Status kode (8 Nov 2026): Fase 5 selesai (mesin aturan + kartu saran, Eksperimen, Review Mingguan + draf AI, "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON). Fase 1-4 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
+> Status kode (25 Nov 2026): Fase 6 selesai (token tema `ThemeSetting`, mode gelap/terang di Galeri dan Studio, menu Tampilan dengan pratinjau dan reset, redesain Galeri ala Euronium dan Studio ala AKA). Fase 1-5 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
 
 ## Lingkungan
 
@@ -53,6 +53,11 @@ src/features/suggestions/        # input mesin aturan (queries.ts, satu kali bac
 src/features/experiments/        # Eksperimen A/B; src/features/reviews/ Review Mingguan (ringkasan beku di summaryJson)
 src/features/export/             # ekspor CSV/JSON; Route Handler src/app/studio/ekspor/[file]/route.ts
 src/features/pwa/                # antrean ide offline (offline-queue.ts murni, idb.ts), pendaftaran service worker, hapus cache
+src/features/theme/              # tema: queries.ts (getTheme, cache per request, fallback default), actions.ts (saveTheme/resetTheme),
+                                 # fonts.ts (instance next/font), components/ (menu Tampilan + ThemeShowcase)
+src/lib/theme/                   # token tema murni: schema.ts (Zod strict), defaults.ts (preset Monokrom/Bento), css.ts (token → CSS),
+                                 # contrast.ts (WCAG), fonts.ts (daftar terkurasi), meta.ts (label menu)
+src/components/design/           # komponen gaya Fase 6: TwoToneHeading, SectionLabel/MetaLabel, ArrowLink, StatPill, BentoCard, ThemeModeToggle
 public/studio-sw.js              # service worker Studio (scope /studio); studio-offline.html, studio.webmanifest, studio-icons/
 src/components/charts/           # SATU-SATUNYA pengimpor recharts: TimeLineChart, GroupBarChart, warna per platform
 src/lib/routes.ts                # SEMUA path internal (href, router.push, redirect, revalidatePath)
@@ -135,7 +140,23 @@ Catatan versi (Oktober 2026):
 - **Fase 3 (Asisten AI, persiapan konten):** selesai, lihat `docs/FASE-3.md`. Panduan AI di Pengaturan, tombol Bantu AI (kembangkan ide, ide dari proyek, hook, script/shot list, caption + hashtag, teks karya dari foto), batas biaya, log `AiRun`, set uji. Lihat PRD bagian "Asisten AI".
 - **Fase 4 (data):** selesai, lihat `docs/FASE-4.md`. Postingan, input metrik H+1/H+7, snapshot followers, `lib/analytics`, Analitik (Recharts), Beranda Studio penuh, target 3 bulan. Kolom `Post.externalId` dan `source` sudah ada untuk impor API nanti.
 - **Fase 5 (saran + AI analisis):** selesai, lihat `docs/FASE-5.md`. Mesin aturan `lib/analytics/rules.ts` + kartu saran Beranda (Sembunyikan 7 hari), Eksperimen A/B, Review Mingguan (+ draf ringkasan AI), "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON.
-- **Fase 6 (toko):** keranjang, checkout, pembayaran, ongkir, pesanan.
+- **Fase 6 (tampilan):** selesai, lihat `docs/FASE-6.md`. Token tema (`ThemeSetting`), mode gelap/terang di Galeri dan Studio, menu Tampilan (kustomisasi warna/font/teks h1-h6/radius/animasi, pratinjau, reset ke tampilan awal), redesain Galeri (referensi Euronium) dan Studio (referensi AKA).
+- **Fase 7 (animasi dan interaksi):** animasi dan detail interaksi memakai token animasi Fase 6, selalu menghormati `prefers-reduced-motion`.
+- **Fase 8 (toko):** keranjang, checkout, pembayaran, ongkir, pesanan.
+
+Mulai 25 Nov 2026 fokus proyek adalah penyempurnaan tampilan. Aturan tampilan (berlaku mulai Fase 6):
+
+- Warna, font, ukuran/ketebalan teks, radius, dan durasi animasi hanya lewat token tema (variabel CSS + utility Tailwind dari `@theme inline`). Jangan menulis hex, `oklch(`, atau nama warna Tailwind langsung di komponen, kecuali palet grafik `src/components/charts/` yang tervalidasi.
+- Setiap tampilan dicek di mode terang dan gelap, desktop dan 375 px.
+- Nilai tema dari database selalu lewat validasi Zod `src/lib/theme/`; CSS hanya dibangun dari variabel yang dikenal.
+- Token dirender root layout sebagai `<style id="theme-tokens">` (`buildThemeCss`); `globals.css` hanya memetakan variabel ke utility (`@theme inline`). Tanpa baris `ThemeSetting` = tampilan awal; Reset menghapus baris. Simpan/Reset me-revalidate `/` layout (seluruh situs).
+- Utility tema: warna (`bg-card`, `text-heading-muted`, `bg-bento-lime`, `text-success`, `bg-media` untuk di atas foto), `font-heading`, ukuran (`text-display`, `text-h1`…`text-h6`, `text-body(-lg|-sm)`, `text-caption`, `type-label`, `text-wordmark`), radius (`rounded-card`, `-card-nested`, `-button`, `-input`, `-badge`, `-image`, `-dialog`), animasi (`duration-fast|base|slow`, `ease-standard`). Skala bawaan Tailwind (`text-sm`, `text-2xl`, `rounded-lg`) ikut token sebagai alias. `bg-accent` = warna aksen (ungu), bukan hover; hover = `bg-muted`.
+- `cn` selalu dari `@/lib/utils` (`createCn` yang mengenal utility tema; tanpa itu `text-h1 text-muted-foreground` saling buang). Utility tema baru → daftarkan di `src/lib/utils.ts` (+ `utils.test.ts`).
+- `src/lib/theme/token-usage.static.test.ts` menolak hex, `oklch(`, warna Tailwind bawaan, `text-[..]`/`rounded-[..]` arbitrer, `duration-<angka>`, `ease-in/out`, dan `font-serif/display` di `src/`; pengecualian dicatat di `ALLOWED` beserta alasannya (palet grafik, warna default pilar).
+- Pratinjau tema lokal: `themeVariables(tokens, mode)` sebagai `style` kontainer + `data-theme-preview="light|dark"` (+ kelas `dark`). Varian `dark:` dibatalkan di dalam `data-theme-preview="light"`.
+- Font baru: tambah di `src/lib/theme/fonts.ts` dan instance di `src/features/theme/fonts.ts` (nama variabel sama, `preload: false`; dicek `fonts.static.test.ts`). Hanya font default yang di-preload.
+- Grafik selalu di atas permukaan kartu (`bg-card`): oranye Instagram hanya 2,93:1 di latar halaman `#F5F5F3`.
+- Halaman offline PWA dan gambar Open Graph (`renderOgImage`) memakai nilai default tema, bukan database (T14).
 
 Aturan Asisten AI (berlaku mulai Fase 3):
 
