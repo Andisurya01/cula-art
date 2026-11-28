@@ -21,6 +21,7 @@ import { defaultThemeTokens, matchingPreset, THEME_PRESETS, themeTokensEqual } f
 import { themeTokensSchema, type ThemeTokens } from "@/lib/theme/schema";
 import { cn } from "@/lib/utils";
 import { resetTheme, saveTheme } from "../actions";
+import type { MotionSide } from "@/lib/theme/motion";
 import type { PreviewMode, PreviewWidth } from "../editor-preview";
 import { countInvalid, editorReducer, initEditorState, validateDraft, type ColorMode } from "../editor-state";
 import { ColorSection, failingContrastCount } from "./color-section";
@@ -80,6 +81,7 @@ export function ThemeEditor({ initialTokens, isCustomized }: { initialTokens: Th
   const [colorMode, setColorMode] = useState<ColorMode>("light");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("light");
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("desktop");
+  const [previewMotionSide, setPreviewMotionSide] = useState<MotionSide>("gallery");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const editorRef = useRef<HTMLFieldSetElement>(null);
@@ -183,6 +185,8 @@ export function ThemeEditor({ initialTokens, isCustomized }: { initialTokens: Th
     width: previewWidth,
     onModeChange: setPreviewMode,
     onWidthChange: setPreviewWidth,
+    motionSide: previewMotionSide,
+    onMotionSideChange: setPreviewMotionSide,
   };
 
   return (
@@ -278,7 +282,7 @@ export function ThemeEditor({ initialTokens, isCustomized }: { initialTokens: Th
               <EditorSection
                 id="bagian-animasi"
                 title="Animasi"
-                description="Durasi transisi dan easing."
+                description="Tingkat Galeri dan Studio, durasi, easing, jeda, jarak."
                 icon={<Timer />}
                 status={<Status errors={errorsIn("motion")} />}
                 open={open.motion}

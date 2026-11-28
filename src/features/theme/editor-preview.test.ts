@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { themeVariables } from "@/lib/theme/css";
 import { defaultThemeTokens } from "@/lib/theme/defaults";
 import { TYPE_LEVELS } from "@/lib/theme/schema";
-import { previewVariables, previewZoom } from "./editor-preview";
+import { previewMotionLevel, previewVariables, previewZoom } from "./editor-preview";
 
 describe("variabel pratinjau", () => {
   it("lebar desktop menimpa ukuran setiap level dengan ukuran desktop tetap (bukan vw)", () => {
@@ -47,5 +47,32 @@ describe("variabel pratinjau", () => {
     const tokens = defaultThemeTokens();
     tokens.colors.light.background = "red;}body{color:red";
     expect(() => previewVariables(tokens, "light", "desktop")).toThrow();
+  });
+});
+
+describe("animasi di pratinjau", () => {
+  it("tingkat per sisi dari draf; kurangi gerakan selalu Mati", () => {
+    const tokens = defaultThemeTokens();
+    expect(previewMotionLevel(tokens, "gallery", false)).toBe("full");
+    expect(previewMotionLevel(tokens, "studio", false)).toBe("subtle");
+    expect(previewMotionLevel(tokens, "gallery", true)).toBe("off");
+    tokens.motion.studio = "off";
+    expect(previewMotionLevel(tokens, "studio", false)).toBe("off");
+  });
+
+  it("Mati: durasi, jeda, dan jarak 0 di style kontainer; tingkat lain memakai token", () => {
+    const tokens = defaultThemeTokens();
+    const off = previewVariables(tokens, "light", "desktop", "off");
+    expect(off).toMatchObject({
+      "--motion-fast": "0ms",
+      "--motion-base": "0ms",
+      "--motion-slow": "0ms",
+      "--motion-stagger": "0ms",
+      "--motion-distance": "0px",
+    });
+    const full = previewVariables(tokens, "light", "desktop", "subtle");
+    expect(full["--motion-slow"]).toBe("450ms");
+    expect(full["--motion-stagger"]).toBe("70ms");
+    expect(full["--motion-distance"]).toBe("24px");
   });
 });

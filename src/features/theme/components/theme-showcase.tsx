@@ -4,6 +4,9 @@ import { BentoCard } from "@/components/design/bento-card";
 import { MetaLabel, SectionLabel } from "@/components/design/section-label";
 import { StatPill } from "@/components/design/stat-pill";
 import { TwoToneHeading } from "@/components/design/two-tone-heading";
+import { CountUp } from "@/components/motion/count-up";
+import { motionIndex } from "@/components/motion/motion-utils";
+import { Reveal } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +26,8 @@ import { cn } from "@/lib/utils";
  * Tata letak memakai container query (`@container` + `@xl:` dsb.), bukan breakpoint layar, supaya
  * pratinjau lebar HP (kontainer 375 px) di layar lebar tetap tersusun seperti di HP.
  * `idPrefix`: awalan id elemen, supaya dua pratinjau di satu halaman tidak berbagi id.
+ * Fase 7: contoh memakai primitif animasi yang sama dengan situs (judul per baris, foto tersingkap,
+ * hitung naik, muncul saat di-scroll, hover kartu), jadi tingkat dan token animasi terlihat di sini.
  */
 export function ThemeShowcase({ className, idPrefix = "contoh" }: { className?: string; idPrefix?: string }) {
   return (
@@ -54,10 +59,19 @@ function GalleryHeroSample({ id }: { id: string }) {
     <section aria-labelledby={`${id}-hero`} className="space-y-6">
       <SectionLabel index={1}>Contoh hero Galeri</SectionLabel>
       <div className="grid gap-6 @2xl:grid-cols-[1.4fr_1fr] @2xl:items-end">
-        <TwoToneHeading as="h2" level="display" first="Karya tangan" second="dari meja kecil" id={`${id}-hero`} />
-        <ArtPlaceholder label="Contoh foto karya unggulan" className="aspect-[4/5] w-full max-w-sm justify-self-end" />
+        <TwoToneHeading
+          as="h2"
+          level="display"
+          first="Karya tangan"
+          second="dari meja kecil"
+          id={`${id}-hero`}
+          reveal="load"
+        />
+        <div className="w-full max-w-sm justify-self-end overflow-hidden rounded-image motion-enter-clip" style={motionIndex(1)}>
+          <ArtPlaceholder label="Contoh foto karya unggulan" className="aspect-[4/5] w-full motion-enter-zoom" />
+        </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 motion-enter-fade" style={motionIndex(2)}>
         <MetaLabel>Karya gambar &amp; clay · Sejak 2024</MetaLabel>
         <MetaLabel>(Galeri)</MetaLabel>
         <MetaLabel>Gulir untuk melihat ↓</MetaLabel>
@@ -67,8 +81,8 @@ function GalleryHeroSample({ id }: { id: string }) {
         <Button variant="secondary">Tentang saya</Button>
       </div>
       <div className="grid gap-4 @xl:grid-cols-[1.6fr_1fr]">
-        <StatPill value="48" label="Karya sudah dibuat, semuanya dengan tangan." hint="Gambar · Clay" />
-        <StatPill shape="circle" value="3" label="Tahun berkarya" className="mx-auto @xl:mx-0" />
+        <StatPill value={<CountUp value={48} />} label="Karya sudah dibuat, semuanya dengan tangan." hint="Gambar · Clay" />
+        <StatPill shape="circle" value={<CountUp value={3} />} label="Tahun berkarya" className="mx-auto @xl:mx-0" />
       </div>
     </section>
   );
@@ -81,16 +95,19 @@ function GalleryCardsSample({ id }: { id: string }) {
       <TwoToneHeading id={`${id}-kartu`} level="h2" first="Karya terbaru" second="langsung dari studio" />
       <div className="grid grid-cols-2 gap-4 @2xl:grid-cols-4">
         {["Naga merah", "Kucing tidur", "Rumah lumut", "Burung kertas"].map((title, i) => (
-          <article key={title} className="group space-y-2">
-            <div className="relative">
-              <ArtPlaceholder label={`Foto ${title}`} className="aspect-[4/5]" />
+          <Reveal as="article" key={title} className="group space-y-2">
+            <div className="relative overflow-hidden rounded-image">
+              <ArtPlaceholder
+                label={`Foto ${title}`}
+                className="aspect-[4/5] transition-transform duration-slow ease-standard group-hover:motion-zoom"
+              />
               <Badge variant={i === 1 ? "warning" : i === 2 ? "secondary" : "success"} className="absolute top-3 left-3">
                 {i === 1 ? "Dipesan" : i === 2 ? "Koleksi pribadi" : "Tersedia"}
               </Badge>
             </div>
             <h3 className="font-heading text-h6">{title}</h3>
             <p className="text-sm text-muted-foreground">Clay · 2026</p>
-          </article>
+          </Reveal>
         ))}
       </div>
       <Card className="max-w-md">
@@ -123,16 +140,24 @@ function StudioBentoSample({ id }: { id: string }) {
         Beranda
       </h2>
       <div className="grid gap-4 @md:grid-cols-2 @4xl:grid-cols-4">
-        <BentoCard tone="blue" icon={<TrendingUp />} label="Minggu ini" value="2/3" description="post tayang">
-          <div className="flex h-2 gap-1" aria-hidden>
-            <span className="flex-1 rounded-full bg-current" />
-            <span className="flex-1 rounded-full bg-current" />
-            <span className="flex-1 rounded-full bg-current/30" />
-          </div>
-        </BentoCard>
-        <BentoCard tone="lime" icon={<Flame />} label="Streak" value="4" description="minggu berturut-turut" />
-        <BentoCard tone="purple" icon={<Sparkles />} label="Saran" value="3" description="saran baru dari data" />
-        <BentoCard tone="dark" icon={<CalendarDays />} label="Hari ini" value="2" description="tugas menunggu" />
+        <Reveal>
+          <BentoCard tone="blue" icon={<TrendingUp />} label="Minggu ini" value="2/3" description="post tayang">
+            <div className="flex h-2 gap-1" aria-hidden>
+              <span className="flex-1 rounded-full bg-current motion-grow-x" />
+              <span className="flex-1 rounded-full bg-current motion-grow-x" style={motionIndex(1)} />
+              <span className="flex-1 rounded-full bg-current/30" />
+            </div>
+          </BentoCard>
+        </Reveal>
+        <Reveal>
+          <BentoCard tone="lime" icon={<Flame />} label="Streak" value={<CountUp value={4} />} description="minggu berturut-turut" />
+        </Reveal>
+        <Reveal>
+          <BentoCard tone="purple" icon={<Sparkles />} label="Saran" value="3" description="saran baru dari data" />
+        </Reveal>
+        <Reveal>
+          <BentoCard tone="dark" icon={<CalendarDays />} label="Hari ini" value="2" description="tugas menunggu" />
+        </Reveal>
       </div>
       <div className="grid gap-4 @xl:grid-cols-2">
         <Card>
