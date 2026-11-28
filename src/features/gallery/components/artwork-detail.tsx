@@ -7,7 +7,10 @@ import Link from "next/link";
 import { ImageOff, Mail, MessageCircle } from "lucide-react";
 import type { Availability } from "@prisma/client";
 import { ArrowLink } from "@/components/design/arrow-link";
-import { SectionLabel } from "@/components/design/section-label";
+import { motionIndex } from "@/components/motion/motion-utils";
+import { Reveal } from "@/components/motion/reveal";
+import { RevealLines } from "@/components/motion/reveal-lines";
+import { artworkPhotoTransitionName } from "@/components/motion/view-transitions";
 import { Button } from "@/components/ui/button";
 import { PLATFORM_LABELS } from "@/lib/labels";
 import { routes } from "@/lib/routes";
@@ -22,7 +25,7 @@ import { CopyLinkButton } from "./copy-link-button";
 import { numberSections } from "./home/home-data";
 import { InstagramIcon, TikTokIcon } from "./layout/social-icons";
 import { PhotoGallery, PhotoGrid } from "./photo-gallery";
-import { SectionHeading, galleryContainer, gallerySection } from "./section-heading";
+import { RevealSectionLabel, SectionHeading, galleryContainer, gallerySection } from "./section-heading";
 
 export type ArtworkDetailViewProps = {
   artwork: GalleryArtworkDetail;
@@ -42,6 +45,11 @@ function statusNote(availability: Availability): string | null {
   return null;
 }
 
+/**
+ * Fase 7: foto utama = elemen bersama dari kartu katalog (A8, foto tidak ikut animasi masuk supaya
+ * tidak bertabrakan dengan transisi); panel info masuk berjeda (CSS murni saat halaman tampil);
+ * bagian bernomor (cerita, proses, karya lain) muncul saat di-scroll.
+ */
 export function ArtworkDetailView({ artwork, profile, url, related, preview = false }: ArtworkDetailViewProps) {
   const story = paragraphs(artwork.description);
   const hasProcess = artwork.processImages.length > 0 || artwork.processLinks.length > 0;
@@ -60,12 +68,16 @@ export function ArtworkDetailView({ artwork, profile, url, related, preview = fa
     <article className="pb-4">
       <div className={cn(galleryContainer, "pt-4 sm:pt-6 lg:grid lg:grid-cols-12 lg:gap-12 lg:pt-10 xl:gap-16")}>
         <div className="lg:col-span-7">
-          <PhotoGallery images={artwork.images} title={artwork.title} />
+          <PhotoGallery
+            images={artwork.images}
+            title={artwork.title}
+            transitionName={artworkPhotoTransitionName(artwork.slug)}
+          />
         </div>
 
         <div className="pt-8 lg:col-span-5 lg:pt-0">
           <div className="grid gap-6 lg:sticky lg:top-28">
-            <nav aria-label={copy.breadcrumb}>
+            <nav aria-label={copy.breadcrumb} className="motion-enter">
               <ol className="flex flex-wrap items-center gap-x-2 text-body-sm text-muted-foreground">
                 <li>
                   <Link
@@ -91,7 +103,7 @@ export function ArtworkDetailView({ artwork, profile, url, related, preview = fa
               </ol>
             </nav>
 
-            <header className="-mt-3 grid gap-4">
+            <header className="-mt-3 grid gap-4 motion-enter" style={motionIndex(1)}>
               <h1 className="font-heading text-h2 text-balance wrap-break-word">{artwork.title}</h1>
               {artwork.summary && <p className="text-body-lg text-pretty text-muted-foreground">{artwork.summary}</p>}
             </header>
@@ -99,7 +111,7 @@ export function ArtworkDetailView({ artwork, profile, url, related, preview = fa
             <InfoCard artwork={artwork} profile={profile} url={url} preview={preview} />
 
             {specs.length > 0 && (
-              <dl className="divide-y divide-border border-y border-border">
+              <dl className="divide-y divide-border border-y border-border motion-enter" style={motionIndex(3)}>
                 {specs.map((spec) => (
                   <div key={spec.label} className="grid grid-cols-[7rem_1fr] gap-4 py-3.5 text-body-sm">
                     <dt className="text-muted-foreground">{spec.label}</dt>
@@ -114,36 +126,46 @@ export function ArtworkDetailView({ artwork, profile, url, related, preview = fa
 
       {story.length > 0 && (
         <section aria-labelledby="cerita-karya" className={gallerySection}>
-          <SectionLabel index={index.story} className="mb-10 border-t border-border pt-4 sm:mb-12">
+          <RevealSectionLabel index={index.story} className="mb-10 border-t border-border pt-4 sm:mb-12">
             {copy.storyEyebrow}
-          </SectionLabel>
+          </RevealSectionLabel>
           <div className="grid gap-6 lg:grid-cols-12 lg:gap-12">
-            <h2 id="cerita-karya" className="font-heading text-h2 lg:col-span-4">
-              {copy.storyTitle}
-            </h2>
-            <div className="grid max-w-prose gap-5 text-body-lg text-pretty lg:col-span-8">
+            <RevealLines
+              as="h2"
+              id="cerita-karya"
+              trigger="scroll"
+              lines={[{ content: copy.storyTitle }]}
+              className="font-heading text-h2 lg:col-span-4"
+            />
+            <Reveal className="grid max-w-prose gap-5 text-body-lg text-pretty lg:col-span-8">
               {story.map((paragraph, i) => (
                 <p key={i} className="whitespace-pre-line">
                   {paragraph}
                 </p>
               ))}
-            </div>
+            </Reveal>
           </div>
         </section>
       )}
 
       {hasProcess && (
         <section aria-labelledby="proses-karya" className={gallerySection}>
-          <SectionLabel index={index.process} className="mb-10 border-t border-border pt-4 sm:mb-12">
+          <RevealSectionLabel index={index.process} className="mb-10 border-t border-border pt-4 sm:mb-12">
             {copy.processEyebrow}
-          </SectionLabel>
+          </RevealSectionLabel>
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
             <div className="grid content-start gap-4 lg:col-span-4">
-              <h2 id="proses-karya" className="font-heading text-h2">
-                {copy.processTitle}
-              </h2>
-              {artwork.processImages.length > 0 && <p className="text-muted-foreground">{copy.processIntro}</p>}
-              <ProcessLinks links={artwork.processLinks} />
+              <RevealLines
+                as="h2"
+                id="proses-karya"
+                trigger="scroll"
+                lines={[{ content: copy.processTitle }]}
+                className="font-heading text-h2"
+              />
+              <Reveal className="grid gap-4">
+                {artwork.processImages.length > 0 && <p className="text-muted-foreground">{copy.processIntro}</p>}
+                <ProcessLinks links={artwork.processLinks} />
+              </Reveal>
             </div>
             {artwork.processImages.length > 0 && (
               <div className="lg:col-span-8">
@@ -203,7 +225,11 @@ function InfoCard({
   const note = preview ? (inquiry ? copy.previewDisabled : copy.previewNoContact) : inquiry ? copy.inquiryNote : null;
 
   return (
-    <section aria-label={copy.infoLabel} className="grid gap-4 rounded-card bg-card p-4 text-card-foreground ring-1 ring-border/70 sm:p-5">
+    <section
+      aria-label={copy.infoLabel}
+      className="grid gap-4 rounded-card bg-card p-4 text-card-foreground ring-1 ring-border/70 motion-enter sm:p-5"
+      style={motionIndex(2)}
+    >
       <div className="flex items-center gap-4">
         <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground">
           {artwork.cover ? (

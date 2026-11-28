@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ArrowLink } from "@/components/design/arrow-link";
-import { SectionLabel } from "@/components/design/section-label";
 import { StatPill } from "@/components/design/stat-pill";
+import { CountUp } from "@/components/motion/count-up";
+import { Reveal } from "@/components/motion/reveal";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { catalogHref } from "../../catalog";
@@ -12,13 +13,16 @@ import type { GalleryArtworkCard, GalleryProfile, GalleryStats } from "../../dto
 import type { GalleryMediumShortcut } from "../../queries";
 import { ArtworkCard, CARD_SIZES } from "../artwork-card";
 import { SocialPills } from "../profile-links";
-import { SectionHeading, gallerySection } from "../section-heading";
+import { RevealSectionLabel, SectionHeading, gallerySection } from "../section-heading";
 import { hasProfileSummary, yearsActive } from "./home-data";
 
 const copy = galleryCopy.home;
-const numberFormatter = new Intl.NumberFormat("id-ID");
 
-/** Sekilas: pil statistik (jumlah karya Terbit, medium, tahun berkarya) dengan gradien halus. */
+/**
+ * Sekilas: pil statistik (jumlah karya Terbit, medium, tahun berkarya) dengan gradien halus.
+ * Fase 7: pil muncul saat di-scroll dan angkanya menghitung naik sekali (nilai akhir tetap di HTML,
+ * format ribuan gaya Indonesia sama dengan sebelumnya).
+ */
 export function StatsSection({ stats, index }: { stats: GalleryStats; index?: number }) {
   if (stats.artworkCount === 0) return null;
   const years = yearsActive(stats);
@@ -27,28 +31,33 @@ export function StatsSection({ stats, index }: { stats: GalleryStats; index?: nu
     <section aria-labelledby="sekilas" className={gallerySection}>
       <SectionHeading id="sekilas" index={index} eyebrow={copy.statsLabel} title={copy.statsTitle} second={copy.statsSecond} />
       <ul className="grid grid-cols-2 items-center gap-4 md:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-6">
-        <li className="col-span-2 md:col-span-1">
+        <Reveal as="li" className="col-span-2 md:col-span-1">
           <StatPill
-            value={numberFormatter.format(stats.artworkCount)}
+            value={<CountUp value={stats.artworkCount} />}
             label={copy.statsCountLabel(stats.artworkCount)}
             hint={mediumNames || undefined}
           />
-        </li>
+        </Reveal>
         {stats.mediums.length > 0 && (
-          <li>
-            <StatPill shape="circle" value={stats.mediums.length} label={copy.statsMediumLabel(stats.mediums.length)} className="mx-auto" />
-          </li>
-        )}
-        {years !== null && stats.firstYear !== null && stats.lastYear !== null && (
-          <li>
+          <Reveal as="li">
             <StatPill
               shape="circle"
-              value={years}
+              value={<CountUp value={stats.mediums.length} />}
+              label={copy.statsMediumLabel(stats.mediums.length)}
+              className="mx-auto"
+            />
+          </Reveal>
+        )}
+        {years !== null && stats.firstYear !== null && stats.lastYear !== null && (
+          <Reveal as="li">
+            <StatPill
+              shape="circle"
+              value={<CountUp value={years} />}
               label={copy.statsYearsLabel}
               hint={copy.yearsRange(stats.firstYear, stats.lastYear)}
               className="mx-auto"
             />
-          </li>
+          </Reveal>
         )}
       </ul>
     </section>
@@ -103,7 +112,10 @@ export function LatestSection({ artworks, index }: { artworks: GalleryArtworkCar
   );
 }
 
-/** Pintasan per medium ke katalog terfilter: kartu radius besar dengan cover karya sebagai latar. */
+/**
+ * Pintasan per medium ke katalog terfilter: kartu radius besar dengan cover karya sebagai latar.
+ * Fase 7: kartu muncul berjeda saat di-scroll; hover/fokus foto membesar halus dan ikon ↗ bergeser.
+ */
 export function MediumSection({ shortcuts, index }: { shortcuts: GalleryMediumShortcut[]; index?: number }) {
   if (shortcuts.length === 0) return null;
   const three = shortcuts.length >= 3;
@@ -119,7 +131,7 @@ export function MediumSection({ shortcuts, index }: { shortcuts: GalleryMediumSh
       />
       <ul className={cn("grid grid-cols-2 gap-4 lg:gap-6", three && "sm:grid-cols-3")}>
         {shortcuts.map(({ medium, count, cover }) => (
-          <li key={medium}>
+          <Reveal as="li" key={medium}>
             <Link
               href={catalogHref({ medium })}
               className={cn(
@@ -133,7 +145,7 @@ export function MediumSection({ shortcuts, index }: { shortcuts: GalleryMediumSh
                   alt=""
                   fill
                   sizes={sizes}
-                  className="object-cover transition-transform duration-slow ease-standard group-hover:scale-[1.04]"
+                  className="object-cover transition-transform duration-slow ease-standard group-hover:motion-zoom group-focus-visible:motion-zoom"
                 />
               )}
               <span
@@ -151,30 +163,30 @@ export function MediumSection({ shortcuts, index }: { shortcuts: GalleryMediumSh
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "hidden size-10 shrink-0 items-center justify-center rounded-full transition-transform duration-fast ease-standard group-hover:-translate-y-0.5 sm:inline-flex",
+                    "hidden size-10 shrink-0 items-center justify-center rounded-full sm:inline-flex",
                     cover ? "bg-media-foreground text-media" : "bg-primary text-primary-foreground",
                   )}
                 >
-                  <ArrowUpRight className="size-4" />
+                  <ArrowUpRight className="size-4 transition-transform duration-base ease-standard group-hover:motion-nudge group-focus-visible:motion-nudge" />
                 </span>
               </span>
             </Link>
-          </li>
+          </Reveal>
         ))}
       </ul>
     </section>
   );
 }
 
-/** Profil singkat: kartu putih berisi foto, nama, bio, tautan sosial, dan tautan ke Tentang. */
+/** Profil singkat: kartu putih berisi foto, nama, bio, tautan sosial, dan tautan ke Tentang (muncul saat di-scroll). */
 export function ProfileSection({ profile, index }: { profile: GalleryProfile; index?: number }) {
   if (!hasProfileSummary(profile)) return null;
   return (
     <section aria-labelledby="profil-singkat" className={gallerySection}>
-      <SectionLabel index={index} className="mb-10 border-t border-border pt-4 sm:mb-12">
+      <RevealSectionLabel index={index} className="mb-10 border-t border-border pt-4 sm:mb-12">
         {copy.profileEyebrow}
-      </SectionLabel>
-      <div className="grid gap-8 rounded-card bg-card p-6 ring-1 ring-border/70 sm:p-10 md:grid-cols-[auto_1fr] md:items-start md:gap-12 lg:p-14">
+      </RevealSectionLabel>
+      <Reveal className="grid gap-8 rounded-card bg-card p-6 ring-1 ring-border/70 sm:p-10 md:grid-cols-[auto_1fr] md:items-start md:gap-12 lg:p-14">
         {profile.avatarSrc && (
           <div className="relative size-28 overflow-hidden rounded-full bg-muted sm:size-40">
             <Image src={profile.avatarSrc} alt={profile.siteName} fill sizes="160px" className="object-cover" />
@@ -194,7 +206,7 @@ export function ProfileSection({ profile, index }: { profile: GalleryProfile; in
             <SocialPills profile={profile} />
           </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

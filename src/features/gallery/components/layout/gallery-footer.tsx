@@ -3,6 +3,7 @@ import { ArrowUp, ArrowUpRight } from "lucide-react";
 import { ArrowLink } from "@/components/design/arrow-link";
 import { MetaLabel } from "@/components/design/section-label";
 import { TwoToneHeading } from "@/components/design/two-tone-heading";
+import { RevealLines } from "@/components/motion/reveal-lines";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,12 @@ function FooterColumn({ title, children }: { title: string; children: React.Reac
   );
 }
 
-/** Footer Galeri: ajakan kontak, kolom tautan, dan wordmark nama situs raksasa di kartu putih. */
+/**
+ * Footer Galeri: ajakan kontak, kolom tautan, dan wordmark nama situs raksasa di kartu putih.
+ * Fase 7: judul ajakan muncul per baris dan wordmark tersingkap naik saat di-scroll (`RevealLines`:
+ * jendela pemotong lebih besar dari kotak baris, jadi huruf tidak terpotong setelah muncul; tanpa
+ * JS / Mati / kurangi gerakan langsung diam di tempat).
+ */
 export function GalleryFooter({ profile }: { profile: GalleryProfile }) {
   const wa = normalizeWhatsapp(profile.whatsapp);
   const year = new Date().getFullYear();
@@ -50,7 +56,7 @@ export function GalleryFooter({ profile }: { profile: GalleryProfile }) {
       <div className="overflow-hidden rounded-card bg-card px-6 pt-10 pb-6 text-card-foreground ring-1 ring-border/70 sm:px-10 sm:pt-14 lg:px-14">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="grid content-start justify-items-start gap-6 lg:col-span-6">
-            <TwoToneHeading as="h2" level="h2" first={copy.ctaFirst} second={copy.ctaSecond} />
+            <TwoToneHeading as="h2" level="h2" first={copy.ctaFirst} second={copy.ctaSecond} reveal="scroll" />
             {wa ? (
               <ArrowLink href={whatsappLink(wa, galleryCopy.about.whatsappMessage)} external size="lg">
                 {copy.ctaWhatsapp}
@@ -113,12 +119,14 @@ export function GalleryFooter({ profile }: { profile: GalleryProfile }) {
         </div>
 
         {/* Wordmark hiasan: nama situs sudah dibaca di header, jadi disembunyikan dari pembaca layar. */}
-        <p
-          aria-hidden="true"
-          className={cn("mt-16 font-heading text-balance wrap-break-word sm:mt-20", wordmarkClass(profile.siteName))}
-        >
-          {profile.siteName}
-        </p>
+        <div aria-hidden="true" className="mt-16 sm:mt-20">
+          <RevealLines
+            as="p"
+            trigger="scroll"
+            lines={[{ content: profile.siteName }]}
+            className={cn("font-heading text-balance wrap-break-word", wordmarkClass(profile.siteName))}
+          />
+        </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4">
           <MetaLabel>{copy.rights(year, profile.siteName)}</MetaLabel>

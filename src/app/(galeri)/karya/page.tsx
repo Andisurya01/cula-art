@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { catalogHref, parseCatalogParams } from "@/features/gallery/catalog";
 import { CatalogFilterForm } from "@/features/gallery/components/catalog/catalog-filters";
 import { TwoToneHeading } from "@/components/design/two-tone-heading";
+import { motionIndex } from "@/components/motion/motion-utils";
+import { SwapTransition } from "@/components/motion/view-transitions";
 import { CatalogResults } from "@/features/gallery/components/catalog/catalog-results";
 import { galleryContainer } from "@/features/gallery/components/section-heading";
 import { galleryCopy } from "@/features/gallery/copy";
@@ -42,6 +44,10 @@ export default async function CatalogPage({ searchParams }: Props) {
   const filters = parseCatalogParams(await searchParams);
   const [{ items, total }, years] = await Promise.all([getCatalog(filters), getCatalogYears()]);
   const heading = filters.medium ? galleryCopy.medium[filters.medium] : galleryCopy.catalog.title;
+  // Kunci crossfade hasil = filter aktif tanpa halaman: filter berubah → hasil lama/baru memudar
+  // (View Transition; filter bernavigasi lewat router.push/Link di dalam transition). "Muat lagi"
+  // (halaman berubah) tidak mengganti kunci, jadi kartu lama tetap dan hanya kartu baru yang muncul.
+  const swapKey = catalogHref({ ...filters, page: 1 });
 
   return (
     <div className={cn(galleryContainer, "pt-8 sm:pt-12 lg:pt-16")}>
@@ -51,14 +57,20 @@ export default async function CatalogPage({ searchParams }: Props) {
           level="h1"
           first={heading}
           second={galleryCopy.catalog.titleSecond}
+          reveal="load"
           className="wrap-break-word lg:col-span-8"
         />
-        <p className="max-w-md text-body-lg text-pretty text-muted-foreground lg:col-span-4 lg:justify-self-end">
+        <p
+          className="max-w-md text-body-lg text-pretty text-muted-foreground motion-enter-fade lg:col-span-4 lg:justify-self-end"
+          style={motionIndex(2)}
+        >
           {galleryCopy.catalog.intro}
         </p>
       </header>
       <CatalogFilterForm filters={filters} years={years} total={total}>
-        <CatalogResults filters={filters} items={items} total={total} />
+        <SwapTransition swapKey={swapKey} name="katalog-hasil">
+          <CatalogResults filters={filters} items={items} total={total} />
+        </SwapTransition>
       </CatalogFilterForm>
     </div>
   );

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { SearchX } from "lucide-react";
+import { motionIndex } from "@/components/motion/motion-utils";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CATALOG_MAX_PAGE, catalogHref, hasActiveFilters, type CatalogFilters } from "../../catalog";
+import { CATALOG_MAX_PAGE, CATALOG_PAGE_SIZE, catalogHref, hasActiveFilters, type CatalogFilters } from "../../catalog";
 import { galleryCopy } from "../../copy";
 import type { GalleryArtworkCard } from "../../dto";
 import { ArtworkCard, CARD_SIZES } from "../artwork-card";
@@ -10,7 +11,12 @@ import { LoadMoreLink } from "./load-more";
 
 const copy = galleryCopy.catalog;
 
-/** Grid katalog (2 / 3 / 4 kolom), "Muat lagi", atau empty state. Judul kartu = h2 (di bawah h1 "Karya"). */
+/**
+ * Grid katalog (2 / 3 / 4 kolom), "Muat lagi", atau empty state. Judul kartu = h2 (di bawah h1 "Karya").
+ * Fase 7: foto kartu menjadi elemen bersama ke detail (A8). Kartu baru dari "Muat lagi" muncul
+ * berjeda: yang langsung terlihat lewat `motion-enter` (hanya batch baru, kartu lama tidak diputar
+ * ulang), yang di bawah layar lewat `Reveal` di kartu.
+ */
 export function CatalogResults({
   filters,
   items,
@@ -45,17 +51,24 @@ export function CatalogResults({
   }
 
   const hasMore = items.length < total && filters.page < CATALOG_MAX_PAGE;
+  // Halaman 1 = muatan awal (kartu di layar pertama diam, sisanya Reveal); halaman > 1 = batch baru.
+  const batchStart = filters.page > 1 ? (filters.page - 1) * CATALOG_PAGE_SIZE : Number.POSITIVE_INFINITY;
   return (
     <>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
         {items.map((artwork, i) => (
-          <li key={artwork.slug}>
+          <li
+            key={artwork.slug}
+            className={i >= batchStart ? "motion-enter" : undefined}
+            style={i >= batchStart ? motionIndex(i - batchStart) : undefined}
+          >
             <ArtworkCard
               artwork={artwork}
               sizes={CARD_SIZES.catalog}
               headingLevel="h2"
               // Baris pertama di HP/desktop langsung dimuat; kartu pertama kandidat LCP.
               loading={i === 0 ? "high" : i < 4 ? "eager" : "lazy"}
+              sharedTransition
             />
           </li>
         ))}

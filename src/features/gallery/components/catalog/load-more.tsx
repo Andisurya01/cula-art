@@ -13,7 +13,7 @@ function LoadMoreLabel() {
       {/* Ikon selalu dirender (opacity saja yang berubah) supaya tombol tidak bergeser. */}
       <LoaderCircle
         aria-hidden="true"
-        className={cn("size-4 animate-spin transition-opacity", pending ? "opacity-100" : "opacity-0")}
+        className={cn("size-4 transition-opacity", pending ? "animate-spin opacity-100" : "opacity-0")}
       />
       {pending ? galleryCopy.catalog.loading : galleryCopy.catalog.loadMore}
       <span className="size-4" aria-hidden="true" />

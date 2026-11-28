@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLink } from "@/components/design/arrow-link";
 import { MetaLabel } from "@/components/design/section-label";
 import { TwoToneHeading } from "@/components/design/two-tone-heading";
+import { motionIndex } from "@/components/motion/motion-utils";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { galleryCopy } from "../../copy";
@@ -25,6 +26,9 @@ function heroRatio(cover: GalleryImage): number {
  * Hero Beranda (gaya referensi Galeri): judul display dua warna (nama situs + tagline), foto karya
  * unggulan besar yang "keluar" dari bingkai kartu, tombol pil ↗, dan baris label meta
  * ("KARYA GAMBAR & CLAY · SEJAK 2024", dari karya Terbit). Foto hero = kandidat LCP (di-preload).
+ * Fase 7 (CSS murni, tanpa menunggu hidrasi; diam tanpa JS / tingkat Mati / kurangi gerakan): judul
+ * muncul per baris (urutan 0-1), foto tersingkap bersamaan dengan judul (urutan 0, supaya LCP tidak
+ * tertunda; gambar tetap dimuat segera), lalu pengantar, tombol, dan label meta menyusul berjeda.
  */
 export function HomeHero({
   profile,
@@ -51,6 +55,7 @@ export function HomeHero({
           level="display"
           first={profile.siteName}
           second={second}
+          reveal="load"
           className={cn("wrap-break-word", withPhoto && "lg:col-span-7 lg:row-start-1")}
         />
 
@@ -60,9 +65,13 @@ export function HomeHero({
 
         {(lead || showActions) && (
           <div className={cn("grid content-end gap-6", withPhoto && "lg:col-span-6 lg:row-start-2")}>
-            {lead && <p className="max-w-md text-body-lg text-pretty text-muted-foreground">{lead}</p>}
+            {lead && (
+              <p className="max-w-md text-body-lg text-pretty text-muted-foreground motion-enter-fade" style={motionIndex(2)}>
+                {lead}
+              </p>
+            )}
             {showActions && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 motion-enter" style={motionIndex(3)}>
                 <ArrowLink href={routes.gallery.catalog} size="lg">
                   {galleryCopy.home.viewWorks}
                 </ArrowLink>
@@ -75,7 +84,10 @@ export function HomeHero({
         )}
       </div>
 
-      <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4 lg:mt-16">
+      <div
+        className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border pt-4 motion-enter-fade lg:mt-16"
+        style={motionIndex(4)}
+      >
         <MetaLabel>{galleryCopy.home.metaLine(stats.mediums, stats.firstYear)}</MetaLabel>
         {profile.city && <MetaLabel className="hidden sm:inline">({profile.city})</MetaLabel>}
         {showActions && <MetaLabel className="hidden sm:inline">{galleryCopy.home.scrollHint}</MetaLabel>}
@@ -101,14 +113,18 @@ function HeroFigure({
   return (
     <figure className={cn("relative isolate pt-6 sm:pt-10", className)}>
       {/* Bingkai di belakang (z negatif dalam figure yang terisolasi), mulai di bawah tepi atas foto. */}
-      <div aria-hidden="true" className="absolute inset-x-0 top-24 bottom-0 -z-10 rounded-card bg-card ring-1 ring-border/70 sm:top-36" />
       <div
-        className="relative mx-auto w-[86%] overflow-hidden rounded-image bg-muted shadow-lg"
+        aria-hidden="true"
+        className="absolute inset-x-0 top-24 bottom-0 -z-10 rounded-card bg-card ring-1 ring-border/70 motion-enter-fade sm:top-36"
+      />
+      {/* Foto tersingkap dari bawah (clip-path di bingkai) sambil sedikit mengecil ke ukuran asli. */}
+      <div
+        className="relative mx-auto w-[86%] overflow-hidden rounded-image bg-muted shadow-lg motion-enter-clip"
         style={{ aspectRatio: String(heroRatio(cover)) }}
       >
-        <Image src={cover.src} alt={cover.alt} fill sizes={HERO_SIZES} preload className="object-cover" />
+        <Image src={cover.src} alt={cover.alt} fill sizes={HERO_SIZES} preload className="object-cover motion-enter-zoom" />
       </div>
-      <figcaption className="flex items-end justify-between gap-4 p-5 sm:p-6">
+      <figcaption className="flex items-end justify-between gap-4 p-5 motion-enter-fade sm:p-6" style={motionIndex(3)}>
         <span className="grid min-w-0 gap-1">
           <span className="type-label text-muted-foreground">{galleryCopy.home.heroCaptionLabel}</span>
           <Link
@@ -129,7 +145,7 @@ function HeroFigure({
 export function HomeEmpty({ profile }: { profile: GalleryProfile }) {
   return (
     <section aria-labelledby="karya-disiapkan" className={cn(galleryContainer, "pt-16 sm:pt-20")}>
-      <div className="grid max-w-2xl gap-4 rounded-card bg-card p-6 ring-1 ring-border/70 sm:p-10">
+      <div className="grid max-w-2xl gap-4 rounded-card bg-card p-6 ring-1 ring-border/70 motion-enter sm:p-10">
         <h2 id="karya-disiapkan" className="font-heading text-h3">
           {galleryCopy.home.emptyTitle}
         </h2>

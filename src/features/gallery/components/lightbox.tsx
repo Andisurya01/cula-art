@@ -3,10 +3,12 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
+import { motionLevelOf } from "@/components/motion/use-motion-level";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { galleryCopy } from "../copy";
 import type { GalleryImage } from "../dto";
+import { lightboxOrigin, type LightboxOrigin } from "./lightbox-origin";
 import {
   IDENTITY_VIEW,
   TAP_SCALE,
@@ -35,9 +37,30 @@ const iconButton =
   "inline-flex size-11 items-center justify-center rounded-full bg-media-foreground/10 text-media-foreground backdrop-blur transition-colors hover:bg-media-foreground/20 outline-hidden focus-visible:ring-2 focus-visible:ring-media-foreground";
 
 /**
+ * Asal zoom dari foto di layar (Fase 7). Dibaca di event handler (klik buka / tutup), bukan saat render.
+ * Tingkat animasi Mati / "kurangi gerakan" → null (buka/tutup langsung).
+ */
+export function lightboxOriginOf(element: Element | null | undefined): LightboxOrigin | null {
+  if (!element) return null;
+  return lightboxOrigin(element.getBoundingClientRect(), window.innerWidth, motionLevelOf(element));
+}
+
+/** `transform-origin` + skala awal/akhir animasi masuk/keluar Dialog (tw-animate, durasi token). */
+function originStyle(origin: LightboxOrigin | null | undefined): React.CSSProperties | undefined {
+  if (!origin) return undefined;
+  return {
+    transformOrigin: `${origin.x}px ${origin.y}px`,
+    "--tw-enter-scale": origin.scale,
+    "--tw-exit-scale": origin.scale,
+  } as React.CSSProperties;
+}
+
+/**
  * Foto layar penuh: geser kiri/kanan (atau panah keyboard) untuk ganti foto, ketuk/klik untuk zoom,
  * cubit untuk zoom bebas, seret untuk menggeser foto yang diperbesar, roda mouse untuk zoom.
  * Foto asli (maks. 2400 px) dimuat tanpa optimasi supaya detail tetap tajam saat diperbesar.
+ * Fase 7: membuka dan menutup dengan zoom dari foto asal (`origin`, hanya transform/opacity; durasi
+ * dan easing token Dialog). Tanpa `origin` (gerak Mati) = animasi Dialog bawaan, yang 0 ms saat Mati.
  */
 export function Lightbox({
   images,
@@ -45,6 +68,7 @@ export function Lightbox({
   onIndexChange,
   onClose,
   title,
+  origin,
 }: {
   images: GalleryImage[];
   /** Foto yang dibuka; null = tertutup. */
@@ -52,6 +76,11 @@ export function Lightbox({
   onIndexChange: (index: number) => void;
   onClose: () => void;
   title: string;
+  /**
+   * Asal zoom (`lightboxOriginOf` foto yang diklik saat membuka; foto yang sedang tampil saat menutup).
+   * Diisi pemanggil bersamaan dengan `index`, supaya render buka/tutup sudah memakai asal yang benar.
+   */
+  origin?: LightboxOrigin | null;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, Point>());
@@ -60,7 +89,12 @@ export function Lightbox({
   const [gesturing, setGesturing] = useState(false);
 
   const total = images.length;
-  const current = index !== null ? images[index] : undefined;
+  // Foto terakhir tetap dirender selama animasi tutup (`index` sudah null), supaya layar penuh
+  // mengecil kembali ke foto asal bersama fotonya, bukan sebagai bidang kosong.
+  const [lastIndex, setLastIndex] = useState(index);
+  if (index !== null && index !== lastIndex) setLastIndex(index);
+  const shownIndex = index ?? lastIndex;
+  const current = shownIndex !== null ? images[shownIndex] : undefined;
   const zoomed = view.scale > 1;
 
   function resetGesture() {
@@ -176,14 +210,15 @@ export function Lightbox({
           else if (event.key === "ArrowLeft") go(-1);
         }}
         className="top-0 left-0 flex h-svh max-h-none w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-media p-0 text-media-foreground ring-0 sm:max-w-none"
+        style={originStyle(origin)}
       >
         <DialogTitle className="sr-only">
-          {current && index !== null ? `${title}, ${galleryCopy.detail.photoLabel(index + 1, total)}` : title}
+          {current && shownIndex !== null ? `${title}, ${galleryCopy.detail.photoLabel(shownIndex + 1, total)}` : title}
         </DialogTitle>
 
         <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <p className="rounded-badge bg-media-foreground/10 px-3 py-1.5 text-body-sm tabular-nums backdrop-blur" aria-hidden="true">
-            {index !== null && galleryCopy.lightbox.counter(index + 1, total)}
+            {shownIndex !== null && galleryCopy.lightbox.counter(shownIndex + 1, total)}
           </p>
           <div className="flex gap-2">
             <button
@@ -214,7 +249,8 @@ export function Lightbox({
         >
           {current && (
             <div
-              className="absolute inset-0 will-change-transform"
+              // will-change hanya selama zoom/gestur (tidak dipasang permanen).
+              className={cn("absolute inset-0", (zoomed || gesturing) && "will-change-transform")}
               style={{
                 transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
                 // Durasi dan easing dari token tema (0 saat prefers-reduced-motion).
