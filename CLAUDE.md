@@ -5,9 +5,9 @@ Satu web app, satu domain, dua sisi:
 - **Galeri** (publik, `/`): etalase karya gambar dan patung clay ala katalog marketplace. Nanti menjadi toko.
 - **Studio** (privat, `/studio`, wajib login): content planner untuk konten TikTok/Instagram (target 2-3 post per minggu, keputusan berbasis data) plus pengelolaan karya yang tampil di Galeri.
 
-Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`, Fase 5 di `docs/FASE-5.md`, rencana Fase 6 di `docs/FASE-6.md`.
+Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur baru; jika implementasi menyimpang dari PRD, tanyakan dulu atau perbarui PRD di commit yang sama. Fase 1 ada di `docs/FASE-1.md`, Fase 2 di `docs/FASE-2.md`, Fase 3 di `docs/FASE-3.md`, Fase 4 di `docs/FASE-4.md`, Fase 5 di `docs/FASE-5.md`, Fase 6 di `docs/FASE-6.md`, Fase 7 di `docs/FASE-7.md`.
 
-> Status kode (25 Nov 2026): Fase 6 selesai (token tema `ThemeSetting`, mode gelap/terang di Galeri dan Studio, menu Tampilan dengan pratinjau dan reset, redesain Galeri ala Euronium dan Studio ala AKA). Fase 1-5 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
+> Status kode (28 Nov 2026): Fase 7 selesai (animasi dan interaksi dari token: tingkat Mati/Halus/Penuh per sisi di menu Tampilan, muncul saat di-scroll, judul per baris, hitung naik, skeleton `loading.tsx`, transisi antarhalaman dan ganti mode lewat View Transitions, selalu menghormati "kurangi gerakan"). Fase 1-6 selesai; deploy ke VPS menunggu domain + VPS (`docs/DEPLOY.md`). Keputusan implementasi di akhir setiap `docs/FASE-*.md`.
 
 ## Lingkungan
 
@@ -36,7 +36,8 @@ Spesifikasi lengkap ada di `docs/PRD.md`. Baca PRD sebelum mengerjakan fitur bar
 src/proxy.ts                     # cek cepat cookie sesi untuk /studio/* → /masuk?next=
 src/app/(galeri)/                # Galeri publik: layout, page (/), karya/, karya/[slug]/, tentang/
 src/app/masuk/                   # login Studio (password → 2FA)
-src/app/studio/(app)/<menu>/     # Studio: page.tsx = /studio; ide, pipeline, kalender, proyek, karya, postingan, analitik, eksperimen, review, pengaturan
+src/app/studio/(app)/<menu>/     # Studio: (beranda)/page.tsx = /studio; ide, pipeline, kalender, proyek, karya, postingan, analitik, eksperimen, review, pengaturan, tampilan
+                                 # template.tsx (crossfade antarmenu), loading.tsx (skeleton) di Beranda, Postingan, Analitik, Pipeline, Kalender, Review
 src/app/media/[...key]/route.ts  # penyaji file unggahan (publik, cache immutable)
 src/app/sitemap.ts, robots.ts
 src/features/<domain>/           # components/, actions.ts, schema.ts, queries.ts
@@ -58,6 +59,9 @@ src/features/theme/              # tema: queries.ts (getTheme, cache per request
 src/lib/theme/                   # token tema murni: schema.ts (Zod strict), defaults.ts (preset Monokrom/Bento), css.ts (token → CSS),
                                  # contrast.ts (WCAG), fonts.ts (daftar terkurasi), meta.ts (label menu)
 src/components/design/           # komponen gaya Fase 6: TwoToneHeading, SectionLabel/MetaLabel, ArrowLink, StatPill, BentoCard, ThemeModeToggle
+src/components/motion/           # primitif animasi Fase 7: Reveal/useReveal, RevealLines, CountUp, useMotionLevel, MotionRoot,
+                                 # view-transitions (SharedElement, PageTransition, SwapTransition), theme-switch, motion-utils (murni)
+src/lib/theme/motion.ts          # tingkat animasi akhir: sisi per path, kurangi gerakan, skrip awal <head>
 public/studio-sw.js              # service worker Studio (scope /studio); studio-offline.html, studio.webmanifest, studio-icons/
 src/components/charts/           # SATU-SATUNYA pengimpor recharts: TimeLineChart, GroupBarChart, warna per platform
 src/lib/routes.ts                # SEMUA path internal (href, router.push, redirect, revalidatePath)
@@ -141,7 +145,7 @@ Catatan versi (Oktober 2026):
 - **Fase 4 (data):** selesai, lihat `docs/FASE-4.md`. Postingan, input metrik H+1/H+7, snapshot followers, `lib/analytics`, Analitik (Recharts), Beranda Studio penuh, target 3 bulan. Kolom `Post.externalId` dan `source` sudah ada untuk impor API nanti.
 - **Fase 5 (saran + AI analisis):** selesai, lihat `docs/FASE-5.md`. Mesin aturan `lib/analytics/rules.ts` + kartu saran Beranda (Sembunyikan 7 hari), Eksperimen A/B, Review Mingguan (+ draf ringkasan AI), "Kenapa?" di detail post, PWA Studio + ide offline, ekspor CSV/JSON.
 - **Fase 6 (tampilan):** selesai, lihat `docs/FASE-6.md`. Token tema (`ThemeSetting`), mode gelap/terang di Galeri dan Studio, menu Tampilan (kustomisasi warna/font/teks h1-h6/radius/animasi, pratinjau, reset ke tampilan awal), redesain Galeri (referensi Euronium) dan Studio (referensi AKA).
-- **Fase 7 (animasi dan interaksi):** animasi dan detail interaksi memakai token animasi Fase 6, selalu menghormati `prefers-reduced-motion`.
+- **Fase 7 (animasi dan interaksi):** selesai, lihat `docs/FASE-7.md`. Token animasi v2 (jeda, jarak, tingkat Mati/Halus/Penuh per sisi), primitif `src/components/motion/`, animasi Galeri dan Studio, `loading.tsx` dengan skeleton, transisi antarhalaman dan ganti mode (View Transitions), selalu menghormati `prefers-reduced-motion`.
 - **Fase 8 (toko):** keranjang, checkout, pembayaran, ongkir, pesanan.
 
 Mulai 25 Nov 2026 fokus proyek adalah penyempurnaan tampilan. Aturan tampilan (berlaku mulai Fase 6):
@@ -157,6 +161,18 @@ Mulai 25 Nov 2026 fokus proyek adalah penyempurnaan tampilan. Aturan tampilan (b
 - Font baru: tambah di `src/lib/theme/fonts.ts` dan instance di `src/features/theme/fonts.ts` (nama variabel sama, `preload: false`; dicek `fonts.static.test.ts`). Hanya font default yang di-preload.
 - Grafik selalu di atas permukaan kartu (`bg-card`): oranye Instagram hanya 2,93:1 di latar halaman `#F5F5F3`.
 - Halaman offline PWA dan gambar Open Graph (`renderOgImage`) memakai nilai default tema, bukan database (T14).
+
+Aturan animasi (berlaku mulai Fase 7, keputusan A1-A9 di `docs/FASE-7.md`):
+
+- Tanpa library animasi: CSS (transition/keyframes dari token), `IntersectionObserver`, dan `<ViewTransition>` React. Library baru hanya dengan persetujuan pengguna.
+- Satu sumber tingkat: `<html data-motion="off|subtle|full">`. Server menulis tingkat per sisi dari token (`data-motion-gallery`/`data-motion-studio`), skrip statis `MOTION_INIT_SCRIPT` di `<head>` memilih sisi dari path (`/studio`, `/masuk` = Studio) dan menurunkan ke `off` saat "kurangi gerakan", lalu `MotionRoot` menjaganya saat navigasi. Jangan membaca `matchMedia` sendiri: pakai `useMotionLevel()`/`motionLevelOf(el)`.
+- Variabel turunan per tingkat (`--motion-reveal`, `--motion-step`, `--motion-shift`, …) didefinisikan di akhir `globals.css` (di luar `@layer`, supaya menang atas `<style>` tema); `data-motion` terdekat menang (kontainer pratinjau Tampilan). Tingkat Mati membuat semua durasi 0, termasuk `duration-fast|base|slow`. Tanpa `data-motion` (tanpa JS) semua efek diam.
+- Isi tidak pernah disembunyikan di HTML server (A4). Status tersembunyi hanya lewat primitif: `Reveal`/`useReveal` (efek `up`/`fade`; JS menyembunyikan hanya elemen yang seluruhnya di bawah layar, diputuskan dari callback pertama IntersectionObserver tanpa layout paksa; muncul saat masuk layar atau menerima fokus), `motion-enter*` (CSS saat dipasang, hanya aktif jika `data-motion` ada), `RevealLines`/`TwoToneHeading reveal`. Elemen dengan Reveal jangan punya `transition-*` sendiri. Angka statistik pakai `CountUp` (nilai akhir di HTML, lebar dipesan, `formatCount` tanpa Intl, sekali per pemasangan).
+- Hanya `transform`/`translate`/`scale`, `opacity`, dan `clip-path` yang dianimasikan; tanpa animasi properti layout, tanpa CLS. Utility: `motion-enter(-fade|-clip|-zoom)`, `motion-grow-x`, `motion-exit`, `motion-zoom`, `motion-nudge`, `motion-press`, `motion-lift`, `motion-check`, `motion-shimmer`, `motion-caret`; jeda berurutan `style={motionIndex(i)}`.
+- Durasi untuk library yang meminta angka (dnd-kit, Recharts) dibaca dari token dengan `motionDurationOf(el, speed)`/`motionEasingOf(el)`. Grafik: `isAnimationActive` mati saat tingkat Mati (A9).
+- View Transitions: kelas hanya dari `VT_CLASS` (`vt-morph`, `vt-page`, `vt-fade`, `vt-pill`) di `src/components/motion/view-transitions.tsx`; transisi halaman dipasang di `template.tsx` per sisi (bukan layout); nama elemen bersama harus unik per halaman (`artworkPhotoTransitionName(slug)` hanya di kartu katalog dan foto utama detail). Ganti mode = `switchModeWithReveal` (penyingkapan melingkar).
+- `token-usage.static.test.ts` juga menolak `delay-<angka>`, `ease-[..]`, `animate-[..]`, `[animation:..]`, `transition-[..ms]`, transisi properti layout (`transition-all`, `transition-[width]` …; bilah progres pakai `scaleX`), `animate-pulse` (pakai `Skeleton`/`motion-shimmer`), durasi ms di string inline, dan `@keyframes` di luar `src/app/globals.css`. Keyframes baru ditambah di `globals.css` dengan durasi/easing dari variabel token.
+- `template.tsx`/`loading.tsx` di Studio harus murni tampilan (tanpa `await`, database, queries, actions, cookies/headers; dicek `require-admin.static.test.ts`). Beranda Studio ada di route group `(beranda)` supaya skeletonnya tidak berlaku untuk menu lain.
 
 Aturan Asisten AI (berlaku mulai Fase 3):
 

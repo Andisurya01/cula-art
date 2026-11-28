@@ -136,7 +136,7 @@ Studio punya 12 menu. Di desktop tampil sebagai sidebar; di HP tampil sebagai bo
 | 9 | Review Mingguan | `/studio/review` | Evaluasi dan fokus minggu depan | Ringkasan otomatis, form refleksi, rencana minggu depan |
 | 10 | Pengaturan | `/studio/pengaturan` | Konfigurasi | Pilar, format, hook, slot jadwal, target, profil publik, akun dan keamanan, ekspor dan backup |
 | 11 | Karya | `/studio/karya` | Mengelola karya untuk Galeri | Daftar karya, foto, spesifikasi, publikasi, ketersediaan dan harga |
-| 12 | Tampilan | `/studio/tampilan` | Mengatur tema seluruh situs | Warna terang/gelap, font, ukuran teks h1-h6, radius, animasi, preset, pratinjau, reset ke tampilan awal (Fase 6) |
+| 12 | Tampilan | `/studio/tampilan` | Mengatur tema seluruh situs | Warna terang/gelap, font, ukuran teks h1-h6, radius, animasi (Fase 7: tingkat Mati/Halus/Penuh per sisi, jeda, jarak, Putar ulang), preset, pratinjau, reset ke tampilan awal (Fase 6) |
 
 Tombol **+ Ide** selalu tersedia di semua halaman Studio (floating button di HP, shortcut `N` di desktop).
 
@@ -353,9 +353,24 @@ Mulai Fase 6 fokus proyek adalah penyempurnaan tampilan. Rincian keputusan T1-T1
 - Token divalidasi ketat (hex `#RRGGBB`, angka dalam rentang, font dan easing dari daftar). CSS hanya dibangun dari variabel yang dikenal, sehingga tidak ada teks bebas yang masuk ke CSS.
 - Font hanya dari daftar terkurasi yang di-host sendiri (`next/font`), tanpa request ke Google saat dipakai.
 - Kontras di bawah WCAG (4,5:1 teks biasa, 3:1 judul besar) memunculkan peringatan, tetapi tidak memblokir. Nilai default lolos semua.
-- Animasi (Fase 7) selalu menghormati `prefers-reduced-motion`.
+- Animasi (Fase 7) selalu menghormati `prefers-reduced-motion` (lihat "Animasi dan interaksi" di bawah).
 
 **Hasil implementasi (25 Nov 2026):** selain token T3, ada token status **sukses** dan **peringatan** per mode (menggantikan warna hardcode di Studio dan badge ketersediaan Galeri). Pratinjau menu Tampilan adalah miniatur kanvas selebar desktop atau HP. Tombol + Ide Studio memakai warna bento lime supaya beda dari menu aktif. Rincian di `docs/FASE-6.md` bagian "Hasil dan keputusan implementasi".
+
+### Animasi dan interaksi (Fase 7)
+
+Rincian keputusan A1-A9, daftar animasi, dan hasil ada di `docs/FASE-7.md`.
+
+- **Teknik (A1):** CSS lebih dulu (transition/keyframes dari token), `IntersectionObserver` untuk muncul saat di-scroll, dan `<ViewTransition>` React untuk transisi halaman. Tanpa library animasi.
+- **Tingkat (A2):** token `motion.gallery` dan `motion.studio`, masing-masing **Mati / Halus / Penuh**. Default Galeri Penuh, Studio Halus. Diatur di menu Tampilan dan berlaku untuk semua pengunjung.
+- **Kurangi gerakan (A3):** `prefers-reduced-motion: reduce` selalu menang: tanpa gerak sama sekali. Tingkat akhir ditulis di `<html data-motion="off|subtle|full">` sebelum halaman dilukis.
+- **Isi tetap terlihat (A4):** tanpa JavaScript atau tanpa animasi, semua isi tampil. Status "awal tersembunyi" hanya dipasang oleh JavaScript untuk elemen yang masih di bawah layar. Angka statistik ada di HTML; hitung naik hanya efek.
+- **Performa (A5):** hanya `transform`, `opacity`, dan `clip-path`; tanpa layout shift; animasi di luar layar tidak jalan; Lighthouse Galeri tetap ≥ 90.
+- **Token baru (A6):** `stagger` (jeda antar elemen, ms) dan `distance` (jarak geser, px), plus tingkat per sisi. Tema tersimpan versi 1 dilengkapi nilai default saat dibaca (`version: 2`).
+- **Ganti mode (A7):** penyingkapan melingkar dari tombol mode; tanpa dukungan browser atau saat gerak dikurangi langsung berganti.
+- **Transisi halaman (A8):** Galeri: foto kartu katalog "melebar" menjadi foto utama detail karya, dan transisi lembut antarhalaman. Studio: crossfade singkat antarmenu. Tanpa dukungan browser, navigasi tetap normal.
+- **Grafik (A9):** animasi bawaan Recharts mati saat tingkat Mati atau gerak dikurangi; palet tidak berubah.
+- **Menu Tampilan → Animasi:** tingkat Galeri dan Studio, durasi cepat/sedang/lambat, easing, jeda, dan jarak; tombol **Putar ulang** di pratinjau; Reset mengembalikan nilai animasi default.
 
 ## Autentikasi dan keamanan
 
@@ -728,6 +743,7 @@ prisma/
 - WIB, minggu mulai Senin.
 - UI bahasa Indonesia; istilah platform tetap asli.
 - Mode terang dan gelap di Galeri dan Studio, tanpa kedip tema saat halaman dimuat (Fase 6).
+- Animasi menghormati "kurangi gerakan" di perangkat, tanpa layout shift, dan isi tetap lengkap tanpa JavaScript (Fase 7).
 - Unit test untuk semua fungsi `lib/analytics`, termasuk views = 0 dan data kosong.
 - Galeri: LCP < 2,5 detik di HP 4G; Lighthouse ≥ 90 untuk Performance, Accessibility, dan SEO.
 - Keamanan: test otomatis memastikan halaman `/studio` dan Server Action Studio menolak request tanpa sesi valid, dan query Galeri tidak mengembalikan karya Draft atau harga yang disembunyikan.
@@ -743,8 +759,8 @@ flowchart LR
   F3["Fase 3: Asisten AI (persiapan)<br/>Panduan AI, Kembangkan ide,<br/>hook, script, caption,<br/>teks karya dari foto, log biaya"]
   F4["Fase 4: Data ✅<br/>Postingan, Metrik H+1/H+7,<br/>Snapshot followers,<br/>Analitik, Beranda Studio penuh"]
   F5["Fase 5: Saran + AI analisis ✅<br/>Mesin aturan, Eksperimen,<br/>Review mingguan + draf AI,<br/>PWA offline, Ekspor/backup"]
-  F6["Fase 6: Tampilan<br/>Token tema, mode gelap/terang,<br/>menu Tampilan + reset,<br/>redesain Galeri & Studio"]
-  F7["Fase 7: Animasi & interaksi<br/>Transisi halaman, gerak halus,<br/>detail interaksi,<br/>reduced motion"]
+  F6["Fase 6: Tampilan ✅<br/>Token tema, mode gelap/terang,<br/>menu Tampilan + reset,<br/>redesain Galeri & Studio"]
+  F7["Fase 7: Animasi & interaksi ✅<br/>Transisi halaman, gerak halus,<br/>detail interaksi,<br/>reduced motion"]
   F8["Fase 8: Toko<br/>Keranjang, checkout,<br/>pembayaran, ongkir,<br/>pesanan, stok/edisi"]
   F9["Nanti<br/>Impor API IG/TikTok,<br/>Notifikasi, Tanya data (chat AI)"]
   F1 --> F2
