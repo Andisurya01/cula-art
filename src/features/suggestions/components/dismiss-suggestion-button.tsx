@@ -17,7 +17,8 @@ export function DismissSuggestionButton({
   suggestionKey: string;
   /** Untuk aria-label, supaya beberapa tombol di satu halaman bisa dibedakan. */
   title: string;
-  onDismissed?: (key: string) => void;
+  /** Boleh mengembalikan Promise (mis. kartu sedang keluar); data dimuat ulang setelah selesai. */
+  onDismissed?: (key: string) => void | Promise<void>;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -29,8 +30,9 @@ export function DismissSuggestionButton({
         toast.error(result.error);
         return;
       }
-      onDismissed?.(suggestionKey);
       toast.success("Saran disembunyikan 7 hari.");
+      // Kartu keluar dulu (animasi), baru data dimuat ulang, supaya data baru tidak memotong animasinya.
+      await onDismissed?.(suggestionKey);
       router.refresh();
     });
   }

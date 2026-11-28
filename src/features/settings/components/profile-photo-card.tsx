@@ -129,7 +129,7 @@ export function ProfilePhotoCard({ avatarKey }: { avatarKey: string | null }) {
                 aria-valuenow={percent}
                 className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
               >
-                <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+                <div className="h-full origin-left bg-primary transition-transform" style={{ transform: `scaleX(${percent / 100})` }} />
               </div>
               <p className="text-xs text-muted-foreground" aria-live="polite">
                 {percent < 100 ? `Mengunggah… ${percent}%` : "Memproses foto…"}

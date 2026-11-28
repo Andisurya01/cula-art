@@ -87,9 +87,10 @@ export function ChecklistCard({ contentId, items: initialItems }: { contentId: s
             aria-valuenow={done}
             aria-label="Progres checklist"
           >
+            {/* Lebar penuh diskalakan dari kiri (transform, bukan width): tanpa animasi properti layout. */}
             <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${(done / items.length) * 100}%` }}
+              className="h-full origin-left bg-primary transition-transform duration-base ease-standard"
+              style={{ scale: `${done / items.length} 1` }}
             />
           </div>
         )}
@@ -103,7 +104,13 @@ export function ChecklistCard({ contentId, items: initialItems }: { contentId: s
                     toggle.mutate({ id: item.id, done: checked === true })
                   }
                 />
-                <span className={cn("min-w-0 break-words", item.done && "text-muted-foreground line-through")}>
+                {/* Selesai: teks meredup dan coretan memudar masuk (transisi warna token, tanpa ubah ukuran). */}
+                <span
+                  className={cn(
+                    "min-w-0 break-words transition-colors duration-base ease-standard",
+                    item.done ? "text-muted-foreground line-through decoration-muted-foreground" : "decoration-transparent",
+                  )}
+                >
                   {item.label}
                 </span>
               </label>

@@ -303,7 +303,7 @@ function UploadQueue({ uploads, onDismiss }: { uploads: Upload[]; onDismiss: (ke
               aria-valuemax={100}
               aria-valuenow={Math.round(u.progress * 100)}
             >
-              <div className="h-full bg-primary transition-[width]" style={{ width: `${u.progress * 100}%` }} />
+              <div className="h-full origin-left bg-primary transition-transform" style={{ transform: `scaleX(${u.progress})` }} />
             </div>
           )}
         </li>

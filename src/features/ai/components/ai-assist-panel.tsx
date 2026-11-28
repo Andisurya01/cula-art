@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { Loader2, Sparkles, Square } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Sparkles, Square } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { AI_FEATURE_LABELS, type AiFeature } from "../features";
@@ -90,7 +91,19 @@ export function AiAssistPanel<F extends AiFeature>({
   const status = useAiStatus();
   const desktop = useIsDesktop();
   const [instruction, setInstruction] = useState("");
+  const bodyRef = useRef<HTMLDivElement>(null);
   const { result, streaming, view } = assist;
+
+  // Fase 7: kursor streaming (`motion-caret`) di akhir teks hasil (AiText) terakhir selama AI menulis.
+  // "Terakhir" baru diketahui dari DOM setelah render, jadi atributnya dipasang di sini (bukan state).
+  // Hanya dekorasi CSS (`::after` tanpa teks): wilayah `aria-live` tidak mendapat pengumuman tambahan.
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const texts = body.querySelectorAll<HTMLElement>("[data-ai-text]");
+    const tail = streaming ? texts[texts.length - 1] : undefined;
+    texts.forEach((text) => text.toggleAttribute("data-ai-caret", text === tail));
+  });
   const notes = view && typeof view === "object" && "notes" in view ? (view as { notes?: string | null }).notes : null;
 
   const costText = streaming
@@ -123,14 +136,22 @@ export function AiAssistPanel<F extends AiFeature>({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="min-h-24 flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite" aria-busy={streaming}>
+        <div
+          ref={bodyRef}
+          className="min-h-24 flex-1 space-y-3 overflow-y-auto p-4"
+          aria-live="polite"
+          aria-busy={streaming}
+        >
           {view ? (
-            children
+            // Potongan pertama memudar masuk; potongan berikutnya mengisi di tempat (tanpa animasi ulang).
+            <div className="space-y-3 motion-enter-fade">{children}</div>
           ) : streaming ? (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              Menyiapkan draf…
-            </p>
+            // Sebelum potongan pertama: kerangka berbentuk kartu opsi dengan shimmer token (diam saat Mati).
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Menyiapkan draf…</p>
+              <Skeleton className="h-28 rounded-card-nested" />
+              <Skeleton className="h-20 rounded-card-nested" />
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">
               Tekan <strong>Buat</strong> untuk membuat draf dari isi form saat ini. Tambahkan instruksi jika perlu.
@@ -217,7 +238,14 @@ export function AiOptionCard({
   );
 }
 
-/** Teks hasil AI dengan baris baru dipertahankan. */
+/**
+ * Teks hasil AI dengan baris baru dipertahankan. Selama streaming, AiText terakhir di panel mendapat
+ * kursor berkedip (`data-ai-caret`, dipasang AiAssistPanel).
+ */
 export function AiText({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <p className={cn("break-words whitespace-pre-wrap", className)}>{children}</p>;
+  return (
+    <p data-ai-text="" className={cn("break-words whitespace-pre-wrap data-ai-caret:motion-caret", className)}>
+      {children}
+    </p>
+  );
 }

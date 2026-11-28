@@ -31,7 +31,8 @@ export function PostChip({
       className={cn(
         "flex min-w-0 gap-1.5 rounded-lg bg-card text-card-foreground ring-1 ring-border/70 transition-colors outline-hidden hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring",
         compact ? "px-1.5 py-0.5 text-caption" : "px-2 py-1.5 text-xs",
-        optimistic && "animate-pulse opacity-60",
+        // Belum dikonfirmasi server: redup + shimmer token (diam saat animasi Mati / kurangi gerakan).
+        optimistic && "motion-shimmer opacity-60",
       )}
     >
       <span

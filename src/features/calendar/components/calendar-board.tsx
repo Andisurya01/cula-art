@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useIsMutating, useMutation } from "@tanstack/react-query";
 import {
@@ -12,9 +12,11 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type DropAnimation,
 } from "@dnd-kit/core";
 import { toast } from "sonner";
 import type { Platform } from "@prisma/client";
+import { DragLift, dropAnimationFor, fadeOutDropAnimation } from "@/features/contents/components/drag-motion";
 import type { PostingSlot } from "@/features/settings/schema";
 import { formatWib, parseWibInputValue, toWibDateString } from "@/lib/date";
 import { PLATFORM_LABELS } from "@/lib/labels";
@@ -72,6 +74,8 @@ export function CalendarBoard({
 
   const [dialogContent, setDialogContent] = useState<ReadyContent | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [dropAnimation, setDropAnimation] = useState<DropAnimation | null>(null);
 
   const mutation = useMutation({
     mutationFn: async ({ content, platforms, scheduledAt }: ScheduleVars) => {
@@ -123,6 +127,8 @@ export function CalendarBoard({
   function onDragStart(event: DragStartEvent) {
     const data = event.active.data.current as ReadyDragData | undefined;
     setDraggingId(data?.contentId ?? null);
+    // Bawaan saat dilepas: kartu meluncur kembali ke panel (batal, di luar slot, atau slot ditolak).
+    setDropAnimation(dropAnimationFor(boardRef.current));
   }
 
   function onDragEnd(event: DragEndEvent) {
@@ -132,6 +138,10 @@ export function CalendarBoard({
     if (!drag || !drop) return;
     const content = local.ready.find((c) => c.id === drag.contentId);
     if (!content || drop.slot.filled || drop.slot.at.getTime() <= Date.now()) return;
+    // Diterima: chip baru langsung muncul di slot, jadi kartu memudar di tempat (tidak kembali ke panel).
+    if (schedulablePlatforms(content, defaultPlatforms(content)).length > 0) {
+      setDropAnimation(fadeOutDropAnimation(boardRef.current));
+    }
     schedule(content, defaultPlatforms(content), drop.slot.key);
   }
 
@@ -152,7 +162,7 @@ export function CalendarBoard({
       onDragEnd={onDragEnd}
       onDragCancel={() => setDraggingId(null)}
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_17rem]">
+      <div ref={boardRef} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_17rem]">
         {/* Kartu putih berisi sel hari (abu latar) dan chip post (putih). */}
         <div className="order-1 min-w-0 rounded-card bg-card p-2 text-card-foreground ring-1 ring-border/70 sm:p-4 md:order-2 xl:order-1">
           {view === "week" ? (
@@ -166,12 +176,13 @@ export function CalendarBoard({
         </aside>
       </div>
 
-      <DragOverlay dropAnimation={null}>
+      {/* Lebar overlay = lebar kartu asal (dnd-kit); terangkat saat diseret, mendarat dengan token. */}
+      <DragOverlay dropAnimation={dropAnimation}>
         {dragging && (
-          <div className="relative w-64 rounded-card-nested border bg-card py-3 pr-3 pl-5 shadow-lg">
+          <DragLift className="relative cursor-grabbing rounded-card-nested border bg-card py-3 pr-3 pl-5 shadow-lg">
             <PillarStripe color={dragging.pillarColor} />
             <ReadyCardBody content={dragging} />
-          </div>
+          </DragLift>
         )}
       </DragOverlay>
 

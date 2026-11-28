@@ -21,6 +21,7 @@ import {
   LABEL_FONT_SIZE,
 } from "./chart-theme";
 import { ChartDataTable } from "./chart-data-table";
+import { useChartAnimation } from "./chart-motion";
 import { ChartTooltipCard } from "./chart-tooltip";
 
 export type GroupBarRow = {
@@ -63,6 +64,8 @@ export function GroupBarChart({
   formatValue?: (value: number) => string;
 }) {
   const byKey = new Map(rows.map((row) => [row.key, row]));
+  // Batang tumbuh dari baseline sesuai tingkat animasi (A9); Mati / kurangi gerakan = langsung utuh.
+  const animation = useChartAnimation();
 
   return (
     <figure className="min-w-0">
@@ -126,7 +129,7 @@ export function GroupBarChart({
               dataKey="value"
               fill={color}
               barSize={BAR_THICKNESS}
-              isAnimationActive={false}
+              {...animation}
               // Ujung data membulat 4 px, sisi baseline persegi.
               shape={(props: BarShapeProps) => (
                 <Rectangle

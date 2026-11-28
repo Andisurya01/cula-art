@@ -64,7 +64,10 @@ export function AiUsageCard({
             aria-valuenow={Math.round(barWidth)}
             aria-valuetext={`${formatUsd(usage.costUsd)} dari ${formatUsd(monthlyBudgetUsd)}`}
           >
-            <div className={cn("h-full rounded-full transition-[width]", BAR_COLORS[level])} style={{ width: `${barWidth}%` }} />
+            <div
+              className={cn("h-full origin-left transition-transform", BAR_COLORS[level])}
+              style={{ transform: `scaleX(${barWidth / 100})` }}
+            />
           </div>
           <p
             className={cn(

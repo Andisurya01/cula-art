@@ -307,7 +307,7 @@ function QueueRow({
           aria-valuemax={100}
           aria-valuenow={percent}
         >
-          <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+          <div className="h-full origin-left bg-primary transition-transform" style={{ transform: `scaleX(${percent / 100})` }} />
         </div>
       )}
     </li>

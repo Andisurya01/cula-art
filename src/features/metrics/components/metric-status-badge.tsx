@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { CheckCircle2, CircleAlert, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { MetricKind, MetricStatus } from "@/lib/analytics/snapshots";
@@ -23,12 +26,24 @@ const ICON: Record<MetricStatus, typeof Clock> = {
   COMPLETE: CheckCircle2,
 };
 
-/** Badge status metrik: warna selalu ditemani ikon dan label. */
+/**
+ * Badge status metrik: warna selalu ditemani ikon dan label.
+ * Fase 7: saat status berubah di tempat (mis. metrik baru diisi lalu data dimuat ulang), badge baru
+ * dipasang ulang (`key`) dan memudar masuk (`motion-enter-fade`, durasi token). Tampilan pertama tidak
+ * beranimasi, jadi daftar panjang tidak "berkedip" saat halaman dibuka. Ukuran badge mengikuti labelnya
+ * seperti sebelumnya; animasi hanya opacity (tanpa layout shift tambahan).
+ */
 export function MetricStatusBadge({ status, className }: { status: MetricStatus; className?: string }) {
+  const [shown, setShown] = useState({ status, changed: false });
+  if (shown.status !== status) setShown({ status, changed: true });
   const Icon = ICON[status];
   const variant = VARIANT[status];
   return (
-    <Badge variant={variant} className={cn(variant === "outline" && "text-muted-foreground", className)}>
+    <Badge
+      key={status}
+      variant={variant}
+      className={cn(variant === "outline" && "text-muted-foreground", shown.changed && "motion-enter-fade", className)}
+    >
       <Icon />
       {METRIC_STATUS_LABELS[status]}
     </Badge>

@@ -152,7 +152,11 @@ function SortablePhoto({
   return (
     <li
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      // Fase 7: geser urutan memakai durasi/easing token (bawaan dnd-kit 200ms ease); 0 saat animasi Mati.
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: transition ? "transform var(--motion-base) var(--motion-ease)" : undefined,
+      }}
       className={cn(
         "flex gap-2 rounded-card-nested border bg-card p-2 sm:gap-3",
         isDragging && "relative z-10 shadow-lg ring-2 ring-ring/40",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -17,6 +17,7 @@ import {
   type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
+  type DropAnimation,
   type KeyboardCoordinateGetter,
 } from "@dnd-kit/core";
 import type { ContentStage } from "@prisma/client";
@@ -24,6 +25,7 @@ import { CONTENT_STAGES, CONTENT_STAGE_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import type { PipelineCard } from "../board";
 import { ContentCardBody } from "./content-card";
+import { DragLift, dropAnimationFor, keyboardOverlayTransition } from "./drag-motion";
 import { PostedLimitNote } from "./posted-limit-note";
 
 type Columns = Record<ContentStage, PipelineCard[]>;
@@ -82,6 +84,8 @@ export function KanbanBoard({
 }) {
   const dndId = useId();
   const [activeCard, setActiveCard] = useState<PipelineCard | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [dropAnimation, setDropAnimation] = useState<DropAnimation | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
@@ -90,6 +94,9 @@ export function KanbanBoard({
 
   function onDragStart(event: DragStartEvent) {
     setActiveCard((event.active.data.current?.card as PipelineCard | undefined) ?? null);
+    // Token animasi dibaca saat mulai seret (DOM, bukan saat render). Saat dilepas, kartu meluncur ke
+    // posisinya: kolom baru (data dipindah langsung oleh optimistic update), atau kembali jika batal.
+    setDropAnimation(dropAnimationFor(boardRef.current));
   }
 
   function onDragEnd(event: DragEndEvent) {
@@ -109,7 +116,7 @@ export function KanbanBoard({
       onDragEnd={onDragEnd}
       onDragCancel={() => setActiveCard(null)}
     >
-      <div className="-mx-1 -mt-1 overflow-x-auto px-1 pt-1 pb-3">
+      <div ref={boardRef} className="-mx-1 -mt-1 overflow-x-auto px-1 pt-1 pb-3">
         <div className="grid grid-cols-[repeat(5,minmax(15rem,1fr))] gap-4">
           {CONTENT_STAGES.map((stage) => (
             <KanbanColumn
@@ -126,11 +133,12 @@ export function KanbanBoard({
           ))}
         </div>
       </div>
-      <DragOverlay dropAnimation={null}>
+      {/* Lebar overlay = lebar kartu asal (dnd-kit), jadi kartu mendarat pas di tempatnya. */}
+      <DragOverlay dropAnimation={dropAnimation} transition={keyboardOverlayTransition}>
         {activeCard ? (
-          <div className="w-60 rotate-2 cursor-grabbing rounded-card-nested shadow-lg">
+          <DragLift className="cursor-grabbing rounded-card-nested shadow-lg">
             <ContentCardBody card={activeCard} now={now} linked={false} tone="muted" />
-          </div>
+          </DragLift>
         ) : null}
       </DragOverlay>
     </DndContext>

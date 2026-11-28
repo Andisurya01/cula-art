@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { formatWib } from "@/lib/date";
 import { axisTickFormatter, formatCount } from "@/features/metrics/format";
+import { useChartAnimation } from "./chart-motion";
 import { AXIS_FONT_SIZE, CHART_TOKENS, LABEL_FONT_SIZE } from "./chart-theme";
 import { ChartDataTable } from "./chart-data-table";
 import { ChartTooltipCard } from "./chart-tooltip";
@@ -57,6 +58,8 @@ export function TimeLineChart({
   const to = domain?.[1] ?? data[data.length - 1]?.t ?? 0;
   const lastIndex = data.length - 1;
   const formatTick = axisTickFormatter(data.map((point) => point.value));
+  // Garis tergambar dari kiri sesuai tingkat animasi (A9); Mati / kurangi gerakan = langsung utuh.
+  const animation = useChartAnimation();
 
   return (
     <figure className="min-w-0">
@@ -115,7 +118,7 @@ export function TimeLineChart({
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
-              isAnimationActive={false}
+              {...animation}
               activeDot={{ r: 4, fill: color, stroke: CHART_TOKENS.surface, strokeWidth: 2 }}
               // Titik akhir saja (r 4 + cincin 2 px); nilai di ujung garis, bukan di setiap titik.
               dot={(props) => {

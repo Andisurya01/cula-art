@@ -38,8 +38,11 @@ export function SuggestionCard({
   className,
 }: {
   suggestion: SuggestionView;
-  /** Dipanggil setelah berhasil disembunyikan (mis. untuk menyembunyikan kartu sebelum data dimuat ulang). */
-  onDismissed?: (key: string) => void;
+  /**
+   * Dipanggil setelah berhasil disembunyikan (mis. untuk menyembunyikan kartu sebelum data dimuat ulang).
+   * Boleh mengembalikan Promise (animasi keluar); data dimuat ulang setelah Promise selesai.
+   */
+  onDismissed?: (key: string) => void | Promise<void>;
   className?: string;
 }) {
   const Icon = ICONS[suggestion.rule];
