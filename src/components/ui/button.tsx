@@ -6,8 +6,9 @@ import { Slot } from "radix-ui"
 
 // Tombol mengikuti token tema (Fase 6): radius `rounded-button` (pil secara default), warna
 // primer/sekunder dari token, durasi `duration-fast`. Opsi `arrow` menambah ikon ↗ (referensi Galeri).
+// Ditekan sedikit mengecil (`motion-press`, 0,98; tanpa efek saat animasi Mati/kurangi gerakan).
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-button border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-fast ease-standard outline-hidden select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring active:not-aria-[haspopup]:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-button border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,scale,opacity] duration-fast ease-standard outline-hidden select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring active:not-aria-[haspopup]:motion-press disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -64,7 +65,12 @@ function Button({
   const Comp = asChild ? Slot.Root : "button"
   const position = arrow === true ? "end" : arrow || null
   const icon = position ? (
-    <ArrowUpRight aria-hidden data-icon={position === "start" ? "inline-start" : "inline-end"} />
+    <ArrowUpRight
+      aria-hidden
+      data-icon={position === "start" ? "inline-start" : "inline-end"}
+      // Fase 7: ikon ↗ bergeser sedikit saat hover/fokus (jarak dari token tingkat; diam saat Mati).
+      className="transition-transform duration-base ease-standard group-hover/button:motion-nudge group-focus-visible/button:motion-nudge"
+    />
   ) : null
   const shared = {
     "data-slot": "button",

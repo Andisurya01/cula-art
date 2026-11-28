@@ -14,6 +14,7 @@ export function BentoCard({
   action,
   children,
   className,
+  style,
 }: {
   tone?: CardVariant;
   label?: React.ReactNode;
@@ -24,9 +25,11 @@ export function BentoCard({
   action?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
+  /** Mis. `motionIndex(i)` untuk animasi masuk berjeda (Fase 7). */
+  style?: React.CSSProperties;
 }) {
   return (
-    <Card variant={tone} className={cn("justify-between", className)}>
+    <Card variant={tone} className={cn("justify-between", className)} style={style}>
       {(label || icon || action) && (
         <div className="flex items-start justify-between gap-3 px-(--card-spacing)">
           <div className="flex min-w-0 items-center gap-2 text-sm font-medium">

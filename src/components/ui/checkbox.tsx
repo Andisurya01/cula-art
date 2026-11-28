@@ -7,8 +7,12 @@ import { CheckIcon } from "lucide-react"
 
 function Checkbox({
   className,
+  onCheckedChange,
   ...props
 }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+  // Fase 7: centang hanya tersapu setelah diubah pengguna, bukan pada kotak yang sudah tercentang saat
+  // halaman dimuat (daftar checklist tidak ikut beranimasi saat dibuka).
+  const [animateCheck, setAnimateCheck] = React.useState(false)
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
@@ -17,13 +21,17 @@ function Checkbox({
         className
       )}
       {...props}
+      onCheckedChange={(checked) => {
+        setAnimateCheck(true)
+        onCheckedChange?.(checked)
+      }}
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
         className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
       >
-        <CheckIcon
-        />
+        {/* Centang tersapu dari kiri (durasi token; diam saat animasi Mati / kurangi gerakan). */}
+        <CheckIcon className={animateCheck ? "motion-check" : undefined} />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )
