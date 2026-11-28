@@ -1,6 +1,6 @@
 // Label dan pengelompokan token untuk menu Tampilan. Fungsi murni (tanpa React).
 
-import type { ColorKey, ThemeMode, TypeLevel } from "./schema";
+import type { ColorKey, MotionLevel, ThemeMode, TypeLevel } from "./schema";
 
 export const MODE_LABELS: Record<ThemeMode, string> = {
   system: "Ikuti sistem",
@@ -101,4 +101,11 @@ export const WEIGHT_LABELS: Record<number, string> = {
   600: "600 · Semi tebal",
   700: "700 · Tebal",
   800: "800 · Ekstra tebal",
+};
+
+/** Tingkat animasi per sisi (Fase 7, A2). */
+export const MOTION_LEVEL_LABELS: Record<MotionLevel, { label: string; description: string }> = {
+  off: { label: "Mati", description: "Tanpa animasi; hanya pergantian langsung." },
+  subtle: { label: "Halus", description: "Gerak singkat dan dekat, tanpa geser jauh." },
+  full: { label: "Penuh", description: "Semua efek: muncul berjeda, judul per baris, hitung naik." },
 };

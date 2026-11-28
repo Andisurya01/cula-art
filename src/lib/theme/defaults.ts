@@ -2,7 +2,7 @@
 // Bento (ala referensi AKA) menonjolkan aksen biru dan lime. Semua pasangan lolos T4 (dicek test).
 
 import type { ColorSet, ThemeTokens } from "./schema";
-import { THEME_VERSION } from "./schema";
+import { MOTION_V2_DEFAULTS, THEME_VERSION } from "./schema";
 
 const MONOKROM_LIGHT: ColorSet = {
   background: "#F5F5F3",
@@ -100,7 +100,8 @@ const MONOKROM: ThemeTokens = {
     image: 24,
     dialog: 28,
   },
-  motion: { fast: 150, base: 250, slow: 450, easing: "smooth" },
+  // Fase 7 (A2, A6): Galeri Penuh, Studio Halus (dipakai setiap hari, jadi gerak singkat).
+  motion: { fast: 150, base: 250, slow: 450, easing: "smooth", ...MOTION_V2_DEFAULTS },
 };
 
 const BENTO: ThemeTokens = {

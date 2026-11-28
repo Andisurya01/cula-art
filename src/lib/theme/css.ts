@@ -126,6 +126,11 @@ function sharedDeclarations(tokens: ThemeTokens): Declaration[] {
     ["--motion-base", `${motion.base}ms`],
     ["--motion-slow", `${motion.slow}ms`],
     ["--motion-ease", EASINGS[motion.easing].css],
+    // Fase 7 (A6): jeda antar elemen berurutan dan jarak geser saat muncul. Tingkat per sisi
+    // (Mati/Halus/Penuh) tidak ditulis di sini: root layout memasangnya di <html> (lihat motion.ts).
+    // Jeda tanpa durasi muncul hanya membuat elemen tersembunyi lalu "meletup": jeda ikut 0.
+    ["--motion-stagger", motion.base === 0 && motion.slow === 0 ? "0ms" : `${motion.stagger}ms`],
+    ["--motion-distance", `${motion.distance}px`],
   );
   // Latar/teks di atas foto (lightbox, keterangan di foto): selalu palet gelap, di kedua mode.
   out.push(
@@ -159,19 +164,24 @@ export function themeVariables(tokens: ThemeTokens, mode: "light" | "dark"): Rec
   );
 }
 
+/** Nilai animasi saat "kurangi gerakan" aktif (A3): tanpa durasi, jeda, dan jarak geser. */
+export const REDUCED_MOTION_DECLARATIONS: readonly Declaration[] = [
+  ["--motion-fast", "0ms"],
+  ["--motion-base", "0ms"],
+  ["--motion-slow", "0ms"],
+  ["--motion-stagger", "0ms"],
+  ["--motion-distance", "0px"],
+];
+
 /**
  * CSS lengkap untuk `<style>` di root layout: `:root` (terang + variabel bersama), `.dark`, dan
- * durasi 0 untuk `prefers-reduced-motion`. Lempar error jika token tidak lolos schema.
+ * animasi nol untuk `prefers-reduced-motion`. Lempar error jika token tidak lolos schema.
  */
 export function buildThemeCss(tokens: ThemeTokens): string {
   const safe = themeTokensSchema.parse(tokens);
   const root = assertSafe([...sharedDeclarations(safe), ...colorDeclarations(safe.colors.light)]);
   const dark = assertSafe(colorDeclarations(safe.colors.dark));
-  const reduced: Declaration[] = [
-    ["--motion-fast", "0ms"],
-    ["--motion-base", "0ms"],
-    ["--motion-slow", "0ms"],
-  ];
+  const reduced = [...REDUCED_MOTION_DECLARATIONS];
   return [
     block(":root", root),
     block(".dark", dark),

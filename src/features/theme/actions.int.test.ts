@@ -40,12 +40,12 @@ describe("getTheme", () => {
     expect(settings.isCustomized).toBe(false);
   });
 
-  it("JSON rusak, nilai jahat, atau versi lain di DB → tampilan awal", async () => {
+  it("JSON rusak, nilai jahat, atau versi lebih baru di DB → tampilan awal", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     for (const [version, tokensJson] of [
-      [1, "{rusak"],
-      [1, JSON.stringify({ ...defaultThemeTokens(), colors: { light: { primary: "red;}body{" } } })],
-      [2, JSON.stringify(defaultThemeTokens())],
+      [2, "{rusak"],
+      [2, JSON.stringify({ ...defaultThemeTokens(), colors: { light: { primary: "red;}body{" } } })],
+      [3, JSON.stringify({ ...defaultThemeTokens(), version: 3 })],
     ] as const) {
       await db.themeSetting.upsert({
         where: { id: THEME_SETTING_ID },
@@ -58,6 +58,18 @@ describe("getTheme", () => {
     }
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
+  });
+
+  it("tema v1 (sebelum Fase 7) tetap terbaca: nilai lama dipertahankan, animasi baru diisi default", async () => {
+    const v1 = { ...custom(), version: 1, motion: { fast: 120, base: 200, slow: 600, easing: "standard" } };
+    await db.themeSetting.create({ data: { id: THEME_SETTING_ID, version: 1, tokensJson: JSON.stringify(v1) } });
+    const theme = await getTheme();
+    expect(theme.version).toBe(2);
+    expect(theme.shape.card).toBe(16);
+    expect(theme.motion).toEqual({ ...defaultThemeTokens().motion, fast: 120, base: 200, slow: 600, easing: "standard" });
+    // Simpan berikutnya menulis versi baru.
+    expect((await saveTheme(theme)).ok).toBe(true);
+    expect((await db.themeSetting.findUniqueOrThrow({ where: { id: THEME_SETTING_ID } })).version).toBe(2);
   });
 });
 

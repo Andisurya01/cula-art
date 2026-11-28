@@ -19,7 +19,15 @@ import {
 } from "./defaults";
 import { FONT_IDS, FONT_OPTIONS, fontStack } from "./fonts";
 import { COLOR_GROUPS, COLOR_LABELS } from "./meta";
-import { COLOR_KEYS, parseThemeTokens, themeTokensSchema, type ThemeTokens } from "./schema";
+import {
+  COLOR_KEYS,
+  MOTION_V2_DEFAULTS,
+  parseThemeTokens,
+  THEME_VERSION,
+  themeTokensSchema,
+  upgradeThemeTokens,
+  type ThemeTokens,
+} from "./schema";
 
 const clone = () => defaultThemeTokens();
 
@@ -71,7 +79,14 @@ describe("schema token tema", () => {
     ["radius Infinity", (t) => (t.shape.card = Number.POSITIVE_INFINITY)],
     ["durasi string", (t) => (t.motion.fast = "150ms")],
     ["mode asing", (t) => (t.defaultMode = "auto")],
-    ["versi lain", (t) => (t.version = 2)],
+    ["versi lain", (t) => (t.version = 3)],
+    ["tingkat animasi asing", (t) => (t.motion.gallery = "turbo")],
+    ["tingkat animasi berupa CSS", (t) => (t.motion.studio = "full;}body{")],
+    ["jeda negatif", (t) => (t.motion.stagger = -10)],
+    ["jeda di luar rentang", (t) => (t.motion.stagger = 5000)],
+    ["jarak pecahan", (t) => (t.motion.distance = 12.5)],
+    ["jarak berupa string", (t) => (t.motion.distance = "24px")],
+    ["kunci animasi asing", (t) => (t.motion.keyframes = "@keyframes x{}")],
     ["huruf kapital bukan boolean", (t) => (t.typography.label.uppercase = "uppercase")],
   ];
 
@@ -91,6 +106,52 @@ describe("schema token tema", () => {
     expect(parseThemeTokens(JSON.stringify(clone()))).toEqual(clone());
   });
 
+  it("v1 → v2: kunci animasi baru diisi default, nilai lama dipertahankan", () => {
+    const v1 = clone() as unknown as Untyped;
+    v1.version = 1;
+    v1.motion = { fast: 100, base: 200, slow: 300, easing: "linear" };
+    const parsed = parseThemeTokens(JSON.stringify(v1));
+    expect(parsed?.version).toBe(THEME_VERSION);
+    expect(parsed?.motion).toEqual({ fast: 100, base: 200, slow: 300, easing: "linear", ...MOTION_V2_DEFAULTS });
+    expect(parsed?.colors).toEqual(clone().colors);
+  });
+
+  it("v1 dengan nilai jahat tetap ditolak setelah dinaikkan; v2 tidak diubah", () => {
+    const v1 = clone() as unknown as Untyped;
+    v1.version = 1;
+    v1.motion = { fast: 100, base: 200, slow: 300, easing: "cubic-bezier(0,0,1,1);}" };
+    expect(parseThemeTokens(v1)).toBeNull();
+    const v1Extra = clone() as unknown as Untyped;
+    v1Extra.version = 1;
+    v1Extra.motion = { fast: 100, base: 200, slow: 300, easing: "smooth", gallery: "turbo" };
+    expect(parseThemeTokens(v1Extra)).toBeNull();
+    const v2 = clone();
+    expect(upgradeThemeTokens(v2)).toBe(v2);
+    expect(upgradeThemeTokens("bukan objek")).toBe("bukan objek");
+    expect(upgradeThemeTokens(null)).toBeNull();
+  });
+
+  it("v1 tanpa animasi (semua durasi 0) → tingkat Mati di kedua sisi", () => {
+    const v1 = clone() as unknown as Untyped;
+    v1.version = 1;
+    v1.motion = { fast: 0, base: 0, slow: 0, easing: "smooth" };
+    expect(parseThemeTokens(v1)?.motion).toMatchObject({ gallery: "off", studio: "off", stagger: 70 });
+  });
+
+  it("jeda ditulis 0 jika durasi sedang dan lambat 0 (tanpa elemen yang meletup)", () => {
+    const t = clone();
+    t.motion.base = 0;
+    t.motion.slow = 0;
+    expect(buildThemeCss(t)).toContain("--motion-stagger:0ms");
+    t.motion.slow = 300;
+    expect(buildThemeCss(t)).toContain("--motion-stagger:70ms");
+  });
+
+  it("default animasi: Galeri Penuh, Studio Halus (A2)", () => {
+    expect(clone().motion).toMatchObject({ gallery: "full", studio: "subtle" });
+    for (const id of PRESET_IDS) expect(THEME_PRESETS[id].tokens.motion.gallery).toBe("full");
+  });
+
   it("setiap kunci warna punya label dan tepat satu grup", () => {
     const grouped = COLOR_GROUPS.flatMap((g) => g.keys);
     expect([...grouped].sort()).toEqual([...COLOR_KEYS].sort());
@@ -108,7 +169,10 @@ describe("CSS dari token", () => {
     const css = buildThemeCss(clone());
     expect(css).toContain(":root{");
     expect(css).toContain(".dark{--background:#0B0B0C");
-    expect(css).toContain("@media (prefers-reduced-motion:reduce){:root{--motion-fast:0ms;");
+    expect(css).toContain(
+      "@media (prefers-reduced-motion:reduce){:root{--motion-fast:0ms;--motion-base:0ms;--motion-slow:0ms;--motion-stagger:0ms;--motion-distance:0px}}",
+    );
+    expect(css).toContain("--motion-stagger:70ms;--motion-distance:24px");
     expect(css).toContain("--theme-font-heading:var(--font-inter-tight), ui-sans-serif");
     expect(css).toContain("--shape-button:9999px");
     expect(css).toContain("--motion-ease:cubic-bezier(0.22, 1, 0.36, 1)");

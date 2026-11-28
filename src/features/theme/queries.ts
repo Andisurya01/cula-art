@@ -8,7 +8,8 @@ export const THEME_SETTING_ID = "default";
 
 /**
  * Tema aktif, sekali per request (root layout + menu Tampilan memakai hasil yang sama).
- * Tanpa baris, versi lain, atau JSON tidak valid → tampilan awal. Hanya membaca, tidak membuat baris.
+ * Tanpa baris, versi yang lebih baru dari kode ini, atau JSON tidak valid → tampilan awal. Versi lama
+ * (v1, sebelum Fase 7) dilengkapi nilai default oleh `parseThemeTokens`. Hanya membaca, tidak membuat baris.
  */
 export const getTheme = cache(async (): Promise<ThemeTokens> => {
   let row: { version: number; tokensJson: string } | null;
@@ -24,7 +25,7 @@ export const getTheme = cache(async (): Promise<ThemeTokens> => {
     return defaultThemeTokens();
   }
   if (!row) return defaultThemeTokens();
-  const tokens = row.version === THEME_VERSION ? parseThemeTokens(row.tokensJson) : null;
+  const tokens = row.version <= THEME_VERSION ? parseThemeTokens(row.tokensJson) : null;
   if (!tokens) {
     console.warn("ThemeSetting tidak valid; memakai tampilan awal.");
     return defaultThemeTokens();

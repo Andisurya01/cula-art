@@ -3,7 +3,11 @@
 // - hex (#RRGGBB/#RGB), oklch(/rgb(/hsl( di kelas atau style;
 // - warna bawaan Tailwind (`text-amber-700`, `bg-white`, `from-black/80`, …);
 // - ukuran teks, radius, dan durasi arbitrer (`text-[11px]`, `rounded-[6px]`, `duration-200`);
-// - easing bawaan (`ease-in-out`) dan font di luar token (`font-serif`, `font-display`).
+// - easing bawaan (`ease-in-out`) dan font di luar token (`font-serif`, `font-display`);
+// - Fase 7: jeda, easing, animasi, dan transisi arbitrer (`delay-150`, `ease-[..]`, `animate-[..]`,
+//   `[animation:..]`, `transition-[opacity_200ms]`), `@keyframes` di luar `src/app/globals.css`,
+//   transisi properti layout (`transition-all`, `transition-[width]`), `animate-pulse` (pakai Skeleton /
+//   `motion-shimmer`), dan durasi ms di string inline (`"transform 200ms ease"`).
 // Pengecualian dicatat di ALLOWED beserta alasannya.
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -56,7 +60,22 @@ const RULES: { name: string; re: RegExp }[] = [
   { name: "durasi angka", re: /(?<![\w-])duration-(?:\d+|\[[^\]]+\])(?![\w-])/g },
   { name: "easing bawaan", re: /(?<![\w-])ease-(?:in|out|in-out|linear)(?![\w-])/g },
   { name: "font di luar token", re: /(?<![\w-])font-(?:serif|display)(?![\w-])/g },
+  { name: "jeda angka", re: /(?<![\w-])delay-(?:\d+|\[[^\]]+\])(?![\w-])/g },
+  { name: "easing arbitrer", re: /(?<![\w-])ease-\[[^\]]+\]/g },
+  { name: "animasi arbitrer", re: /(?<![\w-])animate-\[[^\]]+\]|\[animation(?:-[a-z-]+)?:[^\]]+\]/g },
+  { name: "transisi berdurasi", re: /(?<![\w-])transition-\[[^\]]*\d+m?s[^\]]*\]/g },
+  { name: "keyframes di komponen", re: /@keyframes\b/g },
+  // A5: animasi hanya transform/opacity/clip-path, tanpa properti layout.
+  {
+    name: "transisi properti layout",
+    re: /(?<![\w-])transition-(?:all\b|\[[^\]]*\b(?:width|height|top|left|right|bottom|inset|margin|padding)\b[^\]]*\])/g,
+  },
+  { name: "pulse bawaan", re: /(?<![\w-])animate-pulse(?![\w-])/g },
+  { name: "durasi di string", re: /["'`][^"'`]*\b\d+m?s\s+(?:ease|linear|cubic-bezier)/g },
 ];
+
+/** `@keyframes` hanya di globals.css: file CSS lain di src tidak boleh membuat animasi sendiri. */
+const cssFiles = walk(SRC).filter((f) => f.endsWith(".css") && rel(f) !== "src/app/globals.css");
 
 const files = walk(SRC).filter(
   (f) => /\.(ts|tsx)$/.test(f) && !/\.test\.ts$/.test(f) && !ALLOWED.some((a) => rel(f).startsWith(a.path)),
@@ -71,6 +90,28 @@ function codeLines(src: string): { line: number; text: string }[] {
 }
 
 describe("Tampilan hanya lewat token tema", () => {
+  it("aturan animasi menangkap contoh terlarang dan meloloskan utility token", () => {
+    const hits = (text: string) => RULES.filter((r) => new RegExp(r.re.source).test(text)).map((r) => r.name);
+    expect(hits("delay-150")).toContain("jeda angka");
+    expect(hits("delay-[120ms]")).toContain("jeda angka");
+    expect(hits("ease-[cubic-bezier(0,0,1,1)]")).toContain("easing arbitrer");
+    expect(hits("animate-[spin_1s_linear]")).toContain("animasi arbitrer");
+    expect(hits("[animation-duration:300ms]")).toContain("animasi arbitrer");
+    expect(hits("transition-[opacity_200ms]")).toContain("transisi berdurasi");
+    expect(hits("@keyframes x {}")).toContain("keyframes di komponen");
+    expect(hits("transition-[width]")).toContain("transisi properti layout");
+    expect(hits("transition-all")).toContain("transisi properti layout");
+    expect(hits("animate-pulse")).toContain("pulse bawaan");
+    expect(hits(`transition: "transform 200ms ease"`)).toContain("durasi di string");
+    expect(hits("transition-transform transition-[color,scale] transition-colors")).toEqual([]);
+    expect(hits("transition-[color,scale] duration-fast ease-standard motion-enter group-hover:motion-zoom")).toEqual([]);
+  });
+
+  it("keyframes animasi hanya di src/app/globals.css (durasi dan easing dari token)", () => {
+    const offenders = cssFiles.filter((f) => /@keyframes\b/.test(readFileSync(f, "utf8"))).map(rel);
+    expect(offenders).toEqual([]);
+  });
+
   it("file sumber ditemukan", () => {
     expect(files.length).toBeGreaterThan(100);
   });

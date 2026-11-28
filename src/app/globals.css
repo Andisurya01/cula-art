@@ -159,7 +159,7 @@
   --radius-3xl: var(--shape-card);
   --radius-4xl: var(--shape-card);
 
-  /* ---- Animasi (T7): ease-standard, duration-fast/base/slow (utility di bawah) ---- */
+  /* ---- Animasi (T7): ease-standard, duration-fast/base/slow (utility di bawah); Fase 7 di akhir file ---- */
   --ease-standard: var(--motion-ease);
   --default-transition-duration: var(--motion-fast);
   --default-transition-timing-function: var(--motion-ease);
@@ -238,7 +238,404 @@
   }
 }
 
-/* T7: gerak selalu menghormati preferensi pengguna (token durasi juga 0 lewat <style> tema). */
+/* ============================================================================================
+ * Animasi (Fase 7). Nilai mentah dari token (<style id="theme-tokens">): --motion-fast/base/slow,
+ * --motion-ease, --motion-stagger, --motion-distance. Di sini diturunkan per tingkat `data-motion`
+ * (A2, A3): <html data-motion> dipasang skrip awal + MotionRoot; kontainer pratinjau menu Tampilan
+ * boleh punya `data-motion` sendiri. Variabel turunan diwariskan, jadi `data-motion` terdekat menang.
+ * Tanpa `data-motion` (JavaScript mati) variabel turunan tidak ada → semua nilai cadangan = diam (A4).
+ * Aturan variabel sengaja di luar @layer: harus menang atas `:root` di <style> tema.
+ * Hanya transform/translate/scale, opacity, dan clip-path yang dianimasikan (A5).
+ * ========================================================================================== */
+[data-motion="full"] {
+  --motion-reveal: var(--motion-slow);
+  --motion-step: var(--motion-stagger);
+  --motion-shift: var(--motion-distance);
+  --motion-from-opacity: 0;
+  --motion-line-from: 130%;
+  --motion-line-opacity: 1;
+  --motion-clip-from: 100%;
+  --motion-zoom-from: 1.06;
+  --motion-hover-zoom: 1.04;
+  --motion-hover-shift: 0.125rem;
+  --motion-press: 0.98;
+  --motion-lift-scale: 1.03;
+  --motion-lift-rotate: -1.5deg;
+  --motion-exit-scale: 0.92;
+  --motion-page: var(--motion-base);
+  --motion-page-exit: var(--motion-fast);
+  --motion-morph: var(--motion-slow);
+  --motion-theme: var(--motion-slow);
+  --motion-loop-state: running;
+}
+
+/* Halus: lebih singkat, geser dekat, tanpa efek besar (default Studio). */
+[data-motion="subtle"] {
+  --motion-reveal: var(--motion-base);
+  --motion-step: calc(var(--motion-stagger) * 0.5);
+  --motion-shift: calc(var(--motion-distance) * 0.35);
+  --motion-from-opacity: 0;
+  --motion-line-from: 35%;
+  --motion-line-opacity: 0;
+  --motion-clip-from: 20%;
+  --motion-zoom-from: 1.02;
+  --motion-hover-zoom: 1.02;
+  --motion-hover-shift: 0.0625rem;
+  --motion-press: 0.98;
+  --motion-lift-scale: 1.02;
+  --motion-lift-rotate: 0deg;
+  --motion-exit-scale: 0.96;
+  --motion-page: var(--motion-fast);
+  --motion-page-exit: var(--motion-fast);
+  --motion-morph: var(--motion-base);
+  --motion-theme: var(--motion-base);
+  --motion-loop-state: running;
+}
+
+/* Mati (juga hasil "kurangi gerakan"): semua durasi 0, termasuk transisi komponen yang sudah ada. */
+:root[data-motion="off"],
+[data-motion="off"] {
+  --motion-fast: 0ms;
+  --motion-base: 0ms;
+  --motion-slow: 0ms;
+  --motion-stagger: 0ms;
+  --motion-distance: 0px;
+  --motion-reveal: 0ms;
+  --motion-step: 0ms;
+  --motion-shift: 0px;
+  --motion-from-opacity: 1;
+  --motion-line-from: 0%;
+  --motion-line-opacity: 1;
+  --motion-clip-from: 0%;
+  --motion-zoom-from: 1;
+  --motion-hover-zoom: 1;
+  --motion-hover-shift: 0px;
+  --motion-press: 1;
+  --motion-lift-scale: 1;
+  --motion-lift-rotate: 0deg;
+  --motion-exit-scale: 1;
+  --motion-page: 0ms;
+  --motion-page-exit: 0ms;
+  --motion-morph: 0ms;
+  --motion-theme: 0ms;
+  --motion-loop-state: paused;
+}
+
+@layer components {
+  /* ---- Muncul saat di-scroll: Reveal / useReveal (status dipasang JS, lihat reveal-observer.ts) ---- */
+  .motion-reveal[data-reveal] {
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-reveal, 0ms);
+    transition-timing-function: var(--motion-ease);
+    transition-delay: calc(var(--motion-step, 0ms) * var(--reveal-i, 0));
+  }
+  .motion-reveal[data-reveal="pending"] {
+    opacity: var(--motion-from-opacity, 1);
+  }
+  .motion-reveal[data-reveal="pending"][data-reveal-effect="up"] {
+    translate: 0 var(--motion-shift, 0px);
+  }
+  /* Fokus keyboard di dalam elemen yang belum muncul: tampil seketika (cincin fokus selalu terlihat). */
+  .motion-reveal[data-reveal="pending"]:focus-within,
+  .motion-lines[data-reveal="pending"]:focus-within .motion-line-inner {
+    opacity: 1;
+    translate: none;
+    transition-duration: 0ms;
+  }
+
+  /* ---- Teks per baris (RevealLines): baris di dalam jendela pemotong, isi naik ke tempatnya ---- */
+  .motion-line,
+  .motion-line-inner {
+    display: block;
+  }
+  /* Jendela sedikit lebih besar dari kotak baris (inset negatif): aksen dan ekor huruf tidak terpotong. */
+  [data-motion="full"] .motion-line,
+  [data-motion="subtle"] .motion-line {
+    clip-path: inset(-0.3em -1em -0.35em -1em);
+  }
+  [data-lines-trigger="load"] .motion-line-inner {
+    animation: motion-line-in var(--motion-reveal, 0ms) var(--motion-ease) backwards;
+    animation-delay: calc(var(--motion-step, 0ms) * var(--motion-i, 0));
+  }
+  .motion-lines[data-reveal="pending"] {
+    opacity: 1;
+  }
+  .motion-lines[data-reveal] .motion-line-inner {
+    transition-property: translate, opacity;
+    transition-duration: var(--motion-reveal, 0ms);
+    transition-timing-function: var(--motion-ease);
+    transition-delay: calc(var(--motion-step, 0ms) * (var(--motion-i, 0) + var(--reveal-i, 0)));
+  }
+  .motion-lines[data-reveal="pending"] .motion-line-inner {
+    translate: 0 var(--motion-line-from, 0%);
+    opacity: var(--motion-line-opacity, 1);
+  }
+
+  /* ---- Hitung naik (CountUp): lebar dipesan oleh salinan nilai akhir yang tidak terlihat ---- */
+  .motion-count-box {
+    display: inline-grid;
+  }
+  .motion-count-box > * {
+    grid-area: 1 / 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .motion-count-ghost {
+    visibility: hidden;
+  }
+}
+
+/*
+ * Animasi saat dipasang (CSS murni, tanpa menunggu hidrasi): untuk isi di layar pertama (hero,
+ * kartu Beranda). Urutan berjeda lewat `style={motionIndex(i)}` (`--motion-i` × token jeda).
+ * Fill `backwards`: setelah selesai, elemen kembali ke gaya aslinya (tanpa sisa clip/transform).
+ */
+@utility motion-enter {
+  animation: motion-enter var(--motion-reveal, 0ms) var(--motion-ease) backwards;
+  animation-delay: calc(var(--motion-step, 0ms) * var(--motion-i, 0));
+}
+@utility motion-enter-fade {
+  animation: motion-fade var(--motion-reveal, 0ms) var(--motion-ease) backwards;
+  animation-delay: calc(var(--motion-step, 0ms) * var(--motion-i, 0));
+}
+/* Foto tersingkap dari bawah; pasangkan dengan motion-enter-zoom di gambar di dalamnya. */
+@utility motion-enter-clip {
+  animation: motion-clip calc(var(--motion-reveal, 0ms) * 1.6) var(--motion-ease) backwards;
+  animation-delay: calc(var(--motion-step, 0ms) * var(--motion-i, 0));
+}
+@utility motion-enter-zoom {
+  animation: motion-zoom calc(var(--motion-reveal, 0ms) * 2) var(--motion-ease) backwards;
+  animation-delay: calc(var(--motion-step, 0ms) * var(--motion-i, 0));
+}
+/* Bilah progres tumbuh dari kiri. */
+@utility motion-grow-x {
+  transform-origin: left center;
+  animation: motion-grow-x calc(var(--motion-reveal, 0ms) * 1.6) var(--motion-ease) backwards;
+  animation-delay: calc(var(--motion-step, 0ms) * var(--motion-i, 0));
+}
+/* Keluar (mis. kartu saran disembunyikan): pudar + mengecil, lalu pemanggil melepas elemen. */
+@utility motion-exit {
+  animation: motion-exit var(--motion-base) var(--motion-ease) forwards;
+  pointer-events: none;
+}
+/* Centang muncul tersapu dari kiri (Checkbox). */
+@utility motion-check {
+  animation: motion-check var(--motion-base) var(--motion-ease) backwards;
+}
+
+/* Status hover/tekan/seret: pakai bersama `transition-transform duration-* ease-standard`. */
+@utility motion-zoom {
+  scale: var(--motion-hover-zoom, 1);
+}
+@utility motion-nudge {
+  translate: var(--motion-hover-shift, 0px) calc(var(--motion-hover-shift, 0px) * -1);
+}
+@utility motion-press {
+  scale: var(--motion-press, 1);
+}
+@utility motion-lift {
+  scale: var(--motion-lift-scale, 1);
+  rotate: var(--motion-lift-rotate, 0deg);
+}
+
+/* Shimmer skeleton dan kursor streaming: diam saat Mati, tanpa JS, atau kurangi gerakan. */
+@utility motion-shimmer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    translate: -100% 0;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--foreground) 6%, transparent),
+      transparent
+    );
+    animation: motion-shimmer calc(var(--motion-slow) * 3.5) var(--motion-ease) infinite;
+    animation-play-state: var(--motion-loop-state, paused);
+  }
+}
+@utility motion-caret {
+  &::after {
+    content: "";
+    display: inline-block;
+    inline-size: 0.5em;
+    block-size: 1em;
+    margin-inline-start: 0.15em;
+    vertical-align: -0.15em;
+    border-radius: 0.1em;
+    background-color: currentColor;
+    opacity: 0.55;
+    /* Maks. 5 kedip (±4,5 detik, WCAG 2.2.2), lalu diam terlihat. */
+    animation: motion-blink calc(var(--motion-slow) * 2) var(--motion-ease) 5;
+    animation-play-state: var(--motion-loop-state, paused);
+  }
+}
+
+@keyframes motion-enter {
+  from {
+    opacity: var(--motion-from-opacity, 1);
+    translate: 0 var(--motion-shift, 0px);
+  }
+}
+@keyframes motion-fade {
+  from {
+    opacity: var(--motion-from-opacity, 1);
+  }
+}
+/* Sisi dan bawah diperlebar (inset negatif): bayangan bingkai ikut tersingkap, tidak muncul tiba-tiba. */
+@keyframes motion-clip {
+  from {
+    clip-path: inset(var(--motion-clip-from, 0%) -3rem -3rem -3rem);
+  }
+  to {
+    clip-path: inset(-3rem);
+  }
+}
+@keyframes motion-zoom {
+  from {
+    scale: var(--motion-zoom-from, 1);
+  }
+}
+@keyframes motion-line-in {
+  from {
+    translate: 0 var(--motion-line-from, 0%);
+    opacity: var(--motion-line-opacity, 1);
+  }
+}
+@keyframes motion-grow-x {
+  from {
+    scale: 0 1;
+  }
+}
+@keyframes motion-exit {
+  to {
+    opacity: 0;
+    scale: var(--motion-exit-scale, 1);
+  }
+}
+@keyframes motion-check {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes motion-shimmer {
+  to {
+    translate: 100% 0;
+  }
+}
+@keyframes motion-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---- View Transitions (A7, A8): kelas dari src/components/motion/view-transitions.tsx ---- */
+/* Klik selama transisi tetap sampai ke halaman (panduan Next). */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(*) {
+  animation-duration: var(--motion-page, 0ms);
+  animation-timing-function: var(--motion-ease);
+}
+/* Elemen bersama: foto kartu "melebar" menjadi foto utama; potongan mengikuti bingkai, tanpa gepeng. */
+::view-transition-group(.vt-morph) {
+  animation-duration: var(--motion-morph, 0ms);
+}
+::view-transition-old(.vt-morph),
+::view-transition-new(.vt-morph) {
+  block-size: 100%;
+  object-fit: cover;
+  animation-duration: var(--motion-morph, 0ms);
+  animation-timing-function: var(--motion-ease);
+}
+/* Halaman Galeri: lama pudar cepat, baru masuk lembut setelahnya. */
+::view-transition-old(.vt-page) {
+  animation: motion-vt-out var(--motion-page-exit, 0ms) var(--motion-ease) both;
+}
+::view-transition-new(.vt-page) {
+  animation: motion-vt-in var(--motion-page, 0ms) var(--motion-ease) var(--motion-page-exit, 0ms) both;
+}
+/* Studio dan isi yang berganti di tempat: crossfade singkat, tanpa geser arah. */
+::view-transition-old(.vt-fade) {
+  animation: motion-vt-out var(--motion-page, 0ms) var(--motion-ease) both;
+}
+::view-transition-new(.vt-fade) {
+  animation: motion-fade-in var(--motion-page, 0ms) var(--motion-ease) both;
+}
+::view-transition-group(.vt-pill) {
+  animation-duration: var(--motion-base, 0ms);
+}
+@keyframes motion-vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes motion-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes motion-vt-in {
+  from {
+    opacity: 0;
+    translate: 0 calc(var(--motion-shift, 0px) * 0.5);
+  }
+}
+
+/* Ganti mode (A7): halaman baru tersingkap melingkar dari tombol mode (theme-mode-toggle.tsx). */
+:root[data-theme-switch]::view-transition-old(root),
+:root[data-theme-switch]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root[data-theme-switch]::view-transition-new(root) {
+  animation: motion-theme-reveal var(--motion-theme, 0ms) var(--motion-ease) both;
+}
+@keyframes motion-theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-reveal-x, 50%) var(--theme-reveal-y, 50%));
+  }
+  to {
+    clip-path: circle(var(--theme-reveal-r, 150%) at var(--theme-reveal-x, 50%) var(--theme-reveal-y, 50%));
+  }
+}
+
+:root[data-motion="off"]::view-transition-group(*),
+:root[data-motion="off"]::view-transition-old(*),
+:root[data-motion="off"]::view-transition-new(*) {
+  animation: none !important;
+}
+
+/*
+ * Toast (Sonner) memakai durasi dan easing token. Durasi cepat: Sonner melepas toast 200 ms setelah
+ * mulai keluar (tetap di library), jadi durasi lebih panjang akan terpotong.
+ */
+[data-sonner-toaster] [data-sonner-toast] {
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--motion-ease);
+}
+
+/* Cetak: isi yang belum sempat muncul tetap tercetak. */
+@media print {
+  .motion-reveal[data-reveal="pending"],
+  .motion-lines[data-reveal="pending"] .motion-line-inner {
+    opacity: 1 !important;
+    translate: none !important;
+    clip-path: none !important;
+  }
+}
+
+/*
+ * T7 + A3: "kurangi gerakan" selalu menang. Token durasi juga 0 lewat <style> tema dan skrip awal
+ * menulis data-motion="off"; aturan ini cadangan untuk animasi library dan View Transitions.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -247,5 +644,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
