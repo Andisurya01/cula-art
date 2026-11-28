@@ -125,7 +125,15 @@ describe("Inventaris Server Action dan Route Handler", () => {
   });
 
   it("tidak ada loading/template/default di Studio yang bisa merender data tanpa page", () => {
-    const extra = walk(join(SRC, "app", "studio")).filter((f) => /[\\/](template|default)\.tsx?$/.test(f));
-    expect(extra.map(rel)).toEqual([]);
+    const studioApp = walk(join(SRC, "app", "studio"));
+    expect(studioApp.filter((f) => /[\\/]default\.tsx?$/.test(f)).map(rel)).toEqual([]);
+    // Fase 7: template.tsx (transisi antarmenu) dan loading.tsx (skeleton) boleh, asal murni tampilan:
+    // tanpa await, database, queries, Server Action, atau cookie/header (data hanya lewat page + requireAdmin).
+    const shells = studioApp.filter((f) => /[\\/](template|loading)\.tsx?$/.test(f));
+    expect(shells.length).toBeGreaterThan(0);
+    for (const file of shells) {
+      const src = readFileSync(file, "utf8");
+      expect(src, rel(file)).not.toMatch(/\bawait\b|@\/lib\/db|\/queries\b|\/actions\b|["']use server["']|\b(cookies|headers)\(/);
+    }
   });
 });

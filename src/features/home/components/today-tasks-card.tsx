@@ -21,13 +21,16 @@ export function TodayTasksCard({
   tasks,
   now,
   className,
+  style,
 }: {
   tasks: readonly TodayTask[];
   now: Date;
   className?: string;
+  /** Mis. `motionIndex(i)` untuk masuk berjeda (Fase 7). */
+  style?: React.CSSProperties;
 }) {
   return (
-    <Card className={className}>
+    <Card className={className} style={style}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ListTodo className="size-4 text-muted-foreground" aria-hidden />

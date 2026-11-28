@@ -8,20 +8,45 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { cn } from "@/lib/utils";
 import { BOTTOM_NAV_HREFS, isActivePath, NAV_ITEMS, type NavItem } from "./nav-items";
 import { ThemeModeToggle } from "@/components/design/theme-mode-toggle";
+import { NAV_PILL_NAME, NavPill } from "./nav-pill";
 import { QUICK_IDEA_BUTTON_CLASS } from "./studio-mark";
 import { useLayoutUi } from "./ui-store";
 
-/** Satu sel bottom nav: tinggi penuh bilah (52 px), jadi target sentuh selalu ≥ 40 px. */
-const CELL =
-  "flex h-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-button text-caption transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring";
+/** Tata letak isi sel; dipakai sel dan salinannya di pil aktif supaya posisinya sama persis. */
+const CELL_LAYOUT = "flex min-w-0 flex-col items-center justify-center gap-0.5";
+
+/**
+ * Satu sel bottom nav: tinggi penuh bilah (52 px), jadi target sentuh selalu ≥ 40 px. Warna berganti
+ * dengan durasi/easing token; ditekan sedikit mengecil (0,98, mati saat animasi Mati/kurangi gerakan).
+ */
+const CELL = `${CELL_LAYOUT} relative h-full rounded-button text-caption outline-hidden transition-[color,background-color,scale] duration-fast ease-standard focus-visible:ring-3 focus-visible:ring-ring active:motion-press`;
 
 function cellState(active: boolean) {
-  return active ? "bg-primary font-medium text-primary-foreground" : "text-muted-foreground hover:text-foreground";
+  return active ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground";
+}
+
+/** Ikon + label sel (juga isi pil aktif). */
+function CellContent({ icon: Icon, label }: { icon: NavItem["icon"]; label: string }) {
+  return (
+    <>
+      <Icon className="size-5 shrink-0" aria-hidden />
+      <span className="max-w-full truncate">{label}</span>
+    </>
+  );
+}
+
+/** Pil aktif yang berpindah antarsel saat navigasi (`NavPill`). */
+function CellPill({ icon, label }: { icon: NavItem["icon"]; label: string }) {
+  return (
+    <NavPill name={NAV_PILL_NAME.bottom} className={CELL_LAYOUT}>
+      <CellContent icon={icon} label={label} />
+    </NavPill>
+  );
 }
 
 /**
  * Bottom navigation HP (< 768 px): Beranda, Pipeline, + Ide, Kalender, Lainnya. Bilah putih mengambang
- * di atas latar abu; menu aktif = pil primer, + Ide = pil lime.
+ * di atas latar abu; menu aktif = pil primer yang bergeser ke sel baru saat navigasi, + Ide = pil lime.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -57,8 +82,8 @@ export function BottomNav() {
             aria-haspopup="dialog"
             className={cn(CELL, cellState(moreActive))}
           >
-            <Menu className="size-5" aria-hidden />
-            Lainnya
+            {moreActive && <CellPill icon={Menu} label="Lainnya" />}
+            <CellContent icon={Menu} label="Lainnya" />
           </button>
         </div>
       </nav>
@@ -78,7 +103,7 @@ export function BottomNav() {
                     onClick={() => setMoreOpen(false)}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex h-full min-h-20 flex-col items-center justify-center gap-1.5 rounded-card-nested p-3 text-center text-caption transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
+                      "flex h-full min-h-20 flex-col items-center justify-center gap-1.5 rounded-card-nested p-3 text-center text-caption outline-hidden transition-[color,background-color,scale] duration-fast ease-standard focus-visible:ring-3 focus-visible:ring-ring active:motion-press",
                       active
                         ? "bg-primary font-medium text-primary-foreground"
                         : "bg-muted text-foreground hover:bg-[color-mix(in_srgb,var(--muted),var(--foreground)_6%)]",
@@ -103,8 +128,8 @@ export function BottomNav() {
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   return (
     <Link href={item.href} aria-current={active ? "page" : undefined} className={cn(CELL, cellState(active))}>
-      <item.icon className="size-5" aria-hidden />
-      <span className="max-w-full truncate">{item.label}</span>
+      {active && <CellPill icon={item.icon} label={item.label} />}
+      <CellContent icon={item.icon} label={item.label} />
     </Link>
   );
 }

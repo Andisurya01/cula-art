@@ -115,7 +115,8 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
               {...form.register("title")}
             />
             {form.formState.errors.title && (
-              <p className="text-caption text-destructive">{form.formState.errors.title.message}</p>
+              // Pesan muncul dengan fade singkat (token, tanpa geser); diam saat animasi Mati.
+              <p className="text-caption text-destructive motion-enter-fade">{form.formState.errors.title.message}</p>
             )}
           </div>
 
@@ -165,7 +166,11 @@ export function QuickIdeaDialog({ pillars }: { pillars: PillarOption[] }) {
   );
 }
 
-/** Tombol bulat + Ide yang mengambang di HP (di atas bilah bottom nav, lime seperti tombol + Ide lain). */
+/**
+ * Tombol bulat + Ide yang mengambang di HP (di atas bilah bottom nav, lime seperti tombol + Ide lain).
+ * Hover dan tekan (0,98) dari `Button`, durasi/easing token; sengaja tanpa animasi masuk supaya
+ * selalu langsung bisa diklik.
+ */
 export function QuickIdeaFab() {
   const setOpen = useLayoutUi((s) => s.setQuickIdeaOpen);
   return (
@@ -199,7 +204,7 @@ function ChipButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex h-9 items-center gap-1.5 rounded-button border px-3.5 text-body-sm transition-colors outline-hidden focus-visible:ring-3 focus-visible:ring-ring",
+        "inline-flex h-9 items-center gap-1.5 rounded-button border px-3.5 text-body-sm outline-hidden transition-[color,background-color,border-color,scale] duration-fast ease-standard focus-visible:ring-3 focus-visible:ring-ring active:motion-press",
         active
           ? "border-primary bg-primary font-medium text-primary-foreground"
           : "border-border bg-card text-foreground hover:bg-muted",

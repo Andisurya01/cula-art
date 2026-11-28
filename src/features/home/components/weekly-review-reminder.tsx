@@ -11,14 +11,17 @@ import { HOME_ALERT } from "./row-styles";
 export function WeeklyReviewReminder({
   reminder,
   className,
+  style,
 }: {
   reminder: ReviewReminder | null;
   className?: string;
+  /** Mis. `motionIndex(i)` untuk masuk berjeda (Fase 7). */
+  style?: React.CSSProperties;
 }) {
   if (!reminder) return null;
   const view = reviewReminderView(reminder);
   return (
-    <Alert className={cn(HOME_ALERT, className)} data-kind={reminder.kind}>
+    <Alert className={cn(HOME_ALERT, className)} style={style} data-kind={reminder.kind}>
       <NotebookPen />
       <AlertTitle>{view.title}</AlertTitle>
       <AlertDescription>

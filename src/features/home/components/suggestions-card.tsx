@@ -8,12 +8,15 @@ import { HOME_SUGGESTION_LIMIT, SUGGESTIONS_EMPTY_NOTE } from "../derive";
 export function SuggestionsCard({
   suggestions,
   className,
+  style,
 }: {
   suggestions: readonly SuggestionView[];
   className?: string;
+  /** Mis. `motionIndex(i)` untuk masuk berjeda (Fase 7). */
+  style?: React.CSSProperties;
 }) {
   return (
-    <Card className={className}>
+    <Card className={className} style={style}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="size-4 text-muted-foreground" aria-hidden />

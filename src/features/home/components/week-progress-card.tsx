@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarCheck, CalendarDays, CheckCircle2 } from "lucide-react";
+import { CountUp } from "@/components/motion/count-up";
 import { PillarBadge } from "@/components/pillar-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,14 +20,17 @@ export function WeekProgressCard({
   progress,
   items,
   className,
+  style,
 }: {
   target: number;
   progress: WeekProgress;
   items: readonly WeekItem[];
   className?: string;
+  /** Mis. `motionIndex(i)` untuk masuk berjeda (Fase 7); bilah progres ikut urutan kartu. */
+  style?: React.CSSProperties;
 }) {
   return (
-    <Card variant="blue" className={cn("justify-between", className)}>
+    <Card variant="blue" className={cn("justify-between", className)} style={style}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarCheck className="size-4" aria-hidden />
@@ -36,13 +40,20 @@ export function WeekProgressCard({
       <CardContent className="space-y-4">
         <div className="space-y-3">
           <p className="flex flex-wrap items-baseline gap-x-2">
-            <span className="font-heading text-h1">{progress.posted}</span>
+            {/* Hitung naik sekali saat terlihat; nilai akhir sudah ada di HTML (lebar dipesan, tanpa geser). */}
+            <CountUp value={progress.posted} className="font-heading text-h1" />
             <span className="text-body">dari {target} post tayang</span>
           </p>
-          {/* Tayang = penuh, terjadwal = pudar. Angkanya tertulis di bawah, jadi bilah ini hanya hiasan. */}
+          {/*
+            Tayang = penuh, terjadwal = pudar. Angkanya tertulis di bawah, jadi bilah ini hanya hiasan.
+            Isian (kedua bagian sekaligus) tumbuh dari kiri saat kartu masuk (`motion-grow-x`, skala, bukan
+            lebar); lintasan tetap diam. Mati / kurangi gerakan: langsung penuh.
+          */}
           <div aria-hidden className="flex h-2 overflow-hidden rounded-full bg-current/20">
-            <div className="h-full bg-current" style={{ width: `${progress.postedRatio * 100}%` }} />
-            <div className="h-full bg-current/50" style={{ width: `${progress.scheduledRatio * 100}%` }} />
+            <div className="flex h-full w-full motion-grow-x">
+              <div className="h-full bg-current" style={{ width: `${progress.postedRatio * 100}%` }} />
+              <div className="h-full bg-current/50" style={{ width: `${progress.scheduledRatio * 100}%` }} />
+            </div>
           </div>
           <p className="text-sm">
             {progress.scheduled} terjadwal · {weekProgressNote(progress, target)}

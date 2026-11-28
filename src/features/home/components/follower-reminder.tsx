@@ -12,14 +12,17 @@ export function FollowerReminder({
   platforms,
   latest,
   className,
+  style,
 }: {
   platforms: readonly Platform[];
   latest: readonly LatestFollowers[];
   className?: string;
+  /** Mis. `motionIndex(i)` untuk masuk berjeda (Fase 7). */
+  style?: React.CSSProperties;
 }) {
   if (platforms.length === 0) return null;
   return (
-    <Alert className={cn(HOME_ALERT, className)}>
+    <Alert className={cn(HOME_ALERT, className)} style={style}>
       <CalendarClock />
       <AlertTitle>Saatnya mencatat followers</AlertTitle>
       <AlertDescription>
